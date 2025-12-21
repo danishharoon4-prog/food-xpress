@@ -30,6 +30,14 @@ import RiderEarnings from "./pages/rider/RiderEarnings";
 import RiderRatings from "./pages/rider/RiderRatings";
 import RiderSettings from "./pages/rider/RiderSettings";
 
+// Customer
+import Restaurants from "./pages/customer/Restaurants";
+import RestaurantMenu from "./pages/customer/RestaurantMenu";
+import Cart from "./pages/customer/Cart";
+import Checkout from "./pages/customer/Checkout";
+import OrderTracking from "./pages/customer/OrderTracking";
+import MyOrders from "./pages/customer/MyOrders";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -44,6 +52,14 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               
+              {/* Customer Routes */}
+              <Route path="/restaurants" element={<Restaurants />} />
+              <Route path="/restaurant/:id" element={<RestaurantMenu />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/order/:id" element={<OrderTracking />} />
+              <Route path="/orders" element={<MyOrders />} />
+
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
