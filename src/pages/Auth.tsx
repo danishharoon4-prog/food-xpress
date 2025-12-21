@@ -1,0 +1,282 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, UtensilsCrossed, Bike, Shield } from 'lucide-react';
+import { z } from 'zod';
+import type { AppRole } from '@/types';
+
+const emailSchema = z.string().email('Please enter a valid email address');
+const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+const nameSchema = z.string().min(2, 'Name must be at least 2 characters');
+
+export default function Auth() {
+  const [searchParams] = useSearchParams();
+  const defaultRole = (searchParams.get('role') as AppRole) || 'customer';
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<AppRole>(defaultRole);
+  const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
+  
+  // Form fields
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { signIn, signUp, user, role } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user && role) {
+      const redirectPath = 
+        role === 'admin' ? '/admin' :
+        role === 'rider' ? '/rider' : '/';
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, role, navigate]);
+
+  const validateForm = (isSignup: boolean): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    try {
+      emailSchema.parse(email);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        newErrors.email = e.errors[0].message;
+      }
+    }
+
+    try {
+      passwordSchema.parse(password);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        newErrors.password = e.errors[0].message;
+      }
+    }
+
+    if (isSignup) {
+      try {
+        nameSchema.parse(fullName);
+      } catch (e) {
+        if (e instanceof z.ZodError) {
+          newErrors.fullName = e.errors[0].message;
+        }
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm(false)) return;
+
+    setIsLoading(true);
+    const { error } = await signIn(email, password);
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: 'Login Failed',
+        description: error.message === 'Invalid login credentials' 
+          ? 'Invalid email or password. Please try again.'
+          : error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm(true)) return;
+
+    setIsLoading(true);
+    const { error } = await signUp(email, password, fullName, selectedRole);
+    setIsLoading(false);
+
+    if (error) {
+      let message = error.message;
+      if (error.message.includes('already registered')) {
+        message = 'This email is already registered. Please login instead.';
+      }
+      toast({
+        title: 'Signup Failed',
+        description: message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Account Created!',
+        description: 'Welcome! You can now start using the app.',
+      });
+    }
+  };
+
+  const roleOptions = [
+    { value: 'customer', label: 'Customer', icon: UtensilsCrossed, description: 'Order delicious food' },
+    { value: 'rider', label: 'Rider', icon: Bike, description: 'Deliver & earn' },
+    { value: 'admin', label: 'Admin', icon: Shield, description: 'Manage platform' },
+  ] as const;
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/30 p-4">
+      <Card className="w-full max-w-md shadow-soft-xl border-0">
+        <CardHeader className="text-center space-y-2">
+          <div className="mx-auto w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mb-2">
+            <UtensilsCrossed className="w-8 h-8 text-primary-foreground" />
+          </div>
+          <CardTitle className="text-2xl font-bold">FoodExpress</CardTitle>
+          <CardDescription>
+            {activeTab === 'login' ? 'Welcome back!' : 'Create your account'}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'login' | 'signup')}>
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password}</p>
+                  )}
+                </div>
+
+                <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    'Sign In'
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="signup">
+              <form onSubmit={handleSignup} className="space-y-4">
+                {/* Role Selection */}
+                <div className="space-y-2">
+                  <Label>I want to</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {roleOptions.map(({ value, label, icon: Icon, description }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setSelectedRole(value)}
+                        className={`p-3 rounded-xl border-2 transition-all text-center ${
+                          selectedRole === value
+                            ? 'border-primary bg-accent'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 mx-auto mb-1 ${
+                          selectedRole === value ? 'text-primary' : 'text-muted-foreground'
+                        }`} />
+                        <span className="text-xs font-medium block">{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {errors.fullName && (
+                    <p className="text-sm text-destructive">{errors.fullName}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">Email</Label>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password}</p>
+                  )}
+                </div>
+
+                <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    'Create Account'
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
