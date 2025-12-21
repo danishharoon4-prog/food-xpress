@@ -5,9 +5,30 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+
+// Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+
+// Admin
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminRestaurants from "./pages/admin/AdminRestaurants";
+import AdminMenu from "./pages/admin/AdminMenu";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminRiders from "./pages/admin/AdminRiders";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminReports from "./pages/admin/AdminReports";
+import AdminSettings from "./pages/admin/AdminSettings";
+
+// Rider
+import RiderLayout from "./pages/rider/RiderLayout";
+import RiderDashboard from "./pages/rider/RiderDashboard";
+import RiderOrders from "./pages/rider/RiderOrders";
+import RiderEarnings from "./pages/rider/RiderEarnings";
+import RiderRatings from "./pages/rider/RiderRatings";
+import RiderSettings from "./pages/rider/RiderSettings";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +43,28 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="restaurants" element={<AdminRestaurants />} />
+                <Route path="menu" element={<AdminMenu />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="riders" element={<AdminRiders />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="reports" element={<AdminReports />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
+
+              {/* Rider Routes */}
+              <Route path="/rider" element={<RiderLayout />}>
+                <Route index element={<RiderDashboard />} />
+                <Route path="orders" element={<RiderOrders />} />
+                <Route path="earnings" element={<RiderEarnings />} />
+                <Route path="ratings" element={<RiderRatings />} />
+                <Route path="settings" element={<RiderSettings />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
