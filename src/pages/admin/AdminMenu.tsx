@@ -1,0 +1,247 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Pencil, Trash2, UtensilsCrossed } from 'lucide-react';
+import type { MenuItem, Restaurant } from '@/types';
+
+export default function AdminMenu() {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const { toast } = useToast();
+
+  // Form state
+  const [restaurantId, setRestaurantId] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [isFeatured, setIsFeatured] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const [menuRes, restaurantsRes] = await Promise.all([
+      supabase.from('menu_items').select('*, restaurant:restaurants(name)').order('created_at', { ascending: false }),
+      supabase.from('restaurants').select('*').eq('is_active', true),
+    ]);
+
+    if (menuRes.data) setMenuItems(menuRes.data as unknown as MenuItem[]);
+    if (restaurantsRes.data) setRestaurants(restaurantsRes.data as Restaurant[]);
+    setLoading(false);
+  };
+
+  const resetForm = () => {
+    setRestaurantId('');
+    setName('');
+    setDescription('');
+    setPrice('');
+    setImageUrl('');
+    setIsAvailable(true);
+    setIsFeatured(false);
+    setEditingItem(null);
+  };
+
+  const openDialog = (item?: MenuItem) => {
+    if (item) {
+      setEditingItem(item);
+      setRestaurantId(item.restaurant_id);
+      setName(item.name);
+      setDescription(item.description || '');
+      setPrice(String(item.price));
+      setImageUrl(item.image_url || '');
+      setIsAvailable(item.is_available);
+      setIsFeatured(item.is_featured);
+    } else {
+      resetForm();
+    }
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const itemData = {
+      restaurant_id: restaurantId,
+      name,
+      description: description || null,
+      price: parseFloat(price),
+      image_url: imageUrl || null,
+      is_available: isAvailable,
+      is_featured: isFeatured,
+    };
+
+    if (editingItem) {
+      const { error } = await supabase
+        .from('menu_items')
+        .update(itemData)
+        .eq('id', editingItem.id);
+
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Success', description: 'Menu item updated' });
+        setDialogOpen(false);
+        fetchData();
+      }
+    } else {
+      const { error } = await supabase.from('menu_items').insert(itemData);
+
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Success', description: 'Menu item added' });
+        setDialogOpen(false);
+        fetchData();
+      }
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this menu item?')) return;
+
+    const { error } = await supabase.from('menu_items').delete().eq('id', id);
+
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Deleted', description: 'Menu item removed' });
+      fetchData();
+    }
+  };
+
+  if (loading) {
+    return <div className="animate-pulse text-muted-foreground">Loading menu...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Menu Items</h2>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => openDialog()} className="gradient-primary">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Item
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingItem ? 'Edit Item' : 'Add Menu Item'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label>Restaurant *</Label>
+                <Select value={restaurantId} onValueChange={setRestaurantId} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select restaurant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {restaurants.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="itemName">Name *</Label>
+                <Input id="itemName" value={name} onChange={(e) => setName(e.target.value)} required />
+              </div>
+              <div>
+                <Label htmlFor="itemDesc">Description</Label>
+                <Textarea id="itemDesc" value={description} onChange={(e) => setDescription(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="itemPrice">Price (PKR) *</Label>
+                <Input
+                  id="itemPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="itemImage">Image URL</Label>
+                <Input id="itemImage" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="itemAvailable">Available</Label>
+                <Switch id="itemAvailable" checked={isAvailable} onCheckedChange={setIsAvailable} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="itemFeatured">Featured</Label>
+                <Switch id="itemFeatured" checked={isFeatured} onCheckedChange={setIsFeatured} />
+              </div>
+              <Button type="submit" className="w-full">{editingItem ? 'Update' : 'Add'} Item</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {menuItems.length === 0 ? (
+        <Card>
+          <CardContent className="py-10 text-center">
+            <UtensilsCrossed className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No menu items yet. Add your first item!</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {menuItems.map((item) => (
+            <Card key={item.id} className="overflow-hidden">
+              {item.image_url && (
+                <div className="h-32 overflow-hidden">
+                  <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="font-semibold">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {(item as any).restaurant?.name || 'Unknown restaurant'}
+                    </p>
+                  </div>
+                  <span className="font-bold text-primary">PKR {Number(item.price).toLocaleString()}</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.description}</p>
+                <div className="flex gap-2 mb-3">
+                  {item.is_featured && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">Featured</span>
+                  )}
+                  <span className={`text-xs px-2 py-1 rounded-full ${item.is_available ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
+                    {item.is_available ? 'Available' : 'Unavailable'}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
+                    <Pencil className="w-4 h-4 mr-1" /> Edit
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)} className="text-destructive">
+                    <Trash2 className="w-4 h-4 mr-1" /> Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
