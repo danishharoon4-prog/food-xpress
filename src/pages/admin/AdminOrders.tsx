@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag } from 'lucide-react';
-import type { Order, OrderStatus } from '@/types';
+import { ShoppingBag, User } from 'lucide-react';
+import type { Order, OrderStatus, Rider } from '@/types';
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-warning/10 text-warning',
@@ -19,13 +18,23 @@ const statusColors: Record<OrderStatus, string> = {
   cancelled: 'bg-destructive/10 text-destructive',
 };
 
+interface RiderWithProfile {
+  id: string;
+  user_id: string;
+  is_online: boolean;
+  is_verified: boolean;
+  profile?: { full_name: string };
+}
+
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [riders, setRiders] = useState<RiderWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchOrders();
+    fetchRiders();
     
     // Real-time subscription
     const channel = supabase
@@ -54,6 +63,17 @@ export default function AdminOrders() {
     setLoading(false);
   };
 
+  const fetchRiders = async () => {
+    const { data } = await supabase
+      .from('riders')
+      .select('*, profile:profiles!riders_user_id_fkey(full_name)')
+      .eq('is_verified', true);
+
+    if (data) {
+      setRiders(data as unknown as RiderWithProfile[]);
+    }
+  };
+
   const updateStatus = async (orderId: string, status: OrderStatus) => {
     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
 
@@ -64,9 +84,29 @@ export default function AdminOrders() {
     }
   };
 
+  const assignRider = async (orderId: string, riderId: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ rider_id: riderId, status: 'ready_for_pickup' as OrderStatus })
+      .eq('id', orderId);
+
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Rider Assigned', description: 'Order assigned to rider successfully' });
+      fetchOrders();
+    }
+  };
+
   if (loading) {
     return <div className="animate-pulse text-muted-foreground">Loading orders...</div>;
   }
+
+  const getRiderName = (riderId: string | null) => {
+    if (!riderId) return null;
+    const rider = riders.find(r => r.id === riderId);
+    return rider?.profile?.full_name || 'Unknown Rider';
+  };
 
   return (
     <div className="space-y-6">
@@ -107,6 +147,39 @@ export default function AdminOrders() {
                     <p className="text-sm text-muted-foreground mb-1">Items</p>
                     <p className="text-sm">{order.order_items?.length || 0} items</p>
                   </div>
+                </div>
+
+                {/* Rider Assignment */}
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Rider Assignment</span>
+                  </div>
+                  {order.rider_id ? (
+                    <p className="text-sm text-success">Assigned to: {getRiderName(order.rider_id)}</p>
+                  ) : (
+                    <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a rider to assign" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {riders.filter(r => r.is_online).length === 0 ? (
+                          <SelectItem value="_none" disabled>No online riders</SelectItem>
+                        ) : (
+                          riders.filter(r => r.is_online).map((rider) => (
+                            <SelectItem key={rider.id} value={rider.id}>
+                              {rider.profile?.full_name || 'Rider'} {rider.is_online ? '(Online)' : '(Offline)'}
+                            </SelectItem>
+                          ))
+                        )}
+                        {riders.filter(r => !r.is_online).map((rider) => (
+                          <SelectItem key={rider.id} value={rider.id}>
+                            {rider.profile?.full_name || 'Rider'} (Offline)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
                 <div className="mt-4 flex items-center gap-4 flex-wrap">
