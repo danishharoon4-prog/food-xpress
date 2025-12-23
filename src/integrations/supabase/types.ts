@@ -678,6 +678,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_system_notification: {
+        Args: {
+          p_data?: Json
+          p_message: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
