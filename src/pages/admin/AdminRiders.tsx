@@ -2,11 +2,26 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bike, Star } from 'lucide-react';
+import { Bike, Star, DollarSign, Package } from 'lucide-react';
 import type { Rider } from '@/types';
 
+interface RiderProfile {
+  full_name: string;
+  phone: string;
+}
+
+interface RiderWalletInfo {
+  balance: number;
+  total_earned: number;
+}
+
+interface RiderWithDetails extends Omit<Rider, 'profile'> {
+  profile?: RiderProfile;
+  wallet?: RiderWalletInfo;
+}
+
 export default function AdminRiders() {
-  const [riders, setRiders] = useState<(Rider & { profile?: { full_name: string; phone: string } })[]>([]);
+  const [riders, setRiders] = useState<RiderWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,12 +29,36 @@ export default function AdminRiders() {
   }, []);
 
   const fetchRiders = async () => {
-    const { data } = await supabase
+    // Fetch all riders
+    const { data: ridersData } = await supabase
       .from('riders')
-      .select('*, profile:profiles!riders_user_id_fkey(full_name, phone)')
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (data) setRiders(data as any);
+    if (ridersData && ridersData.length > 0) {
+      // Fetch profiles for all rider user_ids
+      const userIds = ridersData.map(r => r.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone')
+        .in('id', userIds);
+
+      // Fetch wallets for all riders
+      const riderIds = ridersData.map(r => r.id);
+      const { data: wallets } = await supabase
+        .from('rider_wallets')
+        .select('rider_id, balance, total_earned')
+        .in('rider_id', riderIds);
+
+      // Combine data
+      const combinedRiders = ridersData.map(rider => ({
+        ...rider,
+        profile: profiles?.find(p => p.id === rider.user_id),
+        wallet: wallets?.find(w => w.rider_id === rider.id)
+      }));
+
+      setRiders(combinedRiders as RiderWithDetails[]);
+    }
     setLoading(false);
   };
 
@@ -29,7 +68,10 @@ export default function AdminRiders() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Riders</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Registered Riders</h2>
+        <Badge variant="outline">{riders.length} riders</Badge>
+      </div>
 
       {riders.length === 0 ? (
         <Card>
@@ -54,10 +96,26 @@ export default function AdminRiders() {
                 <div className="space-y-2 text-sm">
                   <p><span className="text-muted-foreground">Phone:</span> {rider.profile?.phone || 'N/A'}</p>
                   <p><span className="text-muted-foreground">Vehicle:</span> {rider.vehicle_type} - {rider.vehicle_number || 'N/A'}</p>
-                  <p><span className="text-muted-foreground">Deliveries:</span> {rider.total_deliveries}</p>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-warning fill-warning" />
-                    <span>{Number(rider.average_rating).toFixed(1)}</span>
+                  
+                  <div className="flex items-center gap-4 pt-2 border-t">
+                    <div className="flex items-center gap-1">
+                      <Package className="w-4 h-4 text-muted-foreground" />
+                      <span>{rider.total_deliveries} deliveries</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-warning fill-warning" />
+                      <span>{Number(rider.average_rating).toFixed(1)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-2 border-t">
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="w-4 h-4 text-success" />
+                      <span className="text-success font-medium">PKR {Number(rider.wallet?.balance || 0).toLocaleString()}</span>
+                    </div>
+                    <span className="text-muted-foreground text-xs">
+                      Total: PKR {Number(rider.wallet?.total_earned || 0).toLocaleString()}
+                    </span>
                   </div>
                 </div>
                 <Badge className="mt-3" variant={rider.is_verified ? 'default' : 'secondary'}>

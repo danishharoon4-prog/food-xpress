@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Bike, DollarSign, ShoppingBag, Star, MapPin } from 'lucide-react';
+import { Bike, DollarSign, ShoppingBag, Star, TrendingUp } from 'lucide-react';
 import type { Rider, RiderWallet } from '@/types';
 
 export default function RiderDashboard() {
@@ -14,14 +13,64 @@ export default function RiderDashboard() {
   const [wallet, setWallet] = useState<RiderWallet | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingOrders, setPendingOrders] = useState(0);
+  const [todayEarnings, setTodayEarnings] = useState(0);
+  const [todayDeliveries, setTodayDeliveries] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) fetchRiderData();
   }, [user]);
 
+  // Real-time subscription for stats updates
+  useEffect(() => {
+    if (!rider) return;
+
+    const channel = supabase
+      .channel('rider-stats')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rider_earnings',
+          filter: `rider_id=eq.${rider.id}`
+        },
+        () => {
+          fetchTodayStats();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rider_wallets',
+          filter: `rider_id=eq.${rider.id}`
+        },
+        () => {
+          fetchWallet();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `rider_id=eq.${rider.id}`
+        },
+        () => {
+          fetchPendingOrders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [rider?.id]);
+
   const fetchRiderData = async () => {
-    // Fetch or create rider profile
     let { data: riderData } = await supabase
       .from('riders')
       .select('*')
@@ -29,7 +78,6 @@ export default function RiderDashboard() {
       .maybeSingle();
 
     if (!riderData) {
-      // Create rider profile
       const { data: newRider } = await supabase
         .from('riders')
         .insert({ user_id: user!.id })
@@ -40,27 +88,60 @@ export default function RiderDashboard() {
 
     if (riderData) {
       setRider(riderData as Rider);
-
-      // Fetch wallet
-      const { data: walletData } = await supabase
-        .from('rider_wallets')
-        .select('*')
-        .eq('rider_id', riderData.id)
-        .maybeSingle();
-
-      if (walletData) setWallet(walletData as RiderWallet);
-
-      // Count pending orders assigned to this rider
-      const { count } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('rider_id', riderData.id)
-        .in('status', ['confirmed', 'preparing', 'ready_for_pickup', 'picked_up', 'on_the_way']);
-
-      setPendingOrders(count || 0);
+      await Promise.all([
+        fetchWallet(riderData.id),
+        fetchPendingOrders(riderData.id),
+        fetchTodayStats(riderData.id)
+      ]);
     }
 
     setLoading(false);
+  };
+
+  const fetchWallet = async (riderId?: string) => {
+    const id = riderId || rider?.id;
+    if (!id) return;
+
+    const { data: walletData } = await supabase
+      .from('rider_wallets')
+      .select('*')
+      .eq('rider_id', id)
+      .maybeSingle();
+
+    if (walletData) setWallet(walletData as RiderWallet);
+  };
+
+  const fetchPendingOrders = async (riderId?: string) => {
+    const id = riderId || rider?.id;
+    if (!id) return;
+
+    const { count } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('rider_id', id)
+      .in('status', ['confirmed', 'preparing', 'ready_for_pickup', 'picked_up', 'on_the_way']);
+
+    setPendingOrders(count || 0);
+  };
+
+  const fetchTodayStats = async (riderId?: string) => {
+    const id = riderId || rider?.id;
+    if (!id) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const { data: earnings } = await supabase
+      .from('rider_earnings')
+      .select('amount')
+      .eq('rider_id', id)
+      .gte('created_at', today.toISOString());
+
+    if (earnings) {
+      const total = earnings.reduce((sum, e) => sum + Number(e.amount), 0);
+      setTodayEarnings(total);
+      setTodayDeliveries(earnings.length);
+    }
   };
 
   const toggleOnline = async () => {
@@ -108,7 +189,38 @@ export default function RiderDashboard() {
         </CardContent>
       </Card>
 
-      {/* Stats */}
+      {/* Today's Stats */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="bg-primary/5 border-primary/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              Today's Earnings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">PKR {todayEarnings.toLocaleString()}</div>
+            <p className="text-sm text-muted-foreground mt-1">{todayDeliveries} deliveries today</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4" />
+              Active Orders
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{pendingOrders}</div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {pendingOrders > 0 ? 'Orders in progress' : rider?.is_online ? 'Waiting for orders...' : 'Go online to receive'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Overall Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
@@ -130,7 +242,7 @@ export default function RiderDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Deliveries</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Deliveries</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{rider?.total_deliveries || 0}</div>
@@ -149,23 +261,6 @@ export default function RiderDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Pending Orders */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5" />
-            Active Orders
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {pendingOrders > 0 ? (
-            <p className="text-lg">You have <span className="font-bold text-primary">{pendingOrders}</span> active order(s)</p>
-          ) : (
-            <p className="text-muted-foreground">No active orders. {rider?.is_online ? 'Waiting for new orders...' : 'Go online to receive orders.'}</p>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Bonus Points */}
       <Card>
