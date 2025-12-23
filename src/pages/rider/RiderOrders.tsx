@@ -77,19 +77,36 @@ export default function RiderOrders() {
           order_id: orderId,
           amount: earningAmount,
           description: `Delivery for order #${order.order_number}`,
-          distance_km: 3, // Default distance, can be calculated later
+          distance_km: 3,
         });
 
-        // Update rider wallet
-        await supabase.rpc('update_rider_wallet_on_delivery', {
-          p_rider_id: riderId,
-          p_amount: earningAmount
-        });
+        // Get current wallet and update
+        const { data: wallet } = await supabase
+          .from('rider_wallets')
+          .select('balance, total_earned')
+          .eq('rider_id', riderId)
+          .single();
 
-        // Update rider total_deliveries
+        if (wallet) {
+          await supabase
+            .from('rider_wallets')
+            .update({
+              balance: (wallet.balance || 0) + earningAmount,
+              total_earned: (wallet.total_earned || 0) + earningAmount
+            })
+            .eq('rider_id', riderId);
+        }
+
+        // Get current deliveries and increment
+        const { data: riderData } = await supabase
+          .from('riders')
+          .select('total_deliveries')
+          .eq('id', riderId)
+          .single();
+
         await supabase
           .from('riders')
-          .update({ total_deliveries: (rider => rider.total_deliveries + 1) })
+          .update({ total_deliveries: (riderData?.total_deliveries || 0) + 1 })
           .eq('id', riderId);
       }
     }
