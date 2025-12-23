@@ -64,13 +64,26 @@ export default function AdminOrders() {
   };
 
   const fetchRiders = async () => {
-    const { data } = await supabase
+    // Fetch all riders
+    const { data: ridersData } = await supabase
       .from('riders')
-      .select('*, profile:profiles!riders_user_id_fkey(full_name)')
-      .eq('is_verified', true);
+      .select('id, user_id, is_online, is_verified');
 
-    if (data) {
-      setRiders(data as unknown as RiderWithProfile[]);
+    if (ridersData && ridersData.length > 0) {
+      // Fetch profiles for these riders
+      const userIds = ridersData.map(r => r.user_id);
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds);
+
+      // Map profiles to riders
+      const ridersWithProfiles = ridersData.map(rider => ({
+        ...rider,
+        profile: profilesData?.find(p => p.id === rider.user_id)
+      }));
+
+      setRiders(ridersWithProfiles as RiderWithProfile[]);
     }
   };
 
