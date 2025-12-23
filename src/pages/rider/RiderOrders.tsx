@@ -62,10 +62,40 @@ export default function RiderOrders() {
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Updated', description: `Order marked as ${newStatus.replace(/_/g, ' ')}` });
-      fetchOrders();
+      return;
     }
+
+    // If order is delivered, create earnings and update stats
+    if (newStatus === 'delivered' && riderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        const earningAmount = Number(order.delivery_fee) || 50; // Default 50 if no delivery fee
+        
+        // Create earning record
+        await supabase.from('rider_earnings').insert({
+          rider_id: riderId,
+          order_id: orderId,
+          amount: earningAmount,
+          description: `Delivery for order #${order.order_number}`,
+          distance_km: 3, // Default distance, can be calculated later
+        });
+
+        // Update rider wallet
+        await supabase.rpc('update_rider_wallet_on_delivery', {
+          p_rider_id: riderId,
+          p_amount: earningAmount
+        });
+
+        // Update rider total_deliveries
+        await supabase
+          .from('riders')
+          .update({ total_deliveries: (rider => rider.total_deliveries + 1) })
+          .eq('id', riderId);
+      }
+    }
+
+    toast({ title: 'Updated', description: `Order marked as ${newStatus.replace(/_/g, ' ')}` });
+    fetchOrders();
   };
 
   const getNextStatus = (status: OrderStatus): OrderStatus | null => {
