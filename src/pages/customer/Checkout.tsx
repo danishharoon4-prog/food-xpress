@@ -5,13 +5,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import CustomerHeader from '@/components/CustomerHeader';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { LocationPicker } from '@/components/LocationPicker';
+import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { MapPin, CreditCard, Wallet, Banknote, Loader2 } from 'lucide-react';
 import type { PaymentMethod } from '@/types';
 
@@ -30,6 +31,8 @@ export default function Checkout() {
 
   const [loading, setLoading] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCoords, setDeliveryCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [restaurantCoords, setRestaurantCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
 
@@ -46,6 +49,32 @@ export default function Checkout() {
       navigate('/auth?redirect=/checkout');
     }
   }, [items, user, navigate]);
+
+  // Fetch restaurant coordinates
+  useEffect(() => {
+    const fetchRestaurantCoords = async () => {
+      if (!restaurantId) return;
+      
+      const { data } = await supabase
+        .from('restaurants')
+        .select('latitude, longitude')
+        .eq('id', restaurantId)
+        .single();
+      
+      if (data?.latitude && data?.longitude) {
+        setRestaurantCoords({ lat: data.latitude, lng: data.longitude });
+      }
+    };
+    
+    fetchRestaurantCoords();
+  }, [restaurantId]);
+
+  const handleAddressChange = (address: string, coords?: { latitude: number; longitude: number }) => {
+    setDeliveryAddress(address);
+    if (coords) {
+      setDeliveryCoords(coords);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!deliveryAddress.trim()) {
@@ -66,6 +95,8 @@ export default function Checkout() {
         customer_id: user.id,
         restaurant_id: restaurantId,
         delivery_address: deliveryAddress,
+        delivery_latitude: deliveryCoords?.latitude || null,
+        delivery_longitude: deliveryCoords?.longitude || null,
         subtotal,
         delivery_fee: deliveryFee,
         total,
@@ -132,13 +163,20 @@ export default function Checkout() {
                   Delivery Address
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Enter your complete delivery address..."
+              <CardContent className="space-y-4">
+                <LocationPicker
                   value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                  rows={3}
+                  onChange={handleAddressChange}
+                  placeholder="Enter your complete delivery address..."
                 />
+                
+                {/* Distance from restaurant */}
+                {deliveryCoords && (
+                  <DistanceDisplay
+                    restaurantCoords={restaurantCoords}
+                    customerCoords={deliveryCoords ? { lat: deliveryCoords.latitude, lng: deliveryCoords.longitude } : null}
+                  />
+                )}
               </CardContent>
             </Card>
 
