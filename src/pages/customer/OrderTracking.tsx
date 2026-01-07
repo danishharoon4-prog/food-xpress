@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { CheckCircle2, Clock, Package, Bike, MapPin, Phone, Star } from 'lucide-react';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
 
@@ -51,7 +52,7 @@ export default function OrderTracking() {
   const fetchOrder = async () => {
     const { data } = await supabase
       .from('orders')
-      .select('*, restaurant:restaurants(name, address), order_items(*), payment:payments(*)')
+      .select('*, restaurant:restaurants(name, address, latitude, longitude), order_items(*), payment:payments(*)')
       .eq('id', id)
       .single();
 
@@ -229,8 +230,23 @@ export default function OrderTracking() {
                 Delivery Address
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <p>{order.delivery_address}</p>
+              
+              {/* Distance and directions */}
+              <DistanceDisplay
+                restaurantCoords={
+                  (order as any).restaurant?.latitude && (order as any).restaurant?.longitude
+                    ? { lat: (order as any).restaurant.latitude, lng: (order as any).restaurant.longitude }
+                    : null
+                }
+                customerCoords={
+                  order.delivery_latitude && order.delivery_longitude
+                    ? { lat: order.delivery_latitude, lng: order.delivery_longitude }
+                    : null
+                }
+                showDirectionsButton
+              />
             </CardContent>
           </Card>
         </div>
