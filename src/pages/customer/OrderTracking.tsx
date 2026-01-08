@@ -8,23 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { LiveRiderTracking } from '@/components/LiveRiderTracking';
-import { CheckCircle2, Clock, Package, Bike, MapPin, Phone, Star } from 'lucide-react';
+import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
+import { Bike, MapPin, Phone, Star } from 'lucide-react';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
 
-const statusSteps: { status: OrderStatus; label: string; icon: React.ComponentType<any> }[] = [
-  { status: 'pending', label: 'Order Placed', icon: Clock },
-  { status: 'confirmed', label: 'Confirmed', icon: CheckCircle2 },
-  { status: 'preparing', label: 'Preparing', icon: Package },
-  { status: 'ready_for_pickup', label: 'Ready', icon: Package },
-  { status: 'picked_up', label: 'Picked Up', icon: Bike },
-  { status: 'on_the_way', label: 'On the Way', icon: Bike },
-  { status: 'delivered', label: 'Delivered', icon: CheckCircle2 },
-];
-
-const getStatusIndex = (status: OrderStatus) => {
-  if (status === 'cancelled') return -1;
-  return statusSteps.findIndex((s) => s.status === status);
-};
 
 export default function OrderTracking() {
   const { id } = useParams<{ id: string }>();
@@ -102,7 +89,6 @@ export default function OrderTracking() {
     );
   }
 
-  const currentStepIndex = getStatusIndex(order.status);
   const isCancelled = order.status === 'cancelled';
   const isDelivered = order.status === 'delivered';
 
@@ -143,48 +129,15 @@ export default function OrderTracking() {
           </CardContent>
         </Card>
 
-        {/* Status Timeline */}
-        {!isCancelled && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="relative">
-                <div className="flex justify-between">
-                  {statusSteps.slice(0, -1).map((step, index) => {
-                    const isCompleted = currentStepIndex >= index;
-                    const isCurrent = currentStepIndex === index;
-
-                    return (
-                      <div key={step.status} className="flex flex-col items-center text-center flex-1">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors ${
-                            isCompleted
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted text-muted-foreground'
-                          } ${isCurrent ? 'ring-4 ring-primary/20' : ''}`}
-                        >
-                          <step.icon className="w-5 h-5" />
-                        </div>
-                        <span className={`text-xs ${isCompleted ? 'font-medium' : 'text-muted-foreground'}`}>
-                          {step.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                {/* Progress Line */}
-                <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted -z-10 mx-8">
-                  <div
-                    className="h-full bg-primary transition-all duration-500"
-                    style={{ width: `${Math.max(0, (currentStepIndex / (statusSteps.length - 2)) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Order Progress */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <OrderProgressIndicator status={order.status} />
+          </CardContent>
+        </Card>
 
         {/* Live Rider Tracking - Shows when rider is on the way */}
         {order.rider_id && (
