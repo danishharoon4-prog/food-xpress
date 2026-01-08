@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
+import { LiveRiderTracking } from '@/components/LiveRiderTracking';
 import { CheckCircle2, Clock, Package, Bike, MapPin, Phone, Star } from 'lucide-react';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
 
@@ -183,6 +184,19 @@ export default function OrderTracking() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Live Rider Tracking - Shows when rider is on the way */}
+        {order.rider_id && (
+          <LiveRiderTracking
+            riderId={order.rider_id}
+            customerCoords={
+              order.delivery_latitude && order.delivery_longitude
+                ? { lat: order.delivery_latitude, lng: order.delivery_longitude }
+                : null
+            }
+            orderStatus={order.status}
+          />
         )}
 
         <div className="grid gap-6 md:grid-cols-2">
