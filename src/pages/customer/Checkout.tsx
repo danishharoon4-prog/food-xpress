@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { useLocation } from '@/hooks/useLocation';
-import { MapPin, CreditCard, Wallet, Banknote, Loader2, Truck } from 'lucide-react';
+import { MapPin, CreditCard, Wallet, Banknote, Loader2, Truck, Clock } from 'lucide-react';
 import type { PaymentMethod } from '@/types';
 
 const paymentMethods = [
@@ -38,6 +38,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
   const [deliveryFee, setDeliveryFee] = useState(100);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [estimatedTime, setEstimatedTime] = useState<string | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
 
   const subtotal = getSubtotal();
@@ -93,6 +94,7 @@ export default function Checkout() {
       if (!restaurantCoords || !deliveryCoords) {
         setDeliveryFee(100); // Default fee
         setDistanceKm(null);
+        setEstimatedTime(null);
         return;
       }
 
@@ -107,9 +109,16 @@ export default function Checkout() {
         const distanceKm = result.distance.value / 1000;
         setDistanceKm(distanceKm);
         setDeliveryFee(calculateDeliveryFee(distanceKm));
+        
+        // Add prep time (15 min) to travel time for total estimated delivery
+        const travelMinutes = Math.ceil(result.duration.value / 60);
+        const prepTime = 15; // Restaurant preparation time
+        const totalMinutes = travelMinutes + prepTime;
+        setEstimatedTime(`${totalMinutes}-${totalMinutes + 10} mins`);
       } catch (error) {
         console.error('Error calculating distance:', error);
         setDeliveryFee(100); // Fallback to base fee
+        setEstimatedTime(null);
       } finally {
         setCalculatingFee(false);
       }
@@ -312,6 +321,16 @@ export default function Checkout() {
                     <span>PKR {deliveryFee.toLocaleString()}</span>
                   )}
                 </div>
+                
+                {estimatedTime && (
+                  <div className="flex justify-between text-sm items-center bg-accent/50 p-2 rounded-md">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Est. Delivery Time
+                    </span>
+                    <span className="font-medium text-primary">{estimatedTime}</span>
+                  </div>
+                )}
 
                 <Separator />
 
