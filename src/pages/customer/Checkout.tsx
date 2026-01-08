@@ -13,7 +13,8 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
-import { MapPin, CreditCard, Wallet, Banknote, Loader2 } from 'lucide-react';
+import { useLocation } from '@/hooks/useLocation';
+import { MapPin, CreditCard, Wallet, Banknote, Loader2, Truck } from 'lucide-react';
 import type { PaymentMethod } from '@/types';
 
 const paymentMethods = [
@@ -35,9 +36,11 @@ export default function Checkout() {
   const [restaurantCoords, setRestaurantCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
+  const [deliveryFee, setDeliveryFee] = useState(100);
+  const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [calculatingFee, setCalculatingFee] = useState(false);
 
   const subtotal = getSubtotal();
-  const deliveryFee = 100;
   const total = subtotal + deliveryFee;
   const restaurantId = getRestaurantId();
 
@@ -68,6 +71,52 @@ export default function Checkout() {
     
     fetchRestaurantCoords();
   }, [restaurantId]);
+
+  // Calculate delivery fee based on distance
+  const { calculateDistance } = useLocation();
+  
+  const calculateDeliveryFee = (distanceInKm: number): number => {
+    const baseDistance = 4; // 4 KM
+    const baseFee = 100; // RS 100 for first 4 KM
+    const additionalFeePerKm = 50; // RS 50 per additional KM
+    
+    if (distanceInKm <= baseDistance) {
+      return baseFee;
+    }
+    
+    const additionalKm = Math.ceil(distanceInKm - baseDistance);
+    return baseFee + (additionalKm * additionalFeePerKm);
+  };
+
+  useEffect(() => {
+    const fetchDeliveryFee = async () => {
+      if (!restaurantCoords || !deliveryCoords) {
+        setDeliveryFee(100); // Default fee
+        setDistanceKm(null);
+        return;
+      }
+
+      setCalculatingFee(true);
+      try {
+        const result = await calculateDistance(
+          restaurantCoords,
+          { lat: deliveryCoords.latitude, lng: deliveryCoords.longitude }
+        );
+        
+        // distance.value is in meters, convert to km
+        const distanceKm = result.distance.value / 1000;
+        setDistanceKm(distanceKm);
+        setDeliveryFee(calculateDeliveryFee(distanceKm));
+      } catch (error) {
+        console.error('Error calculating distance:', error);
+        setDeliveryFee(100); // Fallback to base fee
+      } finally {
+        setCalculatingFee(false);
+      }
+    };
+
+    fetchDeliveryFee();
+  }, [restaurantCoords, deliveryCoords, calculateDistance]);
 
   const handleAddressChange = (address: string, coords?: { latitude: number; longitude: number }) => {
     setDeliveryAddress(address);
@@ -249,9 +298,19 @@ export default function Checkout() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>PKR {subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Delivery Fee</span>
-                  <span>PKR {deliveryFee.toLocaleString()}</span>
+                <div className="flex justify-between text-sm items-center">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <Truck className="w-3 h-3" />
+                    Delivery Fee
+                    {distanceKm !== null && (
+                      <span className="text-xs">({distanceKm.toFixed(1)} km)</span>
+                    )}
+                  </span>
+                  {calculatingFee ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <span>PKR {deliveryFee.toLocaleString()}</span>
+                  )}
                 </div>
 
                 <Separator />
