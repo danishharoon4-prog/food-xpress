@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UtensilsCrossed, Bike, Shield } from 'lucide-react';
+import { Loader2, UtensilsCrossed, Bike } from 'lucide-react';
 import { z } from 'zod';
 import type { AppRole } from '@/types';
 
@@ -19,8 +19,11 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const defaultRole = (searchParams.get('role') as AppRole) || 'customer';
   
+  // Only allow customer or rider for signup, never admin
+  const allowedRole = defaultRole === 'admin' ? 'customer' : (defaultRole || 'customer');
+  
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<AppRole>(defaultRole);
+  const [selectedRole, setSelectedRole] = useState<AppRole>(allowedRole);
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   
   // Form fields
@@ -123,7 +126,6 @@ export default function Auth() {
   const roleOptions = [
     { value: 'customer', label: 'Customer', icon: UtensilsCrossed, description: 'Order delicious food' },
     { value: 'rider', label: 'Rider', icon: Bike, description: 'Deliver & earn' },
-    { value: 'admin', label: 'Admin', icon: Shield, description: 'Manage platform' },
   ] as const;
 
   return (
