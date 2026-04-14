@@ -688,6 +688,11 @@ export type Database = {
         }
         Returns: string
       }
+      get_rider_id_for_user: { Args: { _user_id: string }; Returns: string[] }
+      get_rider_ids_for_customer_orders: {
+        Args: { _customer_id: string }
+        Returns: string[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
