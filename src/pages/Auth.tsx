@@ -123,7 +123,6 @@ export default function Auth() {
   const roleOptions = [
     { value: 'customer', label: 'Customer', icon: UtensilsCrossed, description: 'Order delicious food' },
     { value: 'rider', label: 'Rider', icon: Bike, description: 'Deliver & earn' },
-    { value: 'admin', label: 'Admin', icon: Shield, description: 'Manage platform' },
   ] as const;
 
   return (
