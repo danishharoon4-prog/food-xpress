@@ -66,7 +66,18 @@ export function useLocation() {
       const position = await getCurrentLocation();
       const { latitude, longitude } = position.coords;
       
-      const address = await getAddressFromCoordinates(latitude, longitude);
+      // Try reverse geocoding, fallback to coordinate string if it fails
+      let address: string;
+      try {
+        address = await getAddressFromCoordinates(latitude, longitude);
+      } catch (geocodeError) {
+        console.warn('Reverse geocoding failed, using coordinates as address:', geocodeError);
+        address = `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`;
+        toast({
+          title: 'Location Detected',
+          description: 'GPS coordinates captured. Address lookup unavailable.',
+        });
+      }
       
       const data = { latitude, longitude, address };
       setLocationData(data);
