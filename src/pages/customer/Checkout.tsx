@@ -45,6 +45,23 @@ export default function Checkout() {
   const total = subtotal + deliveryFee;
   const restaurantId = getRestaurantId();
 
+  const { calculateDistance, detectLocation } = useLocation();
+
+  // Auto-detect GPS location on mount
+  useEffect(() => {
+    const autoDetect = async () => {
+      try {
+        const data = await detectLocation();
+        setDeliveryAddress(data.address);
+        setDeliveryCoords({ latitude: data.latitude, longitude: data.longitude });
+      } catch (error) {
+        // User may deny permission, that's ok
+        console.log('Auto GPS detection skipped:', error);
+      }
+    };
+    autoDetect();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (items.length === 0) {
       navigate('/cart');
