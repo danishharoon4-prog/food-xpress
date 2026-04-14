@@ -91,7 +91,6 @@ export default function Checkout() {
   }, [restaurantId]);
 
   // Calculate delivery fee based on distance
-  const { calculateDistance } = useLocation();
   
   const calculateDeliveryFee = (distanceInKm: number): number => {
     const baseDistance = 4; // 4 KM
