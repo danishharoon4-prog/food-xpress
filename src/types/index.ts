@@ -20,6 +20,10 @@ export interface Profile {
   phone: string | null;
   email: string | null;
   avatar_url: string | null;
+  city: string | null;
+  permanent_address: string | null;
+  permanent_latitude: number | null;
+  permanent_longitude: number | null;
   created_at: string;
   updated_at: string;
 }
