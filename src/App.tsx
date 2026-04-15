@@ -31,6 +31,7 @@ import RiderRatings from "./pages/rider/RiderRatings";
 import RiderSettings from "./pages/rider/RiderSettings";
 
 // Customer
+import Dashboard from "./pages/customer/Dashboard";
 import Restaurants from "./pages/customer/Restaurants";
 import RestaurantMenu from "./pages/customer/RestaurantMenu";
 import Cart from "./pages/customer/Cart";
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               
               {/* Customer Routes */}
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/restaurants" element={<Restaurants />} />
               <Route path="/restaurant/:id" element={<RestaurantMenu />} />
               <Route path="/cart" element={<Cart />} />
