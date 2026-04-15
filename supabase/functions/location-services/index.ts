@@ -28,6 +28,8 @@ serve(async (req) => {
         const response = await fetch(url);
         const data = await response.json();
         
+        console.log("Geocode API response status:", data.status, "error_message:", data.error_message);
+        
         if (data.status === "OK" && data.results.length > 0) {
           const result = data.results[0];
           return new Response(
@@ -40,7 +42,16 @@ serve(async (req) => {
           );
         }
         
-        throw new Error("Unable to geocode location");
+        // Return coordinates as fallback instead of throwing
+        return new Response(
+          JSON.stringify({
+            address: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`,
+            fallback: true,
+            apiStatus: data.status,
+            apiError: data.error_message || null,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       case "distance": {
