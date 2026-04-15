@@ -1,21 +1,31 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import CustomerHeader from '@/components/CustomerHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Clock, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Search, MapPin, Clock, Star, Heart } from 'lucide-react';
 import type { Restaurant } from '@/types';
 
 export default function Restaurants() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchRestaurants();
   }, []);
+
+  useEffect(() => {
+    if (user) fetchFavorites();
+  }, [user]);
 
   const fetchRestaurants = async () => {
     const { data } = await supabase
@@ -26,6 +36,35 @@ export default function Restaurants() {
 
     if (data) setRestaurants(data as Restaurant[]);
     setLoading(false);
+  };
+
+  const fetchFavorites = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('favorite_restaurants')
+      .select('restaurant_id')
+      .eq('user_id', user.id);
+    if (data) setFavoriteIds(new Set(data.map((f) => f.restaurant_id)));
+  };
+
+  const toggleFavorite = async (e: React.MouseEvent, restaurantId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast({ title: 'Sign in required', description: 'Please sign in to save favorites', variant: 'destructive' });
+      return;
+    }
+
+    const isFav = favoriteIds.has(restaurantId);
+    if (isFav) {
+      await supabase.from('favorite_restaurants').delete().eq('user_id', user.id).eq('restaurant_id', restaurantId);
+      setFavoriteIds((prev) => { const n = new Set(prev); n.delete(restaurantId); return n; });
+      toast({ title: 'Removed from favorites' });
+    } else {
+      await supabase.from('favorite_restaurants').insert({ user_id: user.id, restaurant_id: restaurantId });
+      setFavoriteIds((prev) => new Set(prev).add(restaurantId));
+      toast({ title: 'Added to favorites ❤️' });
+    }
   };
 
   const filteredRestaurants = restaurants.filter(
@@ -79,7 +118,7 @@ export default function Restaurants() {
             {filteredRestaurants.map((restaurant) => (
               <Link key={restaurant.id} to={`/restaurant/${restaurant.id}`}>
                 <Card className="overflow-hidden hover:shadow-soft-lg transition-shadow cursor-pointer group">
-                  <div className="h-40 bg-gradient-to-br from-primary/20 to-accent overflow-hidden">
+                  <div className="h-40 bg-gradient-to-br from-primary/20 to-accent overflow-hidden relative">
                     {restaurant.image_url ? (
                       <img
                         src={restaurant.image_url}
@@ -93,6 +132,21 @@ export default function Restaurants() {
                         </span>
                       </div>
                     )}
+                    {/* Favorite Button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-9 w-9 rounded-full bg-card/80 backdrop-blur-sm hover:bg-card shadow-sm"
+                      onClick={(e) => toggleFavorite(e, restaurant.id)}
+                    >
+                      <Heart
+                        className={`w-5 h-5 transition-colors ${
+                          favoriteIds.has(restaurant.id)
+                            ? 'fill-destructive text-destructive'
+                            : 'text-muted-foreground'
+                        }`}
+                      />
+                    </Button>
                   </div>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
