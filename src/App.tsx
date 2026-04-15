@@ -37,6 +37,7 @@ import Cart from "./pages/customer/Cart";
 import Checkout from "./pages/customer/Checkout";
 import OrderTracking from "./pages/customer/OrderTracking";
 import MyOrders from "./pages/customer/MyOrders";
+import UserProfile from "./pages/customer/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/order/:id" element={<OrderTracking />} />
               <Route path="/orders" element={<MyOrders />} />
+              <Route path="/profile" element={<UserProfile />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayout />}>
