@@ -37,6 +37,9 @@ export default function CustomerHeader() {
 
           {user ? (
             <div className="flex items-center gap-2">
+              <Link to="/profile">
+                <Button variant="ghost" size="sm">Profile</Button>
+              </Link>
               <Link to="/orders">
                 <Button variant="ghost" size="sm">My Orders</Button>
               </Link>

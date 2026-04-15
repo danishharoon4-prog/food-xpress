@@ -47,20 +47,37 @@ export default function Checkout() {
 
   const { calculateDistance, detectLocation } = useLocation();
 
-  // Auto-detect GPS location on mount
+  // Load permanent address from profile first, then auto-detect GPS if none
   useEffect(() => {
-    const autoDetect = async () => {
+    const loadAddress = async () => {
+      if (!user) return;
+      // Check for saved permanent address
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('permanent_address, permanent_latitude, permanent_longitude')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const p = profileData as any;
+      if (p?.permanent_address) {
+        setDeliveryAddress(p.permanent_address);
+        if (p.permanent_latitude && p.permanent_longitude) {
+          setDeliveryCoords({ latitude: Number(p.permanent_latitude), longitude: Number(p.permanent_longitude) });
+        }
+        return; // Use saved address, skip GPS
+      }
+
+      // Fallback: auto-detect GPS
       try {
         const data = await detectLocation();
         setDeliveryAddress(data.address);
         setDeliveryCoords({ latitude: data.latitude, longitude: data.longitude });
       } catch (error) {
-        // User may deny permission, that's ok
         console.log('Auto GPS detection skipped:', error);
       }
     };
-    autoDetect();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    loadAddress();
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (items.length === 0) {
