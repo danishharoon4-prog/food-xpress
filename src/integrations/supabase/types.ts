@@ -279,7 +279,7 @@ export type Database = {
           delivery_longitude?: number | null
           estimated_delivery_time?: string | null
           id?: string
-          order_number: string
+          order_number?: string
           restaurant_id?: string | null
           rider_id?: string | null
           special_instructions?: string | null
