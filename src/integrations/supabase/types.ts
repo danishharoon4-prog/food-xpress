@@ -50,6 +50,35 @@ export type Database = {
         }
         Relationships: []
       }
+      favorite_restaurants: {
+        Row: {
+          created_at: string
+          id: string
+          restaurant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          restaurant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          restaurant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_restaurants_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
           created_at: string
@@ -342,28 +371,40 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          city: string | null
           created_at: string
           email: string | null
           full_name: string
           id: string
+          permanent_address: string | null
+          permanent_latitude: number | null
+          permanent_longitude: number | null
           phone: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
           full_name: string
           id: string
+          permanent_address?: string | null
+          permanent_latitude?: number | null
+          permanent_longitude?: number | null
           phone?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
           id?: string
+          permanent_address?: string | null
+          permanent_latitude?: number | null
+          permanent_longitude?: number | null
           phone?: string | null
           updated_at?: string
         }
