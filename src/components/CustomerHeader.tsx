@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { UtensilsCrossed, ShoppingCart, User, LogOut } from 'lucide-react';
+import { UtensilsCrossed, ShoppingCart, User, LogOut, LayoutDashboard } from 'lucide-react';
 
 export default function CustomerHeader() {
   const { user, profile, signOut } = useAuth();
@@ -37,6 +37,12 @@ export default function CustomerHeader() {
 
           {user ? (
             <div className="flex items-center gap-2">
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm">
+                  <LayoutDashboard className="h-4 w-4 mr-1" />
+                  Dashboard
+                </Button>
+              </Link>
               <Link to="/profile">
                 <Button variant="ghost" size="sm">Profile</Button>
               </Link>
