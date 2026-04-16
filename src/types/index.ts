@@ -7,6 +7,7 @@ export type OrderStatus =
   | 'ready_for_pickup' 
   | 'picked_up' 
   | 'on_the_way' 
+  | 'awaiting_confirmation'
   | 'delivered' 
   | 'cancelled';
 
