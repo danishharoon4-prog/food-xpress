@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Phone, Navigation } from 'lucide-react';
+import { MapPin, Navigation, PackageCheck } from 'lucide-react';
 import type { Order, OrderStatus } from '@/types';
 
 const statusColors: Record<OrderStatus, string> = {
@@ -21,17 +21,32 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function RiderOrders() {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const [availableOrders, setAvailableOrders] = useState<Order[]>([]);
   const [riderId, setRiderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) fetchOrders();
+    if (user) fetchAll();
+
+    const channel = supabase
+      .channel('rider-orders-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        fetchAll();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  const fetchOrders = async () => {
-    // Get rider ID
+  const fetchAll = async () => {
+    await Promise.all([fetchMyOrders(), fetchAvailableOrders()]);
+    setLoading(false);
+  };
+
+  const fetchMyOrders = async () => {
     const { data: rider } = await supabase
       .from('riders')
       .select('id')
@@ -40,20 +55,43 @@ export default function RiderOrders() {
 
     if (rider) {
       setRiderId(rider.id);
-
       const { data } = await supabase
         .from('orders')
         .select('*, restaurant:restaurants(name, address)')
         .eq('rider_id', rider.id)
         .order('created_at', { ascending: false });
-
-      if (data) setOrders(data as unknown as Order[]);
+      if (data) setMyOrders(data as unknown as Order[]);
     }
-    setLoading(false);
+  };
+
+  const fetchAvailableOrders = async () => {
+    // This query uses the RLS policy that shows ready_for_pickup + unassigned orders to online riders
+    const { data } = await supabase
+      .from('orders')
+      .select('*, restaurant:restaurants(name, address)')
+      .eq('status', 'ready_for_pickup')
+      .is('rider_id', null)
+      .order('created_at', { ascending: false });
+    if (data) setAvailableOrders(data as unknown as Order[]);
+  };
+
+  const claimOrder = async (orderId: string) => {
+    setClaiming(orderId);
+    const { data, error } = await supabase.rpc('claim_order', { _order_id: orderId });
+
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else if (data === false) {
+      toast({ title: 'Unavailable', description: 'This order was already claimed by another rider.', variant: 'destructive' });
+    } else {
+      toast({ title: 'Order Accepted!', description: 'You have picked up this order. Deliver it now!' });
+    }
+    setClaiming(null);
+    fetchAll();
   };
 
   const updateStatus = async (orderId: string, newStatus: OrderStatus) => {
-    const updateData: Partial<Order> = { status: newStatus };
+    const updateData: Record<string, unknown> = { status: newStatus };
     if (newStatus === 'delivered') {
       updateData.actual_delivery_time = new Date().toISOString();
     }
@@ -65,59 +103,32 @@ export default function RiderOrders() {
       return;
     }
 
-    // If order is delivered, create earnings and update stats
     if (newStatus === 'delivered' && riderId) {
-      const order = orders.find(o => o.id === orderId);
+      const order = myOrders.find(o => o.id === orderId);
       if (order) {
-        const earningAmount = Number(order.delivery_fee) || 50; // Default 50 if no delivery fee
-        
-        // Create earning record
+        const earningAmount = Number(order.delivery_fee) || 50;
         await supabase.from('rider_earnings').insert({
-          rider_id: riderId,
-          order_id: orderId,
-          amount: earningAmount,
-          description: `Delivery for order #${order.order_number}`,
-          distance_km: 3,
+          rider_id: riderId, order_id: orderId, amount: earningAmount,
+          description: `Delivery for order #${order.order_number}`, distance_km: 3,
         });
-
-        // Get current wallet and update
-        const { data: wallet } = await supabase
-          .from('rider_wallets')
-          .select('balance, total_earned')
-          .eq('rider_id', riderId)
-          .single();
-
+        const { data: wallet } = await supabase.from('rider_wallets').select('balance, total_earned').eq('rider_id', riderId).single();
         if (wallet) {
-          await supabase
-            .from('rider_wallets')
-            .update({
-              balance: (wallet.balance || 0) + earningAmount,
-              total_earned: (wallet.total_earned || 0) + earningAmount
-            })
-            .eq('rider_id', riderId);
+          await supabase.from('rider_wallets').update({
+            balance: (wallet.balance || 0) + earningAmount,
+            total_earned: (wallet.total_earned || 0) + earningAmount,
+          }).eq('rider_id', riderId);
         }
-
-        // Get current deliveries and increment
-        const { data: riderData } = await supabase
-          .from('riders')
-          .select('total_deliveries')
-          .eq('id', riderId)
-          .single();
-
-        await supabase
-          .from('riders')
-          .update({ total_deliveries: (riderData?.total_deliveries || 0) + 1 })
-          .eq('id', riderId);
+        const { data: riderData } = await supabase.from('riders').select('total_deliveries').eq('id', riderId).single();
+        await supabase.from('riders').update({ total_deliveries: (riderData?.total_deliveries || 0) + 1 }).eq('id', riderId);
       }
     }
 
     toast({ title: 'Updated', description: `Order marked as ${newStatus.replace(/_/g, ' ')}` });
-    fetchOrders();
+    fetchAll();
   };
 
   const getNextStatus = (status: OrderStatus): OrderStatus | null => {
     const flow: Record<string, OrderStatus> = {
-      ready_for_pickup: 'picked_up',
       picked_up: 'on_the_way',
       on_the_way: 'delivered',
     };
@@ -128,12 +139,62 @@ export default function RiderOrders() {
     return <div className="animate-pulse text-muted-foreground">Loading orders...</div>;
   }
 
-  const activeOrders = orders.filter((o) => !['delivered', 'cancelled'].includes(o.status));
-  const completedOrders = orders.filter((o) => ['delivered', 'cancelled'].includes(o.status));
+  const activeOrders = myOrders.filter((o) => !['delivered', 'cancelled'].includes(o.status));
+  const completedOrders = myOrders.filter((o) => ['delivered', 'cancelled'].includes(o.status));
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Your Orders</h2>
+
+      {/* Available Orders for Pickup */}
+      {availableOrders.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <PackageCheck className="w-5 h-5 text-primary" />
+            Available for Pickup ({availableOrders.length})
+          </h3>
+          <div className="space-y-4">
+            {availableOrders.map((order) => (
+              <Card key={order.id} className="border-primary border-2 bg-primary/5">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">#{order.order_number}</CardTitle>
+                    <Badge className="bg-primary/10 text-primary">Ready for Pickup</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-2">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 mt-1 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Pickup: {(order as any).restaurant?.name}</p>
+                        <p className="text-xs text-muted-foreground">{(order as any).restaurant?.address}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Navigation className="w-4 h-4 mt-1 text-success" />
+                      <div>
+                        <p className="text-sm font-medium">Deliver to:</p>
+                        <p className="text-xs text-muted-foreground">{order.delivery_address}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-lg">PKR {Number(order.total).toLocaleString()}</span>
+                    <Button
+                      onClick={() => claimOrder(order.id)}
+                      disabled={claiming === order.id}
+                      className="gradient-primary"
+                    >
+                      {claiming === order.id ? 'Accepting...' : 'Accept & Pick Up'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Active Orders */}
       <div>
@@ -171,7 +232,6 @@ export default function RiderOrders() {
                       </div>
                     </div>
                   </div>
-
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-lg">PKR {Number(order.total).toLocaleString()}</span>
                     {getNextStatus(order.status) && (

@@ -719,6 +719,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_order: { Args: { _order_id: string }; Returns: boolean }
       create_system_notification: {
         Args: {
           p_data?: Json
