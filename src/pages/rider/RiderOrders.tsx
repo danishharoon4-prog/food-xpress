@@ -15,6 +15,7 @@ const statusColors: Record<OrderStatus, string> = {
   ready_for_pickup: 'bg-primary/10 text-primary',
   picked_up: 'bg-primary/10 text-primary',
   on_the_way: 'bg-primary/10 text-primary',
+  awaiting_confirmation: 'bg-warning/10 text-warning',
   delivered: 'bg-success/10 text-success',
   cancelled: 'bg-destructive/10 text-destructive',
 };
@@ -92,35 +93,12 @@ export default function RiderOrders() {
 
   const updateStatus = async (orderId: string, newStatus: OrderStatus) => {
     const updateData: Record<string, unknown> = { status: newStatus };
-    if (newStatus === 'delivered') {
-      updateData.actual_delivery_time = new Date().toISOString();
-    }
 
     const { error } = await supabase.from('orders').update(updateData).eq('id', orderId);
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
       return;
-    }
-
-    if (newStatus === 'delivered' && riderId) {
-      const order = myOrders.find(o => o.id === orderId);
-      if (order) {
-        const earningAmount = Number(order.delivery_fee) || 50;
-        await supabase.from('rider_earnings').insert({
-          rider_id: riderId, order_id: orderId, amount: earningAmount,
-          description: `Delivery for order #${order.order_number}`, distance_km: 3,
-        });
-        const { data: wallet } = await supabase.from('rider_wallets').select('balance, total_earned').eq('rider_id', riderId).single();
-        if (wallet) {
-          await supabase.from('rider_wallets').update({
-            balance: (wallet.balance || 0) + earningAmount,
-            total_earned: (wallet.total_earned || 0) + earningAmount,
-          }).eq('rider_id', riderId);
-        }
-        const { data: riderData } = await supabase.from('riders').select('total_deliveries').eq('id', riderId).single();
-        await supabase.from('riders').update({ total_deliveries: (riderData?.total_deliveries || 0) + 1 }).eq('id', riderId);
-      }
     }
 
     toast({ title: 'Updated', description: `Order marked as ${newStatus.replace(/_/g, ' ')}` });
@@ -130,7 +108,7 @@ export default function RiderOrders() {
   const getNextStatus = (status: OrderStatus): OrderStatus | null => {
     const flow: Record<string, OrderStatus> = {
       picked_up: 'on_the_way',
-      on_the_way: 'delivered',
+      on_the_way: 'awaiting_confirmation',
     };
     return flow[status] || null;
   };

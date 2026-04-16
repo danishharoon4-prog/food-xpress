@@ -16,6 +16,7 @@ const statusColors: Record<OrderStatus, string> = {
   ready_for_pickup: 'bg-primary/10 text-primary',
   picked_up: 'bg-primary/10 text-primary',
   on_the_way: 'bg-primary/10 text-primary',
+  awaiting_confirmation: 'bg-warning/10 text-warning',
   delivered: 'bg-success/10 text-success',
   cancelled: 'bg-destructive/10 text-destructive',
 };

@@ -11,7 +11,8 @@ const stages = [
   { status: 'preparing', label: 'Preparing', icon: ChefHat, description: 'Chef is cooking' },
   { status: 'ready_for_pickup', label: 'Ready', icon: Package, description: 'Ready for pickup' },
   { status: 'on_the_way', label: 'On the Way', icon: Bike, description: 'Rider en route' },
-  { status: 'delivered', label: 'Delivered', icon: Home, description: 'Enjoy your meal!' },
+  { status: 'awaiting_confirmation', label: 'Confirm Delivery', icon: CheckCircle2, description: 'Confirm you received it' },
+  { status: 'delivered', label: 'Delivered & Paid', icon: Home, description: 'Enjoy your meal!' },
 ] as const;
 
 const statusToStageIndex: Record<string, number> = {
@@ -21,7 +22,8 @@ const statusToStageIndex: Record<string, number> = {
   ready_for_pickup: 2,
   picked_up: 3,
   on_the_way: 3,
-  delivered: 4,
+  awaiting_confirmation: 4,
+  delivered: 5,
   cancelled: -2,
 };
 
