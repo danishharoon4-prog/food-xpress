@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import CustomerHeader from '@/components/CustomerHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,15 +10,19 @@ import { Separator } from '@/components/ui/separator';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { LiveRiderTracking } from '@/components/LiveRiderTracking';
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
-import { Bike, MapPin, Phone, Star } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Bike, MapPin, Phone, Star, CheckCircle2 } from 'lucide-react';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
 
 
 export default function OrderTracking() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [rider, setRider] = useState<(Rider & { profile?: Profile }) | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirming, setConfirming] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (id) {
@@ -91,6 +96,21 @@ export default function OrderTracking() {
 
   const isCancelled = order.status === 'cancelled';
   const isDelivered = order.status === 'delivered';
+  const isAwaitingConfirmation = order.status === 'awaiting_confirmation';
+
+  const confirmDelivery = async () => {
+    setConfirming(true);
+    const { data, error } = await supabase.rpc('confirm_delivery', { _order_id: order.id });
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else if (data === false) {
+      toast({ title: 'Error', description: 'Could not confirm delivery.', variant: 'destructive' });
+    } else {
+      toast({ title: 'Delivery Confirmed!', description: 'Order marked as delivered & paid. Thank you!' });
+    }
+    setConfirming(false);
+    fetchOrder();
+  };
 
   return (
     <div className="min-h-screen bg-background pb-8">
