@@ -159,6 +159,33 @@ export default function OrderTracking() {
           </CardContent>
         </Card>
 
+        {/* Confirm Delivery Button */}
+        {isAwaitingConfirmation && (
+          <Card className="border-warning border-2 bg-warning/5">
+            <CardContent className="py-6">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-warning" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Rider has arrived!</h3>
+                    <p className="text-sm text-muted-foreground">Please confirm you have received your order</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={confirmDelivery}
+                  disabled={confirming}
+                  size="lg"
+                  className="gradient-primary w-full sm:w-auto"
+                >
+                  {confirming ? 'Confirming...' : 'Confirm Delivery'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Live Rider Tracking - Shows when rider is on the way */}
         {order.rider_id && (
           <LiveRiderTracking
