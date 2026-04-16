@@ -720,6 +720,7 @@ export type Database = {
     }
     Functions: {
       claim_order: { Args: { _order_id: string }; Returns: boolean }
+      confirm_delivery: { Args: { _order_id: string }; Returns: boolean }
       create_system_notification: {
         Args: {
           p_data?: Json
@@ -756,6 +757,7 @@ export type Database = {
         | "ready_for_pickup"
         | "picked_up"
         | "on_the_way"
+        | "awaiting_confirmation"
         | "delivered"
         | "cancelled"
       payment_method: "easypaisa" | "jazzcash" | "card" | "cod"
@@ -895,6 +897,7 @@ export const Constants = {
         "ready_for_pickup",
         "picked_up",
         "on_the_way",
+        "awaiting_confirmation",
         "delivered",
         "cancelled",
       ],
