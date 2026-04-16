@@ -41,6 +41,7 @@ const statusColors: Record<string, string> = {
   ready_for_pickup: 'bg-indigo-100 text-indigo-800',
   picked_up: 'bg-purple-100 text-purple-800',
   on_the_way: 'bg-cyan-100 text-cyan-800',
+  awaiting_confirmation: 'bg-amber-100 text-amber-800',
   delivered: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
 };
