@@ -39,6 +39,7 @@ export default function Checkout() {
   const [deliveryFee, setDeliveryFee] = useState(100);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [estimatedTime, setEstimatedTime] = useState<string | null>(null);
+  const [estimatedMinutes, setEstimatedMinutes] = useState<number | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
 
   const subtotal = getSubtotal();
@@ -148,10 +149,12 @@ export default function Checkout() {
         const prepTime = 15; // Restaurant preparation time
         const totalMinutes = travelMinutes + prepTime;
         setEstimatedTime(`${totalMinutes}-${totalMinutes + 10} mins`);
+        setEstimatedMinutes(totalMinutes);
       } catch (error) {
         console.error('Error calculating distance:', error);
         setDeliveryFee(100); // Fallback to base fee
         setEstimatedTime(null);
+        setEstimatedMinutes(null);
       } finally {
         setCalculatingFee(false);
       }
@@ -192,6 +195,9 @@ export default function Checkout() {
         delivery_fee: deliveryFee,
         total,
         special_instructions: specialInstructions || null,
+        estimated_delivery_time: estimatedMinutes
+          ? new Date(Date.now() + estimatedMinutes * 60 * 1000).toISOString()
+          : new Date(Date.now() + 45 * 60 * 1000).toISOString(),
       };
 
       const { data: order, error: orderError } = await supabase
