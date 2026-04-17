@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { LiveRiderTracking } from '@/components/LiveRiderTracking';
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
+import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import { useToast } from '@/hooks/use-toast';
 import { Bike, MapPin, Phone, Star, CheckCircle2 } from 'lucide-react';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
@@ -134,17 +135,23 @@ export default function OrderTracking() {
                   })}
                 </p>
               </div>
-              <Badge
-                className={`text-sm px-4 py-2 ${
-                  isCancelled
-                    ? 'bg-destructive/10 text-destructive'
-                    : isDelivered
-                    ? 'bg-success/10 text-success'
-                    : 'bg-primary/10 text-primary'
-                }`}
-              >
-                {order.status.replace(/_/g, ' ').toUpperCase()}
-              </Badge>
+              <div className="flex flex-col items-end gap-2">
+                <Badge
+                  className={`text-sm px-4 py-2 ${
+                    isCancelled
+                      ? 'bg-destructive/10 text-destructive'
+                      : isDelivered
+                      ? 'bg-success/10 text-success'
+                      : 'bg-primary/10 text-primary'
+                  }`}
+                >
+                  {order.status.replace(/_/g, ' ').toUpperCase()}
+                </Badge>
+                <DeliveryCountdown
+                  estimatedDeliveryTime={order.estimated_delivery_time}
+                  status={order.status}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
