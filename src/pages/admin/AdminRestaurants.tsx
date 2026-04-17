@@ -22,6 +22,7 @@ export default function AdminRestaurants() {
   const [description, setDescription] = useState('');
   const [cuisineType, setCuisineType] = useState('');
   const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
   const [imageUrl, setImageUrl] = useState('');
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function AdminRestaurants() {
     setDescription('');
     setCuisineType('');
     setAddress('');
+    setCity('');
     setImageUrl('');
     setEditingRestaurant(null);
   };
@@ -58,6 +60,7 @@ export default function AdminRestaurants() {
       setDescription(restaurant.description || '');
       setCuisineType(restaurant.cuisine_type || '');
       setAddress(restaurant.address || '');
+      setCity(restaurant.city || '');
       setImageUrl(restaurant.image_url || '');
     } else {
       resetForm();
@@ -73,6 +76,7 @@ export default function AdminRestaurants() {
       description: description || null,
       cuisine_type: cuisineType || null,
       address: address || null,
+      city: city || null,
       image_url: imageUrl || null,
     };
 
@@ -172,6 +176,16 @@ export default function AdminRestaurants() {
                 />
               </div>
               <div>
+                <Label htmlFor="city">City *</Label>
+                <Input
+                  id="city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="e.g., Lahore, Karachi, Islamabad"
+                  required
+                />
+              </div>
+              <div>
                 <Label htmlFor="imageUrl">Image URL</Label>
                 <Input
                   id="imageUrl"
@@ -223,9 +237,14 @@ export default function AdminRestaurants() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-2">
+                <p className="text-sm text-muted-foreground mb-1">
                   {restaurant.cuisine_type || 'No cuisine type'}
                 </p>
+                {restaurant.city && (
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                    📍 {restaurant.city}
+                  </p>
+                )}
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   {restaurant.description || 'No description'}
                 </p>

@@ -7,21 +7,30 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Search, MapPin, Clock, Star, Heart } from 'lucide-react';
 import type { Restaurant } from '@/types';
 
 export default function Restaurants() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [city, setCity] = useState<string>('all');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchRestaurants();
   }, []);
+
+  // Default city filter to user's profile city when available
+  useEffect(() => {
+    if (profile?.city && city === 'all') {
+      setCity(profile.city);
+    }
+  }, [profile?.city]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (user) fetchFavorites();
@@ -67,11 +76,17 @@ export default function Restaurants() {
     }
   };
 
-  const filteredRestaurants = restaurants.filter(
-    (r) =>
+  const cities = Array.from(
+    new Set(restaurants.map((r) => r.city).filter((c): c is string => !!c))
+  ).sort();
+
+  const filteredRestaurants = restaurants.filter((r) => {
+    const matchesSearch =
       r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.cuisine_type?.toLowerCase().includes(search.toLowerCase())
-  );
+      r.cuisine_type?.toLowerCase().includes(search.toLowerCase());
+    const matchesCity = city === 'all' || r.city === city;
+    return matchesSearch && matchesCity;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,15 +98,34 @@ export default function Restaurants() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">Find Your Favorite Food</h1>
           <p className="text-muted-foreground mb-6">Browse restaurants and order delicious meals</p>
           
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="Search restaurants or cuisines..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-12"
-            />
+          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                placeholder="Search restaurants or cuisines..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 h-12"
+              />
+            </div>
+            <Select value={city} onValueChange={setCity}>
+              <SelectTrigger className="h-12 sm:w-56">
+                <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="All cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All cities</SelectItem>
+                {cities.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          {city !== 'all' && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Showing restaurants in <span className="font-medium text-foreground">{city}</span>
+            </p>
+          )}
         </div>
 
         {/* Restaurants Grid */}

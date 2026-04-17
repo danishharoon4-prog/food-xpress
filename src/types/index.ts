@@ -54,6 +54,7 @@ export interface Restaurant {
   image_url: string | null;
   cuisine_type: string | null;
   address: string | null;
+  city: string | null;
   latitude: number | null;
   longitude: number | null;
   is_active: boolean;
