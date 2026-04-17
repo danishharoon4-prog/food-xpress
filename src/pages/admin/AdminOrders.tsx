@@ -190,7 +190,13 @@ export default function AdminOrders() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <CardTitle className="text-lg">#{order.order_number}</CardTitle>
-                  <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <DeliveryCountdown
+                      estimatedDeliveryTime={order.estimated_delivery_time}
+                      status={order.status}
+                    />
+                    <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -213,14 +219,47 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
-                {/* Rider Assignment */}
+                {/* Customer Info */}
                 <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Rider Assignment</span>
+                    <span className="text-sm font-medium">Customer</span>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="text-sm font-medium">{order.customer?.full_name || 'N/A'}</p>
+                    {order.customer?.phone && (
+                      <a
+                        href={`tel:${order.customer.phone}`}
+                        className="flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        {order.customer.phone}
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Rider Assignment */}
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Bike className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Rider</span>
                   </div>
                   {order.rider_id ? (
-                    <p className="text-sm text-success">Assigned to: {getRiderName(order.rider_id)}</p>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <p className="text-sm text-success font-medium">
+                        {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
+                      </p>
+                      {order.assigned_rider?.profile?.phone && (
+                        <a
+                          href={`tel:${order.assigned_rider.profile.phone}`}
+                          className="flex items-center gap-1 text-sm text-primary hover:underline"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          {order.assigned_rider.profile.phone}
+                        </a>
+                      )}
+                    </div>
                   ) : (
                     <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
                       <SelectTrigger className="w-full">
@@ -232,7 +271,7 @@ export default function AdminOrders() {
                         ) : (
                           riders.filter(r => r.is_online).map((rider) => (
                             <SelectItem key={rider.id} value={rider.id}>
-                              {rider.profile?.full_name || 'Rider'} {rider.is_online ? '(Online)' : '(Offline)'}
+                              {rider.profile?.full_name || 'Rider'} (Online)
                             </SelectItem>
                           ))
                         )}
