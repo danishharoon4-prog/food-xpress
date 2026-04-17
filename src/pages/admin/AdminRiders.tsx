@@ -121,6 +121,7 @@ export default function AdminRiders() {
               <CardContent>
                 <div className="space-y-2 text-sm">
                   <p><span className="text-muted-foreground">Phone:</span> {rider.profile?.phone || 'N/A'}</p>
+                  <p className="flex items-center gap-1"><MapPin className="w-3 h-3 text-muted-foreground" /> <span className="text-muted-foreground">City:</span> {rider.profile?.city || 'N/A'}</p>
                   <p><span className="text-muted-foreground">Vehicle:</span> {rider.vehicle_type} - {rider.vehicle_number || 'N/A'}</p>
                   
                   <div className="flex items-center gap-4 pt-2 border-t">
