@@ -66,10 +66,10 @@ export default function RiderOrders() {
   };
 
   const fetchAvailableOrders = async () => {
-    // This query uses the RLS policy that shows ready_for_pickup + unassigned orders to online riders
+    // RLS already restricts these to orders from restaurants in the rider's own city
     const { data } = await supabase
       .from('orders')
-      .select('*, restaurant:restaurants(name, address)')
+      .select('*, restaurant:restaurants(name, address, city)')
       .eq('status', 'ready_for_pickup')
       .is('rider_id', null)
       .order('created_at', { ascending: false });
@@ -147,6 +147,9 @@ export default function RiderOrders() {
                       <div>
                         <p className="text-sm font-medium">Pickup: {(order as any).restaurant?.name}</p>
                         <p className="text-xs text-muted-foreground">{(order as any).restaurant?.address}</p>
+                        {(order as any).restaurant?.city && (
+                          <p className="text-xs text-primary mt-0.5">📍 {(order as any).restaurant.city}</p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
