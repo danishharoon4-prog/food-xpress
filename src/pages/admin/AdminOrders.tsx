@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, User } from 'lucide-react';
-import type { Order, OrderStatus, Rider } from '@/types';
+import { ShoppingBag, User, Phone, Bike } from 'lucide-react';
+import { DeliveryCountdown } from '@/components/DeliveryCountdown';
+import type { Order, OrderStatus } from '@/types';
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-warning/10 text-warning',
@@ -24,11 +25,16 @@ interface RiderWithProfile {
   user_id: string;
   is_online: boolean;
   is_verified: boolean;
-  profile?: { full_name: string };
+  profile?: { full_name: string; phone?: string | null };
+}
+
+interface OrderWithRelations extends Order {
+  customer?: { full_name: string; phone: string | null } | null;
+  assigned_rider?: { id: string; profile?: { full_name: string; phone: string | null } | null } | null;
 }
 
 export default function AdminOrders() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [riders, setRiders] = useState<RiderWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -58,9 +64,53 @@ export default function AdminOrders() {
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      setOrders(data as unknown as Order[]);
+      setLoading(false);
+      return;
     }
+
+    const baseOrders = (data || []) as unknown as OrderWithRelations[];
+
+    // Fetch customer profiles in one query
+    const customerIds = Array.from(new Set(baseOrders.map((o) => o.customer_id).filter(Boolean)));
+    let customersById: Record<string, { full_name: string; phone: string | null }> = {};
+    if (customerIds.length > 0) {
+      const { data: customers } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone')
+        .in('id', customerIds);
+      customersById = (customers || []).reduce((acc, c) => {
+        acc[c.id] = { full_name: c.full_name, phone: c.phone };
+        return acc;
+      }, {} as Record<string, { full_name: string; phone: string | null }>);
+    }
+
+    // Fetch assigned rider profiles
+    const riderIds = Array.from(new Set(baseOrders.map((o) => o.rider_id).filter(Boolean) as string[]));
+    let ridersById: Record<string, { id: string; profile?: { full_name: string; phone: string | null } | null }> = {};
+    if (riderIds.length > 0) {
+      const { data: ridersData } = await supabase
+        .from('riders')
+        .select('id, user_id')
+        .in('id', riderIds);
+      const userIds = (ridersData || []).map((r) => r.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone')
+        .in('id', userIds);
+      ridersById = (ridersData || []).reduce((acc, r) => {
+        const profile = profiles?.find((p) => p.id === r.user_id);
+        acc[r.id] = { id: r.id, profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null };
+        return acc;
+      }, {} as Record<string, { id: string; profile?: { full_name: string; phone: string | null } | null }>);
+    }
+
+    const enriched = baseOrders.map((o) => ({
+      ...o,
+      customer: customersById[o.customer_id] || null,
+      assigned_rider: o.rider_id ? ridersById[o.rider_id] || null : null,
+    }));
+
+    setOrders(enriched);
     setLoading(false);
   };
 
@@ -75,7 +125,7 @@ export default function AdminOrders() {
       const userIds = ridersData.map(r => r.user_id);
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('id, full_name')
+        .select('id, full_name, phone')
         .in('id', userIds);
 
       // Map profiles to riders
@@ -140,7 +190,13 @@ export default function AdminOrders() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <CardTitle className="text-lg">#{order.order_number}</CardTitle>
-                  <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <DeliveryCountdown
+                      estimatedDeliveryTime={order.estimated_delivery_time}
+                      status={order.status}
+                    />
+                    <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -163,14 +219,47 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
-                {/* Rider Assignment */}
+                {/* Customer Info */}
                 <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Rider Assignment</span>
+                    <span className="text-sm font-medium">Customer</span>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="text-sm font-medium">{order.customer?.full_name || 'N/A'}</p>
+                    {order.customer?.phone && (
+                      <a
+                        href={`tel:${order.customer.phone}`}
+                        className="flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        {order.customer.phone}
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Rider Assignment */}
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Bike className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Rider</span>
                   </div>
                   {order.rider_id ? (
-                    <p className="text-sm text-success">Assigned to: {getRiderName(order.rider_id)}</p>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <p className="text-sm text-success font-medium">
+                        {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
+                      </p>
+                      {order.assigned_rider?.profile?.phone && (
+                        <a
+                          href={`tel:${order.assigned_rider.profile.phone}`}
+                          className="flex items-center gap-1 text-sm text-primary hover:underline"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          {order.assigned_rider.profile.phone}
+                        </a>
+                      )}
+                    </div>
                   ) : (
                     <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
                       <SelectTrigger className="w-full">
@@ -182,7 +271,7 @@ export default function AdminOrders() {
                         ) : (
                           riders.filter(r => r.is_online).map((rider) => (
                             <SelectItem key={rider.id} value={rider.id}>
-                              {rider.profile?.full_name || 'Rider'} {rider.is_online ? '(Online)' : '(Offline)'}
+                              {rider.profile?.full_name || 'Rider'} (Online)
                             </SelectItem>
                           ))
                         )}

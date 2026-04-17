@@ -5,8 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Navigation, PackageCheck } from 'lucide-react';
+import { MapPin, Navigation, PackageCheck, User, Phone } from 'lucide-react';
+import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import type { Order, OrderStatus } from '@/types';
+
+type OrderWithCustomer = Order & {
+  customer?: { full_name: string; phone: string | null } | null;
+};
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-warning/10 text-warning',
@@ -22,7 +27,7 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function RiderOrders() {
   const { user } = useAuth();
-  const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const [myOrders, setMyOrders] = useState<OrderWithCustomer[]>([]);
   const [availableOrders, setAvailableOrders] = useState<Order[]>([]);
   const [riderId, setRiderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +66,27 @@ export default function RiderOrders() {
         .select('*, restaurant:restaurants(name, address)')
         .eq('rider_id', rider.id)
         .order('created_at', { ascending: false });
-      if (data) setMyOrders(data as unknown as Order[]);
+
+      if (data && data.length > 0) {
+        // Fetch customer profiles separately (RLS allows riders to view assigned customers' profiles)
+        const customerIds = Array.from(new Set(data.map((o) => o.customer_id)));
+        const { data: customers } = await supabase
+          .from('profiles')
+          .select('id, full_name, phone')
+          .in('id', customerIds);
+        const byId = (customers || []).reduce((acc, c) => {
+          acc[c.id] = { full_name: c.full_name, phone: c.phone };
+          return acc;
+        }, {} as Record<string, { full_name: string; phone: string | null }>);
+
+        const enriched: OrderWithCustomer[] = data.map((o) => ({
+          ...(o as unknown as Order),
+          customer: byId[o.customer_id] || null,
+        }));
+        setMyOrders(enriched);
+      } else {
+        setMyOrders([]);
+      }
     }
   };
 
@@ -191,9 +216,15 @@ export default function RiderOrders() {
             {activeOrders.map((order) => (
               <Card key={order.id} className="border-primary/50">
                 <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <CardTitle className="text-lg">#{order.order_number}</CardTitle>
-                    <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <DeliveryCountdown
+                        estimatedDeliveryTime={order.estimated_delivery_time}
+                        status={order.status}
+                      />
+                      <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -213,6 +244,24 @@ export default function RiderOrders() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Customer info */}
+                  <div className="p-3 bg-muted/40 rounded-lg flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{order.customer?.full_name || 'Customer'}</span>
+                    </div>
+                    {order.customer?.phone && (
+                      <a
+                        href={`tel:${order.customer.phone}`}
+                        className="flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        {order.customer.phone}
+                      </a>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-lg">PKR {Number(order.total).toLocaleString()}</span>
                     {getNextStatus(order.status) && (
