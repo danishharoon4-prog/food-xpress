@@ -216,9 +216,15 @@ export default function RiderOrders() {
             {activeOrders.map((order) => (
               <Card key={order.id} className="border-primary/50">
                 <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <CardTitle className="text-lg">#{order.order_number}</CardTitle>
-                    <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <DeliveryCountdown
+                        estimatedDeliveryTime={order.estimated_delivery_time}
+                        status={order.status}
+                      />
+                      <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -238,6 +244,24 @@ export default function RiderOrders() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Customer info */}
+                  <div className="p-3 bg-muted/40 rounded-lg flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{order.customer?.full_name || 'Customer'}</span>
+                    </div>
+                    {order.customer?.phone && (
+                      <a
+                        href={`tel:${order.customer.phone}`}
+                        className="flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        {order.customer.phone}
+                      </a>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-lg">PKR {Number(order.total).toLocaleString()}</span>
                     {getNextStatus(order.status) && (
