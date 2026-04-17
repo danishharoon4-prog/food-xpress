@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, User } from 'lucide-react';
-import type { Order, OrderStatus, Rider } from '@/types';
+import { ShoppingBag, User, Phone, Bike } from 'lucide-react';
+import { DeliveryCountdown } from '@/components/DeliveryCountdown';
+import type { Order, OrderStatus } from '@/types';
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-warning/10 text-warning',
@@ -24,11 +25,16 @@ interface RiderWithProfile {
   user_id: string;
   is_online: boolean;
   is_verified: boolean;
-  profile?: { full_name: string };
+  profile?: { full_name: string; phone?: string | null };
+}
+
+interface OrderWithRelations extends Order {
+  customer?: { full_name: string; phone: string | null } | null;
+  assigned_rider?: { id: string; profile?: { full_name: string; phone: string | null } | null } | null;
 }
 
 export default function AdminOrders() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [riders, setRiders] = useState<RiderWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -58,9 +64,53 @@ export default function AdminOrders() {
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      setOrders(data as unknown as Order[]);
+      setLoading(false);
+      return;
     }
+
+    const baseOrders = (data || []) as unknown as OrderWithRelations[];
+
+    // Fetch customer profiles in one query
+    const customerIds = Array.from(new Set(baseOrders.map((o) => o.customer_id).filter(Boolean)));
+    let customersById: Record<string, { full_name: string; phone: string | null }> = {};
+    if (customerIds.length > 0) {
+      const { data: customers } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone')
+        .in('id', customerIds);
+      customersById = (customers || []).reduce((acc, c) => {
+        acc[c.id] = { full_name: c.full_name, phone: c.phone };
+        return acc;
+      }, {} as Record<string, { full_name: string; phone: string | null }>);
+    }
+
+    // Fetch assigned rider profiles
+    const riderIds = Array.from(new Set(baseOrders.map((o) => o.rider_id).filter(Boolean) as string[]));
+    let ridersById: Record<string, { id: string; profile?: { full_name: string; phone: string | null } | null }> = {};
+    if (riderIds.length > 0) {
+      const { data: ridersData } = await supabase
+        .from('riders')
+        .select('id, user_id')
+        .in('id', riderIds);
+      const userIds = (ridersData || []).map((r) => r.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone')
+        .in('id', userIds);
+      ridersById = (ridersData || []).reduce((acc, r) => {
+        const profile = profiles?.find((p) => p.id === r.user_id);
+        acc[r.id] = { id: r.id, profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null };
+        return acc;
+      }, {} as Record<string, { id: string; profile?: { full_name: string; phone: string | null } | null }>);
+    }
+
+    const enriched = baseOrders.map((o) => ({
+      ...o,
+      customer: customersById[o.customer_id] || null,
+      assigned_rider: o.rider_id ? ridersById[o.rider_id] || null : null,
+    }));
+
+    setOrders(enriched);
     setLoading(false);
   };
 
@@ -75,7 +125,7 @@ export default function AdminOrders() {
       const userIds = ridersData.map(r => r.user_id);
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('id, full_name')
+        .select('id, full_name, phone')
         .in('id', userIds);
 
       // Map profiles to riders
