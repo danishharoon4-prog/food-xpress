@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Navigation, PackageCheck, User, Phone } from 'lucide-react';
+import { MapPin, Navigation, PackageCheck, User, Phone, Eye } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
+import { OrderDetailDialog } from '@/components/rider/OrderDetailDialog';
 import type { Order, OrderStatus } from '@/types';
 
 type OrderWithCustomer = Order & {
