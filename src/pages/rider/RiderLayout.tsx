@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Wallet, 
-  Star, 
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Wallet,
+  Star,
   Settings,
   LogOut,
   Menu,
   X,
-  Bike
+  Bike,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +32,7 @@ export default function RiderLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!isLoading && (!user || role !== 'rider')) {
@@ -35,7 +40,46 @@ export default function RiderLayout() {
     }
   }, [user, role, isLoading, navigate]);
 
-  if (isLoading) {
+  // Check verification status
+  useEffect(() => {
+    if (!user || role !== 'rider') return;
+
+    const check = async () => {
+      let { data } = await supabase
+        .from('riders')
+        .select('is_verified')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!data) {
+        // Auto-create rider row
+        const { data: created } = await supabase
+          .from('riders')
+          .insert({ user_id: user.id })
+          .select('is_verified')
+          .single();
+        data = created;
+      }
+      setIsVerified(!!data?.is_verified);
+    };
+    check();
+
+    // Re-check when admin verifies
+    const channel = supabase
+      .channel('rider-verification')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'riders', filter: `user_id=eq.${user.id}` },
+        (payload: any) => {
+          setIsVerified(!!payload.new?.is_verified);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user, role]);
+
+  if (isLoading || isVerified === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -46,6 +90,9 @@ export default function RiderLayout() {
   if (!user || role !== 'rider') {
     return null;
   }
+
+  // Allowed routes when not verified: only Settings
+  const allowedWhenUnverified = location.pathname === '/rider/settings';
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -72,6 +119,7 @@ export default function RiderLayout() {
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
+              const isLocked = !isVerified && item.path !== '/rider/settings';
               return (
                 <Link
                   key={item.path}
@@ -79,11 +127,14 @@ export default function RiderLayout() {
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                    isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+                    isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent",
+                    isLocked && "opacity-50"
                   )}
+                  aria-disabled={isLocked}
                 >
                   <item.icon className="w-5 h-5" />
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {isLocked && <AlertCircle className="w-4 h-4 text-warning" />}
                 </Link>
               );
             })}
@@ -96,7 +147,9 @@ export default function RiderLayout() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{profile?.full_name}</p>
-                <p className="text-xs text-muted-foreground">Rider</p>
+                <Badge className={isVerified ? 'bg-success/10 text-success text-xs' : 'bg-warning/10 text-warning text-xs'}>
+                  {isVerified ? 'Verified' : 'Pending'}
+                </Badge>
               </div>
             </div>
             <Button variant="outline" size="sm" className="w-full" onClick={signOut}>
@@ -121,7 +174,27 @@ export default function RiderLayout() {
         </header>
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
-          <Outlet />
+          {!isVerified && !allowedWhenUnverified ? (
+            <div className="max-w-xl mx-auto mt-10">
+              <Card className="border-warning">
+                <CardContent className="py-10 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-warning/10 mx-auto flex items-center justify-center">
+                    <AlertCircle className="w-8 h-8 text-warning" />
+                  </div>
+                  <h2 className="text-xl font-bold">Account Pending Verification</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Your rider account isn't active yet. Please complete your profile and upload your CNIC, vehicle document, and driving license.
+                    An admin will review and activate your account.
+                  </p>
+                  <Button onClick={() => navigate('/rider/settings')} className="gradient-primary">
+                    Complete Profile
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
     </div>
