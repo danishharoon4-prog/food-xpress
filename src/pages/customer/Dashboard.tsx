@@ -64,11 +64,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({ totalOrders: 0, totalFavorites: 0, activeOrders: 0 });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
-  const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [stats, setStats] = useState<DashboardStats>({ totalOrders: 0, totalFavorites: 0, activeOrders: 0 });
-  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
