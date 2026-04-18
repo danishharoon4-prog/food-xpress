@@ -653,47 +653,62 @@ export type Database = {
       }
       riders: {
         Row: {
+          address: string | null
           average_rating: number | null
           cnic: string | null
+          cnic_image_url: string | null
           created_at: string
           current_latitude: number | null
           current_longitude: number | null
           id: string
           is_online: boolean | null
           is_verified: boolean | null
+          license_image_url: string | null
+          license_number: string | null
           total_deliveries: number | null
           updated_at: string
           user_id: string
+          vehicle_doc_url: string | null
           vehicle_number: string | null
           vehicle_type: string | null
         }
         Insert: {
+          address?: string | null
           average_rating?: number | null
           cnic?: string | null
+          cnic_image_url?: string | null
           created_at?: string
           current_latitude?: number | null
           current_longitude?: number | null
           id?: string
           is_online?: boolean | null
           is_verified?: boolean | null
+          license_image_url?: string | null
+          license_number?: string | null
           total_deliveries?: number | null
           updated_at?: string
           user_id: string
+          vehicle_doc_url?: string | null
           vehicle_number?: string | null
           vehicle_type?: string | null
         }
         Update: {
+          address?: string | null
           average_rating?: number | null
           cnic?: string | null
+          cnic_image_url?: string | null
           created_at?: string
           current_latitude?: number | null
           current_longitude?: number | null
           id?: string
           is_online?: boolean | null
           is_verified?: boolean | null
+          license_image_url?: string | null
+          license_number?: string | null
           total_deliveries?: number | null
           updated_at?: string
           user_id?: string
+          vehicle_doc_url?: string | null
           vehicle_number?: string | null
           vehicle_type?: string | null
         }
@@ -757,6 +772,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      update_order_eta: {
+        Args: { _new_eta: string; _order_id: string }
         Returns: boolean
       }
     }
