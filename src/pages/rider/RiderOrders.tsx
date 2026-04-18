@@ -33,6 +33,7 @@ export default function RiderOrders() {
   const [riderId, setRiderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState<string | null>(null);
+  const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
