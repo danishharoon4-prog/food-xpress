@@ -30,10 +30,28 @@ export default function AdminRiders() {
   const [riders, setRiders] = useState<RiderWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [cityFilter, setCityFilter] = useState<string>('all');
+  const [docsRider, setDocsRider] = useState<RiderWithDetails | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchRiders();
   }, []);
+
+  const toggleVerified = async (rider: RiderWithDetails, value: boolean) => {
+    setUpdatingId(rider.id);
+    const update: Record<string, unknown> = { is_verified: value };
+    // If un-verifying, also force offline
+    if (!value) update.is_online = false;
+    const { error } = await supabase.from('riders').update(update).eq('id', rider.id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: value ? 'Rider activated' : 'Rider deactivated', description: rider.profile?.full_name || '' });
+      fetchRiders();
+    }
+    setUpdatingId(null);
+  };
 
   const fetchRiders = async () => {
     // Fetch all riders
