@@ -27,7 +27,18 @@ interface RecentOrder {
   status: string;
   total: number;
   created_at: string;
+  estimated_delivery_time?: string | null;
   restaurant: { name: string } | null;
+}
+
+interface ActiveOrder {
+  id: string;
+  order_number: string;
+  status: OrderStatus;
+  total: number;
+  created_at: string;
+  estimated_delivery_time: string | null;
+  restaurants: { name: string; image_url: string | null } | null;
 }
 
 interface FavoriteRestaurant {
