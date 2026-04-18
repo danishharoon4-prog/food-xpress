@@ -100,6 +100,11 @@ export interface Rider {
   cnic: string | null;
   vehicle_type: string;
   vehicle_number: string | null;
+  address: string | null;
+  license_number: string | null;
+  cnic_image_url: string | null;
+  vehicle_doc_url: string | null;
+  license_image_url: string | null;
   is_online: boolean;
   is_verified: boolean;
   current_latitude: number | null;

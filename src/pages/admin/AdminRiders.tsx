@@ -2,8 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bike, Star, DollarSign, Package, MapPin } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { Bike, Star, DollarSign, Package, MapPin, FileImage, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { Rider } from '@/types';
 
 interface RiderProfile {
@@ -26,10 +30,28 @@ export default function AdminRiders() {
   const [riders, setRiders] = useState<RiderWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [cityFilter, setCityFilter] = useState<string>('all');
+  const [docsRider, setDocsRider] = useState<RiderWithDetails | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchRiders();
   }, []);
+
+  const toggleVerified = async (rider: RiderWithDetails, value: boolean) => {
+    setUpdatingId(rider.id);
+    const update: Record<string, unknown> = { is_verified: value };
+    // If un-verifying, also force offline
+    if (!value) update.is_online = false;
+    const { error } = await supabase.from('riders').update(update).eq('id', rider.id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: value ? 'Rider activated' : 'Rider deactivated', description: rider.profile?.full_name || '' });
+      fetchRiders();
+    }
+    setUpdatingId(null);
+  };
 
   const fetchRiders = async () => {
     // Fetch all riders
@@ -123,7 +145,13 @@ export default function AdminRiders() {
                   <p><span className="text-muted-foreground">Phone:</span> {rider.profile?.phone || 'N/A'}</p>
                   <p className="flex items-center gap-1"><MapPin className="w-3 h-3 text-muted-foreground" /> <span className="text-muted-foreground">City:</span> {rider.profile?.city || 'N/A'}</p>
                   <p><span className="text-muted-foreground">Vehicle:</span> {rider.vehicle_type} - {rider.vehicle_number || 'N/A'}</p>
-                  
+                  {(rider as any).license_number && (
+                    <p><span className="text-muted-foreground">License:</span> {(rider as any).license_number}</p>
+                  )}
+                  {(rider as any).address && (
+                    <p className="text-xs text-muted-foreground">{(rider as any).address}</p>
+                  )}
+
                   <div className="flex items-center gap-4 pt-2 border-t">
                     <div className="flex items-center gap-1">
                       <Package className="w-4 h-4 text-muted-foreground" />
@@ -145,14 +173,64 @@ export default function AdminRiders() {
                     </span>
                   </div>
                 </div>
-                <Badge className="mt-3" variant={rider.is_verified ? 'default' : 'secondary'}>
-                  {rider.is_verified ? 'Verified' : 'Pending Verification'}
-                </Badge>
+
+                {/* Verification controls */}
+                <div className="mt-3 pt-3 border-t space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {rider.is_verified ? (
+                        <CheckCircle2 className="w-4 h-4 text-success" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-warning" />
+                      )}
+                      <span className="text-sm font-medium">
+                        {rider.is_verified ? 'Verified & Active' : 'Pending Verification'}
+                      </span>
+                    </div>
+                    <Switch
+                      checked={rider.is_verified}
+                      disabled={updatingId === rider.id}
+                      onCheckedChange={(v) => toggleVerified(rider, v)}
+                    />
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => setDocsRider(rider)}>
+                    <FileImage className="w-4 h-4 mr-1" /> View Documents
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Documents Dialog */}
+      <Dialog open={!!docsRider} onOpenChange={(o) => !o && setDocsRider(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{docsRider?.profile?.full_name || 'Rider'} — Documents</DialogTitle>
+          </DialogHeader>
+          {docsRider && (
+            <div className="grid sm:grid-cols-3 gap-4">
+              {[
+                { label: 'CNIC', url: (docsRider as any).cnic_image_url },
+                { label: 'Vehicle Document', url: (docsRider as any).vehicle_doc_url },
+                { label: 'Driving License', url: (docsRider as any).license_image_url },
+              ].map(({ label, url }) => (
+                <div key={label} className="space-y-2">
+                  <p className="text-sm font-medium">{label}</p>
+                  {url ? (
+                    <a href={url} target="_blank" rel="noreferrer">
+                      <img src={url} alt={label} className="w-full max-h-64 object-contain rounded border bg-muted/30" />
+                    </a>
+                  ) : (
+                    <div className="border rounded p-6 text-center text-xs text-muted-foreground bg-muted/30">Not uploaded</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

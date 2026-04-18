@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Navigation, PackageCheck, User, Phone } from 'lucide-react';
+import { MapPin, Navigation, PackageCheck, User, Phone, Eye } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
+import { OrderDetailDialog } from '@/components/rider/OrderDetailDialog';
 import type { Order, OrderStatus } from '@/types';
 
 type OrderWithCustomer = Order & {
@@ -32,6 +33,7 @@ export default function RiderOrders() {
   const [riderId, setRiderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState<string | null>(null);
+  const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -185,15 +187,20 @@ export default function RiderOrders() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="font-bold text-lg">PKR {Number(order.total).toLocaleString()}</span>
-                    <Button
-                      onClick={() => claimOrder(order.id)}
-                      disabled={claiming === order.id}
-                      className="gradient-primary"
-                    >
-                      {claiming === order.id ? 'Accepting...' : 'Accept & Pick Up'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setDetailOrderId(order.id)}>
+                        <Eye className="w-4 h-4 mr-1" /> Details
+                      </Button>
+                      <Button
+                        onClick={() => claimOrder(order.id)}
+                        disabled={claiming === order.id}
+                        className="gradient-primary"
+                      >
+                        {claiming === order.id ? 'Accepting...' : 'Accept & Pick Up'}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -262,13 +269,18 @@ export default function RiderOrders() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="font-bold text-lg">PKR {Number(order.total).toLocaleString()}</span>
-                    {getNextStatus(order.status) && (
-                      <Button onClick={() => updateStatus(order.id, getNextStatus(order.status)!)} className="gradient-primary">
-                        Mark as {getNextStatus(order.status)?.replace(/_/g, ' ')}
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setDetailOrderId(order.id)}>
+                        <Eye className="w-4 h-4 mr-1" /> Details & ETA
                       </Button>
-                    )}
+                      {getNextStatus(order.status) && (
+                        <Button onClick={() => updateStatus(order.id, getNextStatus(order.status)!)} className="gradient-primary">
+                          Mark as {getNextStatus(order.status)?.replace(/_/g, ' ')}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -297,6 +309,13 @@ export default function RiderOrders() {
           ))}
         </div>
       </div>
+
+      <OrderDetailDialog
+        orderId={detailOrderId}
+        open={!!detailOrderId}
+        onClose={() => setDetailOrderId(null)}
+        onUpdated={fetchAll}
+      />
     </div>
   );
 }
