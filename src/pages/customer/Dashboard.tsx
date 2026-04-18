@@ -216,6 +216,61 @@ export default function Dashboard() {
           </Link>
         </div>
 
+        {/* Active Orders Progress */}
+        {activeOrders.length > 0 && (
+          <Card className="mb-8 border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Activity className="w-5 h-5 text-primary animate-pulse" />
+                Active Orders ({activeOrders.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {activeOrders.map((order) => (
+                <Link
+                  key={order.id}
+                  to={`/order/${order.id}`}
+                  className="block rounded-xl border bg-card p-4 hover:border-primary/40 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start justify-between mb-3 gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent overflow-hidden flex-shrink-0">
+                        {order.restaurants?.image_url ? (
+                          <img
+                            src={order.restaurants.image_url}
+                            alt={order.restaurants.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Utensils className="w-5 h-5 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{order.restaurants?.name || 'Restaurant'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {order.order_number} • PKR {Number(order.total).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className={`text-xs ${statusColors[order.status] || 'bg-muted'}`}>
+                      {order.status?.replace(/_/g, ' ')}
+                    </Badge>
+                  </div>
+                  <OrderProgressIndicator status={order.status} />
+                  {order.estimated_delivery_time && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 pt-3 border-t">
+                      <Clock className="w-3.5 h-3.5" />
+                      ETA: {new Date(order.estimated_delivery_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  )}
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Recent Orders */}
           <div className="lg:col-span-2">
