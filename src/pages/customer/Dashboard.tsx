@@ -10,8 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import {
   ShoppingBag, Heart, MapPin, Clock, Star, ArrowRight,
-  User, Package, TrendingUp, Utensils
+  User, Package, TrendingUp, Utensils, Activity
 } from 'lucide-react';
+import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
+import type { OrderStatus } from '@/types';
 
 interface DashboardStats {
   totalOrders: number;
