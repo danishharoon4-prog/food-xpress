@@ -145,7 +145,13 @@ export default function AdminRiders() {
                   <p><span className="text-muted-foreground">Phone:</span> {rider.profile?.phone || 'N/A'}</p>
                   <p className="flex items-center gap-1"><MapPin className="w-3 h-3 text-muted-foreground" /> <span className="text-muted-foreground">City:</span> {rider.profile?.city || 'N/A'}</p>
                   <p><span className="text-muted-foreground">Vehicle:</span> {rider.vehicle_type} - {rider.vehicle_number || 'N/A'}</p>
-                  
+                  {(rider as any).license_number && (
+                    <p><span className="text-muted-foreground">License:</span> {(rider as any).license_number}</p>
+                  )}
+                  {(rider as any).address && (
+                    <p className="text-xs text-muted-foreground">{(rider as any).address}</p>
+                  )}
+
                   <div className="flex items-center gap-4 pt-2 border-t">
                     <div className="flex items-center gap-1">
                       <Package className="w-4 h-4 text-muted-foreground" />
@@ -167,14 +173,64 @@ export default function AdminRiders() {
                     </span>
                   </div>
                 </div>
-                <Badge className="mt-3" variant={rider.is_verified ? 'default' : 'secondary'}>
-                  {rider.is_verified ? 'Verified' : 'Pending Verification'}
-                </Badge>
+
+                {/* Verification controls */}
+                <div className="mt-3 pt-3 border-t space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {rider.is_verified ? (
+                        <CheckCircle2 className="w-4 h-4 text-success" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-warning" />
+                      )}
+                      <span className="text-sm font-medium">
+                        {rider.is_verified ? 'Verified & Active' : 'Pending Verification'}
+                      </span>
+                    </div>
+                    <Switch
+                      checked={rider.is_verified}
+                      disabled={updatingId === rider.id}
+                      onCheckedChange={(v) => toggleVerified(rider, v)}
+                    />
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => setDocsRider(rider)}>
+                    <FileImage className="w-4 h-4 mr-1" /> View Documents
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Documents Dialog */}
+      <Dialog open={!!docsRider} onOpenChange={(o) => !o && setDocsRider(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{docsRider?.profile?.full_name || 'Rider'} — Documents</DialogTitle>
+          </DialogHeader>
+          {docsRider && (
+            <div className="grid sm:grid-cols-3 gap-4">
+              {[
+                { label: 'CNIC', url: (docsRider as any).cnic_image_url },
+                { label: 'Vehicle Document', url: (docsRider as any).vehicle_doc_url },
+                { label: 'Driving License', url: (docsRider as any).license_image_url },
+              ].map(({ label, url }) => (
+                <div key={label} className="space-y-2">
+                  <p className="text-sm font-medium">{label}</p>
+                  {url ? (
+                    <a href={url} target="_blank" rel="noreferrer">
+                      <img src={url} alt={label} className="w-full max-h-64 object-contain rounded border bg-muted/30" />
+                    </a>
+                  ) : (
+                    <div className="border rounded p-6 text-center text-xs text-muted-foreground bg-muted/30">Not uploaded</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
