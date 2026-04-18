@@ -67,21 +67,41 @@ export default function Dashboard() {
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [stats, setStats] = useState<DashboardStats>({ totalOrders: 0, totalFavorites: 0, activeOrders: 0 });
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
+  const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (!user) {
       navigate('/auth');
       return;
     }
     fetchDashboardData();
+
+    // Realtime: refresh active orders when any of the user's orders change
+    const channel = supabase
+      .channel(`dashboard-orders-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
+        () => fetchDashboardData()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchDashboardData = async () => {
     if (!user) return;
 
-    const [ordersRes, favRes, activeRes] = await Promise.all([
+    const [ordersRes, favRes, activeOrdersRes] = await Promise.all([
       supabase
         .from('orders')
-        .select('id, order_number, status, total, created_at, restaurants:restaurant_id(name)')
+        .select('id, order_number, status, total, created_at, estimated_delivery_time, restaurants:restaurant_id(name)')
         .eq('customer_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5),
@@ -92,9 +112,10 @@ export default function Dashboard() {
         .limit(4),
       supabase
         .from('orders')
-        .select('id', { count: 'exact', head: true })
+        .select('id, order_number, status, total, created_at, estimated_delivery_time, restaurants:restaurant_id(name, image_url)')
         .eq('customer_id', user.id)
-        .not('status', 'in', '("delivered","cancelled")'),
+        .not('status', 'in', '("delivered","cancelled")')
+        .order('created_at', { ascending: false }),
     ]);
 
     const totalOrdersRes = await supabase
@@ -103,11 +124,12 @@ export default function Dashboard() {
       .eq('customer_id', user.id);
 
     setRecentOrders((ordersRes.data as any) || []);
+    setActiveOrders((activeOrdersRes.data as any) || []);
     setFavorites((favRes.data as any) || []);
     setStats({
       totalOrders: totalOrdersRes.count || 0,
       totalFavorites: favRes.data?.length || 0,
-      activeOrders: activeRes.count || 0,
+      activeOrders: activeOrdersRes.data?.length || 0,
     });
     setLoading(false);
   };
