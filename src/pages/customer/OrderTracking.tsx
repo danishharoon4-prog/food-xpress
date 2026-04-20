@@ -11,6 +11,7 @@ import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { LiveRiderTracking } from '@/components/LiveRiderTracking';
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
+import { CancelOrderButton } from '@/components/CancelOrderButton';
 import { useToast } from '@/hooks/use-toast';
 import { Bike, MapPin, Phone, Star, CheckCircle2 } from 'lucide-react';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
@@ -158,8 +159,13 @@ export default function OrderTracking() {
 
         {/* Order Progress */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Order Progress</CardTitle>
+            <CancelOrderButton
+              orderId={order.id}
+              status={order.status}
+              onCancelled={fetchOrder}
+            />
           </CardHeader>
           <CardContent>
             <OrderProgressIndicator status={order.status} />

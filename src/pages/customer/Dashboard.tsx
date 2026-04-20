@@ -13,6 +13,7 @@ import {
   User, Package, TrendingUp, Utensils, Activity
 } from 'lucide-react';
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
+import { CancelOrderButton } from '@/components/CancelOrderButton';
 import type { OrderStatus } from '@/types';
 
 interface DashboardStats {
@@ -259,12 +260,19 @@ export default function Dashboard() {
                     </Badge>
                   </div>
                   <OrderProgressIndicator status={order.status} />
-                  {order.estimated_delivery_time && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 pt-3 border-t">
-                      <Clock className="w-3.5 h-3.5" />
-                      ETA: {new Date(order.estimated_delivery_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between gap-2 mt-2 pt-3 border-t">
+                    {order.estimated_delivery_time ? (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5" />
+                        ETA: {new Date(order.estimated_delivery_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    ) : <span />}
+                    <CancelOrderButton
+                      orderId={order.id}
+                      status={order.status}
+                      onCancelled={fetchDashboardData}
+                    />
+                  </div>
                 </Link>
               ))}
             </CardContent>
