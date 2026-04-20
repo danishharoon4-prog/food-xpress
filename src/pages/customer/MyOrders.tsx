@@ -28,10 +28,10 @@ const statusColors: Record<OrderStatus, string> = {
   cancelled: 'bg-destructive/10 text-destructive',
 };
 
-interface OrderWithItems extends Order {
+type OrderWithItems = Omit<Order, 'restaurant' | 'order_items'> & {
   restaurant?: { name: string } | null;
   order_items?: Array<{ id: string; item_name: string; quantity: number; item_price: number }>;
-}
+};
 
 export default function MyOrders() {
   const { user } = useAuth();
