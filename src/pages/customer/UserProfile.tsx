@@ -96,7 +96,7 @@ export default function UserProfile() {
         .update({
           full_name: fullName,
           phone: phone || null,
-          city: city || null,
+          city: 'Mansehra',
           permanent_address: permanentAddress || null,
           permanent_latitude: permanentCoords?.latitude || null,
           permanent_longitude: permanentCoords?.longitude || null,
@@ -172,7 +172,8 @@ export default function UserProfile() {
                 <Label htmlFor="city" className="flex items-center gap-1">
                   <Building className="w-3.5 h-3.5" /> City
                 </Label>
-                <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lahore" />
+                <Input id="city" value="Mansehra" disabled className="bg-muted" />
+                <p className="text-xs text-muted-foreground">Service currently available in Mansehra only</p>
               </div>
             </CardContent>
           </Card>

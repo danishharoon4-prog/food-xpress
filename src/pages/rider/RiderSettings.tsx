@@ -91,10 +91,10 @@ export default function RiderSettings() {
     e.preventDefault();
     if (!rider || !user) return;
 
-    // Update profile (name, phone, city)
+    // Update profile (name, phone, city locked to Mansehra)
     const { error: pErr } = await supabase
       .from('profiles')
-      .update({ full_name: fullName, phone, city })
+      .update({ full_name: fullName, phone, city: 'Mansehra' })
       .eq('id', user.id);
 
     if (pErr) {
@@ -279,7 +279,8 @@ export default function RiderSettings() {
               </div>
               <div>
                 <Label>City</Label>
-                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Lahore" required />
+                <Input value="Mansehra" disabled className="bg-muted" />
+                <p className="text-xs text-muted-foreground mt-1">Service area: Mansehra only</p>
               </div>
               <div>
                 <Label>CNIC</Label>
