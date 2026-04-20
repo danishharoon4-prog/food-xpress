@@ -159,8 +159,13 @@ export default function OrderTracking() {
 
         {/* Order Progress */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Order Progress</CardTitle>
+            <CancelOrderButton
+              orderId={order.id}
+              status={order.status}
+              onCancelled={fetchOrder}
+            />
           </CardHeader>
           <CardContent>
             <OrderProgressIndicator status={order.status} />
