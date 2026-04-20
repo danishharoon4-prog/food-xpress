@@ -2,9 +2,16 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, User, Phone, Bike } from 'lucide-react';
+import { ShoppingBag, User, Phone, Bike, X } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import type { Order, OrderStatus } from '@/types';
 
@@ -37,7 +44,32 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [riders, setRiders] = useState<RiderWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
   const { toast } = useToast();
+
+  const handleCancel = async () => {
+    if (!cancelOrderId || !cancelReason.trim()) return;
+    setCancelling(true);
+    const { data, error } = await supabase.rpc('cancel_order', {
+      _order_id: cancelOrderId,
+      _reason: cancelReason.trim(),
+    });
+    setCancelling(false);
+    if (error || !data) {
+      toast({
+        title: 'Cancel failed',
+        description: error?.message || 'Order can only be cancelled before it is being prepared.',
+        variant: 'destructive',
+      });
+    } else {
+      toast({ title: 'Order cancelled', description: 'The order has been cancelled.' });
+      setCancelOrderId(null);
+      setCancelReason('');
+      fetchOrders();
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -304,7 +336,25 @@ export default function AdminOrders() {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
-                  <span className="text-xs text-muted-foreground">
+                  {(order.status === 'pending' || order.status === 'confirmed') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => {
+                        setCancelOrderId(order.id);
+                        setCancelReason('');
+                      }}
+                    >
+                      <X className="w-4 h-4 mr-1" /> Cancel Order
+                    </Button>
+                  )}
+                  {order.status === 'cancelled' && (order as any).cancellation_reason && (
+                    <span className="text-xs text-destructive">
+                      Reason: {(order as any).cancellation_reason}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground ml-auto">
                     {new Date(order.created_at).toLocaleString()}
                   </span>
                 </div>
@@ -313,6 +363,38 @@ export default function AdminOrders() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!cancelOrderId} onOpenChange={(open) => !open && setCancelOrderId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel this order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Orders can only be cancelled before the restaurant starts preparing. Please provide a reason.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="admin-cancel-reason">Cancellation reason</Label>
+            <Textarea
+              id="admin-cancel-reason"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="e.g. Customer requested, restaurant unavailable..."
+              rows={3}
+              maxLength={500}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Keep Order</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancel}
+              disabled={!cancelReason.trim() || cancelling}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

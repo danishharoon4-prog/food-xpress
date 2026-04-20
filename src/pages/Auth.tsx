@@ -194,26 +194,31 @@ export default function Auth() {
             </TabsContent>
 
             <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
+              <form onSubmit={handleSignup} className="space-y-5">
                 {/* Role Selection */}
                 <div className="space-y-2">
-                  <Label>I want to</Label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <Label className="text-sm">I want to join as</Label>
+                  <div className="grid grid-cols-2 gap-3">
                     {roleOptions.map(({ value, label, icon: Icon, description }) => (
                       <button
                         key={value}
                         type="button"
                         onClick={() => setSelectedRole(value)}
-                        className={`p-3 rounded-xl border-2 transition-all text-center ${
+                        className={`p-4 rounded-xl border-2 transition-all text-left ${
                           selectedRole === value
-                            ? 'border-primary bg-accent'
-                            : 'border-border hover:border-primary/50'
+                            ? 'border-primary bg-accent shadow-sm'
+                            : 'border-border hover:border-primary/40 hover:bg-accent/50'
                         }`}
                       >
-                        <Icon className={`w-5 h-5 mx-auto mb-1 ${
-                          selectedRole === value ? 'text-primary' : 'text-muted-foreground'
-                        }`} />
-                        <span className="text-xs font-medium block">{label}</span>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            selectedRole === value ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                          }`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span className="text-sm font-semibold">{label}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-tight">{description}</p>
                       </button>
                     ))}
                   </div>
@@ -254,7 +259,7 @@ export default function Auth() {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="At least 6 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
@@ -264,7 +269,12 @@ export default function Auth() {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
+                <div className="rounded-lg border bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground flex items-center gap-2">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+                  Service area: <span className="font-medium text-foreground">Mansehra</span>
+                </div>
+
+                <Button type="submit" className="w-full gradient-primary h-11" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
