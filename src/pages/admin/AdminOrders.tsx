@@ -44,7 +44,32 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [riders, setRiders] = useState<RiderWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
   const { toast } = useToast();
+
+  const handleCancel = async () => {
+    if (!cancelOrderId || !cancelReason.trim()) return;
+    setCancelling(true);
+    const { data, error } = await supabase.rpc('cancel_order', {
+      _order_id: cancelOrderId,
+      _reason: cancelReason.trim(),
+    });
+    setCancelling(false);
+    if (error || !data) {
+      toast({
+        title: 'Cancel failed',
+        description: error?.message || 'Order can only be cancelled before it is being prepared.',
+        variant: 'destructive',
+      });
+    } else {
+      toast({ title: 'Order cancelled', description: 'The order has been cancelled.' });
+      setCancelOrderId(null);
+      setCancelReason('');
+      fetchOrders();
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
