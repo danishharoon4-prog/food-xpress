@@ -252,6 +252,9 @@ export type Database = {
       orders: {
         Row: {
           actual_delivery_time: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
           customer_id: string
           delivery_address: string
@@ -271,6 +274,9 @@ export type Database = {
         }
         Insert: {
           actual_delivery_time?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           customer_id: string
           delivery_address: string
@@ -290,6 +296,9 @@ export type Database = {
         }
         Update: {
           actual_delivery_time?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           customer_id?: string
           delivery_address?: string
@@ -737,6 +746,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_order: {
+        Args: { _order_id: string; _reason: string }
+        Returns: boolean
+      }
       claim_order: { Args: { _order_id: string }; Returns: boolean }
       confirm_delivery: { Args: { _order_id: string }; Returns: boolean }
       create_system_notification: {
