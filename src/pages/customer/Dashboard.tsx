@@ -13,6 +13,7 @@ import {
   User, Package, TrendingUp, Utensils, Activity
 } from 'lucide-react';
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
+import { CancelOrderButton } from '@/components/CancelOrderButton';
 import type { OrderStatus } from '@/types';
 
 interface DashboardStats {
