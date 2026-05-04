@@ -252,24 +252,29 @@ export default function AdminRestaurants() {
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   {restaurant.description || 'No description'}
                 </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openDialog(restaurant)}
-                  >
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Edit
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={() => openDialog(restaurant)}>
+                    <Pencil className="w-4 h-4 mr-1" />Edit
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(restaurant.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(restaurant.id)} className="text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-1" />Delete
                   </Button>
+                  {(restaurant as any).approval_status === 'pending' && (
+                    <>
+                      <Button size="sm" className="gradient-primary" onClick={async () => {
+                        const { error } = await supabase.rpc('approve_restaurant', { _restaurant_id: restaurant.id, _approve: true, _reason: null });
+                        if (error) toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+                        else { toast({ title: 'Approved' }); fetchRestaurants(); }
+                      }}>Approve</Button>
+                      <Button size="sm" variant="outline" className="text-destructive" onClick={async () => {
+                        const reason = prompt('Reason for rejection:');
+                        if (!reason) return;
+                        const { error } = await supabase.rpc('approve_restaurant', { _restaurant_id: restaurant.id, _approve: false, _reason: reason });
+                        if (error) toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+                        else { toast({ title: 'Rejected' }); fetchRestaurants(); }
+                      }}>Reject</Button>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
