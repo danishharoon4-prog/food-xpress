@@ -127,6 +127,7 @@ export default function Auth() {
   const roleOptions = [
     { value: 'customer', label: 'Customer', icon: UtensilsCrossed, description: 'Order delicious food' },
     { value: 'rider', label: 'Rider', icon: Bike, description: 'Deliver & earn' },
+    { value: 'restaurant', label: 'Restaurant', icon: Store, description: 'Sell on FoodExpress' },
   ] as const;
 
   return (
