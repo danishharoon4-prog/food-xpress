@@ -98,10 +98,10 @@ export default function MyOrders() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background customer-page">
       <CustomerHeader />
 
-      <main className="container py-8">
+      <main className="container py-6 md:py-8">
         <h1 className="text-2xl font-bold mb-6">My Orders</h1>
 
         {loading ? (
