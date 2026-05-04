@@ -92,6 +92,14 @@ const App = () => (
                 <Route path="settings" element={<RiderSettings />} />
               </Route>
 
+              {/* Restaurant Routes */}
+              <Route path="/restaurant" element={<RestaurantLayout />}>
+                <Route index element={<RestaurantDashboard />} />
+                <Route path="orders" element={<RestaurantOrders />} />
+                <Route path="menu" element={<RestaurantMenuPage />} />
+                <Route path="profile" element={<RestaurantProfile />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
