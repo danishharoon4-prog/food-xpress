@@ -31,7 +31,10 @@ const statusColors: Record<OrderStatus, string> = {
 
 type OrderWithItems = Omit<Order, 'restaurant' | 'order_items'> & {
   restaurant?: { name: string } | null;
+  restaurant_id?: string | null;
+  rider_id?: string | null;
   order_items?: Array<{ id: string; item_name: string; quantity: number; item_price: number }>;
+  ratings?: Array<{ id: string }>;
 };
 
 export default function MyOrders() {
