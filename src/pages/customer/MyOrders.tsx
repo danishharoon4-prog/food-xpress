@@ -53,7 +53,7 @@ export default function MyOrders() {
   const fetchOrders = async () => {
     const { data } = await supabase
       .from('orders')
-      .select('*, restaurant:restaurants(name), order_items(id, item_name, quantity, item_price)')
+      .select('*, restaurant:restaurants(name), order_items(id, item_name, quantity, item_price), ratings(id)')
       .eq('customer_id', user!.id)
       .order('created_at', { ascending: false });
 
