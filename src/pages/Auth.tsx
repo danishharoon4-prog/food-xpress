@@ -38,9 +38,10 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && role) {
-      const redirectPath = 
+      const redirectPath =
         role === 'admin' ? '/admin' :
-        role === 'rider' ? '/rider' : '/';
+        role === 'rider' ? '/rider' :
+        role === 'restaurant' ? '/restaurant' : '/';
       navigate(redirectPath, { replace: true });
     }
   }, [user, role, navigate]);
