@@ -36,5 +36,6 @@ export default function CustomerBottomNav() {
         );
       })}
     </nav>
+    </>
   );
 }
