@@ -188,6 +188,15 @@ export default function MyOrders() {
                             <X className="w-3 h-3 mr-1" /> Cancel
                           </Button>
                         )}
+                        {order.status === 'delivered' && (
+                          <FeedbackDialog
+                            orderId={order.id}
+                            riderId={order.rider_id || null}
+                            restaurantId={order.restaurant_id || null}
+                            alreadyRated={(order.ratings || []).length > 0}
+                            onRated={fetchOrders}
+                          />
+                        )}
                       </div>
                     </div>
                   </CardContent>
