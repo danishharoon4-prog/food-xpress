@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UtensilsCrossed, Bike } from 'lucide-react';
+import { Loader2, UtensilsCrossed, Bike, Store } from 'lucide-react';
 import { z } from 'zod';
 import type { AppRole } from '@/types';
 
@@ -38,9 +38,10 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && role) {
-      const redirectPath = 
+      const redirectPath =
         role === 'admin' ? '/admin' :
-        role === 'rider' ? '/rider' : '/';
+        role === 'rider' ? '/rider' :
+        role === 'restaurant' ? '/restaurant' : '/';
       navigate(redirectPath, { replace: true });
     }
   }, [user, role, navigate]);
@@ -126,6 +127,7 @@ export default function Auth() {
   const roleOptions = [
     { value: 'customer', label: 'Customer', icon: UtensilsCrossed, description: 'Order delicious food' },
     { value: 'rider', label: 'Rider', icon: Bike, description: 'Deliver & earn' },
+    { value: 'restaurant', label: 'Restaurant', icon: Store, description: 'Sell on FoodExpress' },
   ] as const;
 
   return (
@@ -198,7 +200,7 @@ export default function Auth() {
                 {/* Role Selection */}
                 <div className="space-y-2">
                   <Label className="text-sm">I want to join as</Label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     {roleOptions.map(({ value, label, icon: Icon, description }) => (
                       <button
                         key={value}

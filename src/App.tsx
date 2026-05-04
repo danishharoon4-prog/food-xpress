@@ -30,6 +30,13 @@ import RiderEarnings from "./pages/rider/RiderEarnings";
 import RiderRatings from "./pages/rider/RiderRatings";
 import RiderSettings from "./pages/rider/RiderSettings";
 
+// Restaurant
+import RestaurantLayout from "./pages/restaurant/RestaurantLayout";
+import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
+import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
+import RestaurantMenuPage from "./pages/restaurant/RestaurantMenu";
+import RestaurantProfile from "./pages/restaurant/RestaurantProfile";
+
 // Customer
 import Dashboard from "./pages/customer/Dashboard";
 import Restaurants from "./pages/customer/Restaurants";
@@ -83,6 +90,14 @@ const App = () => (
                 <Route path="earnings" element={<RiderEarnings />} />
                 <Route path="ratings" element={<RiderRatings />} />
                 <Route path="settings" element={<RiderSettings />} />
+              </Route>
+
+              {/* Restaurant Routes */}
+              <Route path="/restaurant" element={<RestaurantLayout />}>
+                <Route index element={<RestaurantDashboard />} />
+                <Route path="orders" element={<RestaurantOrders />} />
+                <Route path="menu" element={<RestaurantMenuPage />} />
+                <Route path="profile" element={<RestaurantProfile />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

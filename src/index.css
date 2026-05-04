@@ -190,3 +190,8 @@
     }
   }
 }
+
+/* Mobile bottom-nav safe padding for customer pages */
+@media (max-width: 767px) {
+  .customer-page main { padding-bottom: 5rem; }
+}

@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingBag, ArrowRight, X } from 'lucide-react';
+import FeedbackDialog from '@/components/FeedbackDialog';
 import type { Order, OrderStatus } from '@/types';
 
 const statusColors: Record<OrderStatus, string> = {
@@ -30,7 +31,10 @@ const statusColors: Record<OrderStatus, string> = {
 
 type OrderWithItems = Omit<Order, 'restaurant' | 'order_items'> & {
   restaurant?: { name: string } | null;
+  restaurant_id?: string | null;
+  rider_id?: string | null;
   order_items?: Array<{ id: string; item_name: string; quantity: number; item_price: number }>;
+  ratings?: Array<{ id: string }>;
 };
 
 export default function MyOrders() {
@@ -49,7 +53,7 @@ export default function MyOrders() {
   const fetchOrders = async () => {
     const { data } = await supabase
       .from('orders')
-      .select('*, restaurant:restaurants(name), order_items(id, item_name, quantity, item_price)')
+      .select('*, restaurant:restaurants(name), order_items(id, item_name, quantity, item_price), ratings(id)')
       .eq('customer_id', user!.id)
       .order('created_at', { ascending: false });
 
@@ -94,10 +98,10 @@ export default function MyOrders() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background customer-page">
       <CustomerHeader />
 
-      <main className="container py-8">
+      <main className="container py-6 md:py-8">
         <h1 className="text-2xl font-bold mb-6">My Orders</h1>
 
         {loading ? (
@@ -183,6 +187,15 @@ export default function MyOrders() {
                           >
                             <X className="w-3 h-3 mr-1" /> Cancel
                           </Button>
+                        )}
+                        {order.status === 'delivered' && (
+                          <FeedbackDialog
+                            orderId={order.id}
+                            riderId={order.rider_id || null}
+                            restaurantId={order.restaurant_id || null}
+                            alreadyRated={(order.ratings || []).length > 0}
+                            onRated={fetchOrders}
+                          />
                         )}
                       </div>
                     </div>

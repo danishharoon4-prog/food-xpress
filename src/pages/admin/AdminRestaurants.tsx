@@ -223,17 +223,21 @@ export default function AdminRestaurants() {
                 </div>
               )}
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{restaurant.name}</span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      restaurant.is_active
-                        ? 'bg-success/10 text-success'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {restaurant.is_active ? 'Active' : 'Inactive'}
-                  </span>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <span className="truncate">{restaurant.name}</span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {(restaurant as any).approval_status === 'pending' && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-warning/10 text-warning">Pending</span>
+                    )}
+                    {(restaurant as any).approval_status === 'rejected' && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive">Rejected</span>
+                    )}
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      restaurant.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {restaurant.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -248,24 +252,29 @@ export default function AdminRestaurants() {
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   {restaurant.description || 'No description'}
                 </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openDialog(restaurant)}
-                  >
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Edit
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={() => openDialog(restaurant)}>
+                    <Pencil className="w-4 h-4 mr-1" />Edit
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(restaurant.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(restaurant.id)} className="text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-1" />Delete
                   </Button>
+                  {(restaurant as any).approval_status === 'pending' && (
+                    <>
+                      <Button size="sm" className="gradient-primary" onClick={async () => {
+                        const { error } = await supabase.rpc('approve_restaurant', { _restaurant_id: restaurant.id, _approve: true, _reason: null });
+                        if (error) toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+                        else { toast({ title: 'Approved' }); fetchRestaurants(); }
+                      }}>Approve</Button>
+                      <Button size="sm" variant="outline" className="text-destructive" onClick={async () => {
+                        const reason = prompt('Reason for rejection:');
+                        if (!reason) return;
+                        const { error } = await supabase.rpc('approve_restaurant', { _restaurant_id: restaurant.id, _approve: false, _reason: reason });
+                        if (error) toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+                        else { toast({ title: 'Rejected' }); fetchRestaurants(); }
+                      }}>Reject</Button>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

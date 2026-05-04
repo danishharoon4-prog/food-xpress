@@ -1,4 +1,4 @@
-export type AppRole = 'admin' | 'rider' | 'customer';
+export type AppRole = 'admin' | 'rider' | 'customer' | 'restaurant';
 
 export type OrderStatus = 
   | 'pending' 

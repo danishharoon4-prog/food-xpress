@@ -426,6 +426,8 @@ export type Database = {
           food_rating: number | null
           id: string
           order_id: string
+          restaurant_id: string | null
+          restaurant_rating: number | null
           review_text: string | null
           rider_id: string | null
           rider_rating: number | null
@@ -436,6 +438,8 @@ export type Database = {
           food_rating?: number | null
           id?: string
           order_id: string
+          restaurant_id?: string | null
+          restaurant_rating?: number | null
           review_text?: string | null
           rider_id?: string | null
           rider_rating?: number | null
@@ -446,6 +450,8 @@ export type Database = {
           food_rating?: number | null
           id?: string
           order_id?: string
+          restaurant_id?: string | null
+          restaurant_rating?: number | null
           review_text?: string | null
           rider_id?: string | null
           rider_rating?: number | null
@@ -470,6 +476,7 @@ export type Database = {
       restaurants: {
         Row: {
           address: string | null
+          approval_status: string
           city: string | null
           closing_time: string | null
           created_at: string
@@ -482,10 +489,13 @@ export type Database = {
           longitude: number | null
           name: string
           opening_time: string | null
+          owner_id: string | null
+          rejection_reason: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          approval_status?: string
           city?: string | null
           closing_time?: string | null
           created_at?: string
@@ -498,10 +508,13 @@ export type Database = {
           longitude?: number | null
           name: string
           opening_time?: string | null
+          owner_id?: string | null
+          rejection_reason?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          approval_status?: string
           city?: string | null
           closing_time?: string | null
           created_at?: string
@@ -514,6 +527,8 @@ export type Database = {
           longitude?: number | null
           name?: string
           opening_time?: string | null
+          owner_id?: string | null
+          rejection_reason?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -746,6 +761,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_restaurant: {
+        Args: { _approve: boolean; _reason?: string; _restaurant_id: string }
+        Returns: boolean
+      }
       cancel_order: {
         Args: { _order_id: string; _reason: string }
         Returns: boolean
@@ -767,6 +786,7 @@ export type Database = {
         Args: { _rider_user_id: string }
         Returns: string[]
       }
+      get_owned_restaurant_id: { Args: { _user_id: string }; Returns: string[] }
       get_rider_id_for_user: { Args: { _user_id: string }; Returns: string[] }
       get_rider_ids_for_customer_orders: {
         Args: { _customer_id: string }
@@ -793,7 +813,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "rider" | "customer"
+      app_role: "admin" | "rider" | "customer" | "restaurant"
       order_status:
         | "pending"
         | "confirmed"
@@ -933,7 +953,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "rider", "customer"],
+      app_role: ["admin", "rider", "customer", "restaurant"],
       order_status: [
         "pending",
         "confirmed",
