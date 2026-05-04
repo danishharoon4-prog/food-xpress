@@ -16,6 +16,8 @@ export default function CustomerBottomNav() {
   const { getItemCount } = useCart();
   const count = getItemCount();
   return (
+    <>
+    <div className="md:hidden h-16" aria-hidden="true" />
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur border-t flex">
       {items.map(({ path, label, icon: Icon, showBadge }) => {
         const active = location.pathname === path;
