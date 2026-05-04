@@ -223,17 +223,21 @@ export default function AdminRestaurants() {
                 </div>
               )}
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{restaurant.name}</span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      restaurant.is_active
-                        ? 'bg-success/10 text-success'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {restaurant.is_active ? 'Active' : 'Inactive'}
-                  </span>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <span className="truncate">{restaurant.name}</span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {(restaurant as any).approval_status === 'pending' && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-warning/10 text-warning">Pending</span>
+                    )}
+                    {(restaurant as any).approval_status === 'rejected' && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive">Rejected</span>
+                    )}
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      restaurant.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {restaurant.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
