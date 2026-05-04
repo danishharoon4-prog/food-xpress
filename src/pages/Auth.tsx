@@ -200,7 +200,7 @@ export default function Auth() {
                 {/* Role Selection */}
                 <div className="space-y-2">
                   <Label className="text-sm">I want to join as</Label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     {roleOptions.map(({ value, label, icon: Icon, description }) => (
                       <button
                         key={value}
