@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Search, MapPin, Clock, Star, Heart } from 'lucide-react';
+import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant } from '@/types';
 
 export default function Restaurants() {
