@@ -46,58 +46,47 @@ export function OrderProgressIndicator({ status }: OrderProgressIndicatorProps) 
 
   return (
     <div className="py-4">
-      {/* Mobile View - Vertical */}
-      <div className="md:hidden space-y-0">
-        {stages.map((stage, index) => {
-          const isCompleted = currentIndex > index;
-          const isCurrent = currentIndex === index;
-          const isPending = currentIndex < index;
-          const StageIcon = stage.icon;
-
-          return (
-            <div key={stage.status} className="relative">
-              <div className="flex items-start gap-4">
-                {/* Icon Circle */}
-                <div className="relative flex flex-col items-center">
+      {/* Mobile View - Horizontal compact */}
+      <div className="md:hidden">
+        <div className="flex items-center justify-between gap-1">
+          {stages.map((stage, index) => {
+            const isCompleted = currentIndex > index;
+            const isCurrent = currentIndex === index;
+            const StageIcon = stage.icon;
+            return (
+              <div key={stage.status} className="flex items-center flex-1 last:flex-none">
+                <div className="flex flex-col items-center min-w-0">
                   <div
                     className={cn(
-                      'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500',
+                      'w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 flex-shrink-0',
                       isCompleted && 'bg-primary text-primary-foreground',
-                      isCurrent && 'bg-primary text-primary-foreground ring-4 ring-primary/20 animate-pulse',
-                      isPending && 'bg-muted text-muted-foreground'
+                      isCurrent && 'bg-primary text-primary-foreground ring-2 ring-primary/30 animate-pulse',
+                      !isCompleted && !isCurrent && 'bg-muted text-muted-foreground'
                     )}
                   >
-                    <StageIcon className="w-5 h-5" />
+                    <StageIcon className="w-4 h-4" />
                   </div>
-                  {/* Connector Line */}
-                  {index < stages.length - 1 && (
-                    <div className="w-0.5 h-12 mt-1">
-                      <div
-                        className={cn(
-                          'w-full h-full transition-colors duration-500',
-                          currentIndex > index ? 'bg-primary' : 'bg-muted'
-                        )}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Label */}
-                <div className="flex-1 pb-10">
                   <p
                     className={cn(
-                      'font-medium transition-colors',
-                      (isCompleted || isCurrent) ? 'text-foreground' : 'text-muted-foreground'
+                      'text-[10px] mt-1 text-center leading-tight truncate max-w-[52px]',
+                      (isCompleted || isCurrent) ? 'text-foreground font-medium' : 'text-muted-foreground'
                     )}
                   >
                     {stage.label}
                   </p>
-                  <p className="text-sm text-muted-foreground">{stage.description}</p>
                 </div>
+                {index < stages.length - 1 && (
+                  <div
+                    className={cn(
+                      'h-0.5 flex-1 mx-1 -mt-4 transition-colors duration-500',
+                      currentIndex > index ? 'bg-primary' : 'bg-muted'
+                    )}
+                  />
+                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Desktop View - Horizontal */}
