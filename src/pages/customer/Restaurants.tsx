@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Search, MapPin, Clock, Star, Heart } from 'lucide-react';
+import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant } from '@/types';
 
 export default function Restaurants() {
@@ -99,14 +100,8 @@ export default function Restaurants() {
           <p className="text-muted-foreground mb-6">Browse restaurants and order delicious meals</p>
           
           <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                placeholder="Search restaurants or cuisines..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-12"
-              />
+            <div className="flex-1">
+              <GlobalSearch placeholder="Search restaurants or food items..." />
             </div>
             <Select value={city} onValueChange={setCity}>
               <SelectTrigger className="h-12 sm:w-56">
@@ -120,6 +115,17 @@ export default function Restaurants() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="max-w-2xl mx-auto mt-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Filter list by name or cuisine..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-10"
+              />
+            </div>
           </div>
           {city !== 'all' && (
             <p className="text-xs text-muted-foreground mt-3">
