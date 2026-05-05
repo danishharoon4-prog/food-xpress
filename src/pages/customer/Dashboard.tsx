@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
 import { CancelOrderButton } from '@/components/CancelOrderButton';
+import GlobalSearch from '@/components/GlobalSearch';
 import type { OrderStatus } from '@/types';
 
 interface DashboardStats {
@@ -165,6 +166,11 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Global Search */}
+        <div className="mb-6 max-w-2xl mx-auto">
+          <GlobalSearch placeholder="Search restaurants or food items..." />
         </div>
 
         {/* Quick Stats */}
