@@ -147,73 +147,79 @@ export default function RestaurantMenu() {
             <p className="text-muted-foreground">No menu items available yet.</p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             {menuItems.map((item) => {
               const qty = getItemQuantity(item.id);
-              
+
               return (
-                <Card key={item.id} className="overflow-hidden">
-                  <div className="flex">
-                    {item.image_url && (
-                      <div className="w-32 h-32 flex-shrink-0">
+                <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="flex gap-3 p-3">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+                      {item.image_url ? (
                         <img
                           src={item.image_url}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />
-                      </div>
-                    )}
-                    <CardContent className="flex-1 p-4 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-start justify-between mb-1">
-                          <h3 className="font-semibold">{item.name}</h3>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-primary/30">
+                          {item.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div className="min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-semibold text-sm sm:text-base truncate">{item.name}</h3>
                           {item.is_featured && (
-                            <Badge className="bg-primary/10 text-primary text-xs">Popular</Badge>
+                            <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0 flex-shrink-0">
+                              Popular
+                            </Badge>
                           )}
                         </div>
                         {item.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                          <p className="text-xs text-muted-foreground line-clamp-2">
                             {item.description}
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="font-bold text-primary">
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <span className="font-bold text-primary text-sm sm:text-base whitespace-nowrap">
                           PKR {Number(item.price).toLocaleString()}
                         </span>
-                        
+
                         {qty === 0 ? (
                           <Button
                             size="sm"
                             onClick={() => handleAddToCart(item)}
-                            className="gradient-primary"
+                            className="gradient-primary h-8 px-3 text-xs"
                           >
-                            <Plus className="w-4 h-4 mr-1" />
+                            <Plus className="w-3.5 h-3.5 mr-1" />
                             Add
                           </Button>
                         ) : (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
                             <Button
                               size="icon"
                               variant="outline"
-                              className="h-8 w-8"
+                              className="h-7 w-7"
                               onClick={() => handleUpdateQuantity(item, -1)}
                             >
-                              <Minus className="w-4 h-4" />
+                              <Minus className="w-3.5 h-3.5" />
                             </Button>
-                            <span className="w-6 text-center font-medium">{qty}</span>
+                            <span className="w-5 text-center text-sm font-medium">{qty}</span>
                             <Button
                               size="icon"
                               variant="outline"
-                              className="h-8 w-8"
+                              className="h-7 w-7"
                               onClick={() => handleUpdateQuantity(item, 1)}
                             >
-                              <Plus className="w-4 h-4" />
+                              <Plus className="w-3.5 h-3.5" />
                             </Button>
                           </div>
                         )}
                       </div>
-                    </CardContent>
+                    </div>
                   </div>
                 </Card>
               );
@@ -224,12 +230,12 @@ export default function RestaurantMenu() {
 
       {/* Cart Footer */}
       {itemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-card border-t shadow-soft-xl">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 p-3 md:p-4 bg-card border-t shadow-soft-xl z-40">
           <div className="container">
             <Link to="/cart">
-              <Button className="w-full gradient-primary h-14 text-lg">
+              <Button className="w-full gradient-primary h-12 md:h-14 text-sm md:text-base">
                 <ShoppingCart className="w-5 h-5 mr-2" />
-                View Cart ({itemCount} items) • PKR {subtotal.toLocaleString()}
+                View Cart ({itemCount}) • PKR {subtotal.toLocaleString()}
               </Button>
             </Link>
           </div>
