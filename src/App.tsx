@@ -36,6 +36,7 @@ import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
 import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
 import RestaurantMenuPage from "./pages/restaurant/RestaurantMenu";
 import RestaurantProfile from "./pages/restaurant/RestaurantProfile";
+import RestaurantWallet from "./pages/restaurant/RestaurantWallet";
 
 // Customer
 import Dashboard from "./pages/customer/Dashboard";
@@ -97,6 +98,7 @@ const App = () => (
                 <Route index element={<RestaurantDashboard />} />
                 <Route path="orders" element={<RestaurantOrders />} />
                 <Route path="menu" element={<RestaurantMenuPage />} />
+                <Route path="wallet" element={<RestaurantWallet />} />
                 <Route path="profile" element={<RestaurantProfile />} />
               </Route>
 

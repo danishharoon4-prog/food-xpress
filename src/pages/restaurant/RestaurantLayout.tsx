@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Menu, X, Store, AlertCircle,
+  LayoutDashboard, ShoppingBag, UtensilsCrossed, Wallet, User, LogOut, Menu, X, Store, AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +14,8 @@ const navItems = [
   { path: '/restaurant', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/restaurant/orders', icon: ShoppingBag, label: 'Orders' },
   { path: '/restaurant/menu', icon: UtensilsCrossed, label: 'Menu' },
-  { path: '/restaurant/profile', icon: Settings, label: 'Profile' },
+  { path: '/restaurant/wallet', icon: Wallet, label: 'Wallet' },
+  { path: '/restaurant/profile', icon: User, label: 'Profile' },
 ];
 
 export default function RestaurantLayout() {
