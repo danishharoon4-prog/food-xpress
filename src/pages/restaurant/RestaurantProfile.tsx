@@ -25,7 +25,7 @@ const REQUIRED_FIELDS: Array<{ key: string; label: string }> = [
 
 export default function RestaurantProfile() {
   const { user, profile } = useAuth();
-  const { restaurant } = useOutletContext<{ restaurant: any }>();
+  const { restaurant, refetchRestaurant } = useOutletContext<{ restaurant: any; refetchRestaurant: () => Promise<void> }>();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [savingPersonal, setSavingPersonal] = useState(false);
