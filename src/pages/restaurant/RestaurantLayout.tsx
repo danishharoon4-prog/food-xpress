@@ -159,7 +159,7 @@ export default function RestaurantLayout() {
               </Card>
             </div>
           ) : (
-            <Outlet context={{ restaurant }} />
+            <Outlet context={{ restaurant, refetchRestaurant: loadRestaurant }} />
           )}
         </main>
 
