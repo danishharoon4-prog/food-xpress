@@ -25,7 +25,7 @@ const REQUIRED_FIELDS: Array<{ key: string; label: string }> = [
 
 export default function RestaurantProfile() {
   const { user, profile } = useAuth();
-  const { restaurant } = useOutletContext<{ restaurant: any }>();
+  const { restaurant, refetchRestaurant } = useOutletContext<{ restaurant: any; refetchRestaurant: () => Promise<void> }>();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [savingPersonal, setSavingPersonal] = useState(false);
@@ -88,7 +88,6 @@ export default function RestaurantProfile() {
     setSaving(true);
     if (restaurant) {
       const payload: any = { ...form };
-      // If editing a rejected restaurant and submitting, push back to pending
       if (submitForReview && isRejected) {
         payload.approval_status = 'pending';
         payload.rejection_reason = null;
@@ -97,6 +96,7 @@ export default function RestaurantProfile() {
       const { error } = await supabase.from('restaurants').update(payload).eq('id', restaurant.id);
       setSaving(false);
       if (error) return toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
+      await refetchRestaurant?.();
       toast({
         title: submitForReview ? 'Resubmitted for approval' : 'Saved',
         description: submitForReview ? 'An admin will review your changes.' : undefined,
@@ -105,12 +105,13 @@ export default function RestaurantProfile() {
       const { error } = await supabase.from('restaurants').insert({
         ...form,
         owner_id: user!.id,
-        city: 'Mansehra',
+        city: profile?.city || 'Mansehra',
         approval_status: 'pending',
         is_active: false,
       });
       setSaving(false);
       if (error) return toast({ title: 'Submit failed', description: error.message, variant: 'destructive' });
+      await refetchRestaurant?.();
       toast({ title: 'Submitted for approval', description: 'An admin will review your restaurant shortly.' });
     }
   };
