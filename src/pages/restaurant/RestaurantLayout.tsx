@@ -31,19 +31,22 @@ export default function RestaurantLayout() {
     }
   }, [user, role, isLoading, navigate]);
 
+  const loadRestaurant = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('restaurants').select('*').eq('owner_id', user.id).maybeSingle();
+    setRestaurant(data ?? null);
+  };
+
   useEffect(() => {
     if (!user || role !== 'restaurant') return;
-    const load = async () => {
-      const { data } = await supabase.from('restaurants').select('*').eq('owner_id', user.id).maybeSingle();
-      setRestaurant(data ?? null);
-    };
-    load();
+    loadRestaurant();
     const channel = supabase
       .channel('rest-self')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurants', filter: `owner_id=eq.${user.id}` },
-        () => load())
+        () => loadRestaurant())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, role]);
 
   if (isLoading || restaurant === undefined) {
