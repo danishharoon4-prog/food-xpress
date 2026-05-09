@@ -121,7 +121,7 @@ export default function RestaurantLayout() {
         </header>
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
-          {needsSetup ? (
+          {needsSetup && location.pathname !== '/restaurant/profile' ? (
             <div className="max-w-xl mx-auto mt-10">
               <Card className="border-warning">
                 <CardContent className="py-10 text-center space-y-4">
