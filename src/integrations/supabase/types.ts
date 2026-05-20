@@ -782,6 +782,10 @@ export type Database = {
         Returns: string
       }
       get_current_rider_city: { Args: never; Returns: string }
+      get_customer_ids_for_restaurant_owner: {
+        Args: { _owner_id: string }
+        Returns: string[]
+      }
       get_customer_ids_for_rider: {
         Args: { _rider_user_id: string }
         Returns: string[]
@@ -792,8 +796,16 @@ export type Database = {
         Args: { _customer_id: string }
         Returns: string[]
       }
+      get_rider_ids_for_restaurant_owner: {
+        Args: { _owner_id: string }
+        Returns: string[]
+      }
       get_rider_user_ids_for_customer: {
         Args: { _customer_id: string }
+        Returns: string[]
+      }
+      get_rider_user_ids_for_restaurant_owner: {
+        Args: { _owner_id: string }
         Returns: string[]
       }
       get_user_role: {
