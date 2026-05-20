@@ -108,5 +108,6 @@ export function CancelOrderButton({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </span>
   );
 }
