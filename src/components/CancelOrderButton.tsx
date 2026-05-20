@@ -69,6 +69,7 @@ export function CancelOrderButton({
   };
 
   return (
+    <span onClick={stop} onMouseDown={stop} className={fullWidth ? 'w-full inline-block' : 'inline-block'}>
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button
@@ -76,7 +77,6 @@ export function CancelOrderButton({
           size={size}
           variant={variant}
           className={`${fullWidth ? 'w-full' : ''} ${variant === 'outline' ? 'text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive' : ''}`}
-          onClick={stop}
         >
           <X className="w-4 h-4 mr-1" />
           {label}
@@ -108,5 +108,6 @@ export function CancelOrderButton({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </span>
   );
 }
