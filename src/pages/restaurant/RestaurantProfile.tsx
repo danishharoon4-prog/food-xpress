@@ -78,14 +78,31 @@ export default function RestaurantProfile() {
   const save = async (submitForReview = false) => {
     if (locked) return;
     if (submitForReview && !canSubmit) {
+      const missingBits = [
+        ...(personalIncomplete ? ['Full name & phone (Personal tab)'] : []),
+        ...missing.map((m) => m.label),
+      ];
       toast({
         title: 'Profile incomplete',
-        description: `Please fill: ${[...(personalIncomplete ? ['Personal info'] : []), ...missing.map((m) => m.label)].join(', ')}`,
+        description: `Please fill: ${missingBits.join(', ')}`,
         variant: 'destructive',
       });
       return;
     }
     setSaving(true);
+
+    // Always sync personal info first if submitting for review
+    if (submitForReview && !personalIncomplete) {
+      const { error: pErr } = await supabase
+        .from('profiles')
+        .update({ full_name: personal.full_name, phone: personal.phone })
+        .eq('id', user!.id);
+      if (pErr) {
+        setSaving(false);
+        return toast({ title: 'Failed to save personal info', description: pErr.message, variant: 'destructive' });
+      }
+    }
+
     if (restaurant) {
       const payload: any = { ...form };
       if (submitForReview && isRejected) {
@@ -99,7 +116,7 @@ export default function RestaurantProfile() {
       await refetchRestaurant?.();
       toast({
         title: submitForReview ? 'Resubmitted for approval' : 'Saved',
-        description: submitForReview ? 'An admin will review your changes.' : undefined,
+        description: submitForReview ? 'An admin will review your changes shortly.' : undefined,
       });
     } else {
       const { error } = await supabase.from('restaurants').insert({
@@ -258,9 +275,13 @@ export default function RestaurantProfile() {
                 )}
               </fieldset>
 
-              {!locked && (status === 'new' || isRejected) && missing.length > 0 && (
-                <div className="text-xs text-muted-foreground p-3 rounded bg-muted">
-                  Missing: {missing.map((m) => m.label).join(', ')}
+              {!locked && (status === 'new' || isRejected) && (missing.length > 0 || personalIncomplete) && (
+                <div className="text-xs text-warning p-3 rounded bg-warning/10 border border-warning/30">
+                  <p className="font-semibold mb-1">Complete the following to submit:</p>
+                  <ul className="list-disc pl-4 space-y-0.5">
+                    {personalIncomplete && <li>Personal tab: Full name &amp; phone</li>}
+                    {missing.map((m) => <li key={m.key}>{m.label}</li>)}
+                  </ul>
                 </div>
               )}
 
