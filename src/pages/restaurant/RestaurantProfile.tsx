@@ -291,10 +291,6 @@ export default function RestaurantProfile() {
                   Submit for Approval
                 </Button>
               )}
-                  {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Submit for Approval
-                </Button>
-              )}
               {isRejected && (
                 <Button onClick={() => save(true)} disabled={saving || !canSubmit} className="w-full gradient-primary">
                   {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
