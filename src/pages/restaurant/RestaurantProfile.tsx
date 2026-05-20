@@ -275,14 +275,22 @@ export default function RestaurantProfile() {
                 )}
               </fieldset>
 
-              {!locked && (status === 'new' || isRejected) && missing.length > 0 && (
-                <div className="text-xs text-muted-foreground p-3 rounded bg-muted">
-                  Missing: {missing.map((m) => m.label).join(', ')}
+              {!locked && (status === 'new' || isRejected) && (missing.length > 0 || personalIncomplete) && (
+                <div className="text-xs text-warning p-3 rounded bg-warning/10 border border-warning/30">
+                  <p className="font-semibold mb-1">Complete the following to submit:</p>
+                  <ul className="list-disc pl-4 space-y-0.5">
+                    {personalIncomplete && <li>Personal tab: Full name &amp; phone</li>}
+                    {missing.map((m) => <li key={m.key}>{m.label}</li>)}
+                  </ul>
                 </div>
               )}
 
               {status === 'new' && (
                 <Button onClick={() => save(true)} disabled={saving || !canSubmit} className="w-full gradient-primary">
+                  {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Submit for Approval
+                </Button>
+              )}
                   {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Submit for Approval
                 </Button>
