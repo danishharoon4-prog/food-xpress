@@ -88,7 +88,7 @@ export function CancelOrderButton({
   };
 
   return (
-    <span onClick={(e) => e.stopPropagation()} className={fullWidth ? 'w-full inline-block' : 'inline-block'}>
+    <span onClick={stopNav} className={fullWidth ? 'w-full inline-block' : 'inline-block'}>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
           <Button
