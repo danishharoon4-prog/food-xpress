@@ -11,7 +11,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, User, Phone, Bike, X } from 'lucide-react';
+import { ShoppingBag, User, Phone, Bike, X, History } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import type { Order, OrderStatus } from '@/types';
 
@@ -38,6 +38,7 @@ interface RiderWithProfile {
 interface OrderWithRelations extends Order {
   customer?: { full_name: string; phone: string | null } | null;
   assigned_rider?: { id: string; profile?: { full_name: string; phone: string | null } | null } | null;
+  cancelled_by_user?: { full_name: string; role: string } | null;
 }
 
 export default function AdminOrders() {
@@ -136,10 +137,27 @@ export default function AdminOrders() {
       }, {} as Record<string, { id: string; profile?: { full_name: string; phone: string | null } | null }>);
     }
 
+    // Fetch cancelled_by profiles + roles
+    const cancelledByIds = Array.from(new Set(baseOrders.map((o) => (o as any).cancelled_by).filter(Boolean) as string[]));
+    let cancelledByMap: Record<string, { full_name: string; role: string }> = {};
+    if (cancelledByIds.length > 0) {
+      const [{ data: cbProfiles }, { data: cbRoles }] = await Promise.all([
+        supabase.from('profiles').select('id, full_name').in('id', cancelledByIds),
+        supabase.from('user_roles').select('user_id, role').in('user_id', cancelledByIds),
+      ]);
+      cancelledByMap = cancelledByIds.reduce((acc, uid) => {
+        const p = cbProfiles?.find((x) => x.id === uid);
+        const r = cbRoles?.find((x) => x.user_id === uid);
+        acc[uid] = { full_name: p?.full_name || 'Unknown', role: r?.role || 'user' };
+        return acc;
+      }, {} as Record<string, { full_name: string; role: string }>);
+    }
+
     const enriched = baseOrders.map((o) => ({
       ...o,
       customer: customersById[o.customer_id] || null,
       assigned_rider: o.rider_id ? ridersById[o.rider_id] || null : null,
+      cancelled_by_user: (o as any).cancelled_by ? cancelledByMap[(o as any).cancelled_by] || null : null,
     }));
 
     setOrders(enriched);
@@ -363,6 +381,56 @@ export default function AdminOrders() {
           ))}
         </div>
       )}
+
+      {/* Cancellation History */}
+      {(() => {
+        const cancelled = orders.filter((o) => o.status === 'cancelled');
+        if (cancelled.length === 0) return null;
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="w-5 h-5 text-destructive" />
+                Cancellation History ({cancelled.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {cancelled.map((o) => {
+                const by = o.cancelled_by_user;
+                const isAdmin = by?.role === 'admin';
+                const at = (o as any).cancelled_at;
+                return (
+                  <div key={o.id} className="p-3 rounded-lg border border-destructive/20 bg-destructive/5">
+                    <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                      <span className="font-medium">#{o.order_number}</span>
+                      <Badge variant="outline" className={isAdmin ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
+                        Cancelled by {isAdmin ? 'Admin' : 'Customer'}
+                      </Badge>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Customer: </span>
+                        <span className="font-medium">{o.customer?.full_name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">By: </span>
+                        <span className="font-medium">{by?.full_name || 'Unknown'}</span>
+                      </div>
+                      <div className="md:col-span-2">
+                        <span className="text-muted-foreground">Reason / Notes: </span>
+                        <span>{(o as any).cancellation_reason || '—'}</span>
+                      </div>
+                      <div className="md:col-span-2 text-xs text-muted-foreground">
+                        {at ? new Date(at).toLocaleString() : new Date(o.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <AlertDialog open={!!cancelOrderId} onOpenChange={(open) => !open && setCancelOrderId(null)}>
         <AlertDialogContent>
