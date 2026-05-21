@@ -137,10 +137,27 @@ export default function AdminOrders() {
       }, {} as Record<string, { id: string; profile?: { full_name: string; phone: string | null } | null }>);
     }
 
+    // Fetch cancelled_by profiles + roles
+    const cancelledByIds = Array.from(new Set(baseOrders.map((o) => (o as any).cancelled_by).filter(Boolean) as string[]));
+    let cancelledByMap: Record<string, { full_name: string; role: string }> = {};
+    if (cancelledByIds.length > 0) {
+      const [{ data: cbProfiles }, { data: cbRoles }] = await Promise.all([
+        supabase.from('profiles').select('id, full_name').in('id', cancelledByIds),
+        supabase.from('user_roles').select('user_id, role').in('user_id', cancelledByIds),
+      ]);
+      cancelledByMap = cancelledByIds.reduce((acc, uid) => {
+        const p = cbProfiles?.find((x) => x.id === uid);
+        const r = cbRoles?.find((x) => x.user_id === uid);
+        acc[uid] = { full_name: p?.full_name || 'Unknown', role: r?.role || 'user' };
+        return acc;
+      }, {} as Record<string, { full_name: string; role: string }>);
+    }
+
     const enriched = baseOrders.map((o) => ({
       ...o,
       customer: customersById[o.customer_id] || null,
       assigned_rider: o.rider_id ? ridersById[o.rider_id] || null : null,
+      cancelled_by_user: (o as any).cancelled_by ? cancelledByMap[(o as any).cancelled_by] || null : null,
     }));
 
     setOrders(enriched);
