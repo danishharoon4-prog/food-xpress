@@ -55,7 +55,13 @@ export function CancelOrderButton({
 
   if (!CANCELLABLE.includes(status)) return null;
 
+  // Only stop propagation — DO NOT call preventDefault, because Radix's
+  // composeEventHandlers skips its own onClick when defaultPrevented, which
+  // would prevent the AlertDialog from opening when nested inside a <Link>.
   const stop = (e: MouseEvent) => {
+    e.stopPropagation();
+  };
+  const stopNav = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
   };
@@ -82,7 +88,7 @@ export function CancelOrderButton({
   };
 
   return (
-    <span onClick={(e) => e.stopPropagation()} className={fullWidth ? 'w-full inline-block' : 'inline-block'}>
+    <span onClick={stopNav} className={fullWidth ? 'w-full inline-block' : 'inline-block'}>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
           <Button
