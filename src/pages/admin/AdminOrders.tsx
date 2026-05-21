@@ -11,7 +11,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, User, Phone, Bike, X } from 'lucide-react';
+import { ShoppingBag, User, Phone, Bike, X, History } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import type { Order, OrderStatus } from '@/types';
 
