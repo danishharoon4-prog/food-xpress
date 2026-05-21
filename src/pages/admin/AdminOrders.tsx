@@ -382,6 +382,56 @@ export default function AdminOrders() {
         </div>
       )}
 
+      {/* Cancellation History */}
+      {(() => {
+        const cancelled = orders.filter((o) => o.status === 'cancelled');
+        if (cancelled.length === 0) return null;
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="w-5 h-5 text-destructive" />
+                Cancellation History ({cancelled.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {cancelled.map((o) => {
+                const by = o.cancelled_by_user;
+                const isAdmin = by?.role === 'admin';
+                const at = (o as any).cancelled_at;
+                return (
+                  <div key={o.id} className="p-3 rounded-lg border border-destructive/20 bg-destructive/5">
+                    <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                      <span className="font-medium">#{o.order_number}</span>
+                      <Badge variant="outline" className={isAdmin ? 'border-destructive/40 text-destructive' : 'border-warning/40 text-warning'}>
+                        Cancelled by {isAdmin ? 'Admin' : 'Customer'}
+                      </Badge>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Customer: </span>
+                        <span className="font-medium">{o.customer?.full_name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">By: </span>
+                        <span className="font-medium">{by?.full_name || 'Unknown'}</span>
+                      </div>
+                      <div className="md:col-span-2">
+                        <span className="text-muted-foreground">Reason / Notes: </span>
+                        <span>{(o as any).cancellation_reason || '—'}</span>
+                      </div>
+                      <div className="md:col-span-2 text-xs text-muted-foreground">
+                        {at ? new Date(at).toLocaleString() : new Date(o.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       <AlertDialog open={!!cancelOrderId} onOpenChange={(open) => !open && setCancelOrderId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
