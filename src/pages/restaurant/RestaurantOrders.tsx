@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import type { OrderStatus } from '@/types';
 
 const statusColors: Record<string, string> = {
@@ -140,10 +140,20 @@ export default function RestaurantOrders() {
                       <Phone className="w-3 h-3" /> {o.customer.phone}
                     </a>
                   )}
-                  <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
-                    <span>{o.delivery_address}</span>
-                  </p>
+                  <a
+                    href={
+                      o.delivery_latitude && o.delivery_longitude
+                        ? `https://www.google.com/maps?q=${o.delivery_latitude},${o.delivery_longitude}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.delivery_address)}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start gap-1.5 text-xs text-primary hover:underline"
+                  >
+                    <MapPin className="w-3 h-3 mt-0.5 shrink-1" />
+                    <span className="break-all">{o.delivery_address}</span>
+                    <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
+                  </a>
                 </div>
               </div>
 
