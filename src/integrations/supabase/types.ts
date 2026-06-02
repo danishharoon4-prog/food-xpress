@@ -377,6 +377,78 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          base_distance_km: number
+          base_fare: number
+          closing_time: string
+          cod_enabled: boolean
+          created_at: string
+          easypaisa_enabled: boolean
+          id: string
+          jazzcash_enabled: boolean
+          max_delivery_radius_km: number
+          opening_time: string
+          operating_city: string
+          per_km_rate: number
+          platform_name: string
+          rider_tier1_amount: number
+          rider_tier1_max_km: number
+          rider_tier2_amount: number
+          singleton: boolean
+          stripe_enabled: boolean
+          support_email: string | null
+          support_phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          base_distance_km?: number
+          base_fare?: number
+          closing_time?: string
+          cod_enabled?: boolean
+          created_at?: string
+          easypaisa_enabled?: boolean
+          id?: string
+          jazzcash_enabled?: boolean
+          max_delivery_radius_km?: number
+          opening_time?: string
+          operating_city?: string
+          per_km_rate?: number
+          platform_name?: string
+          rider_tier1_amount?: number
+          rider_tier1_max_km?: number
+          rider_tier2_amount?: number
+          singleton?: boolean
+          stripe_enabled?: boolean
+          support_email?: string | null
+          support_phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          base_distance_km?: number
+          base_fare?: number
+          closing_time?: string
+          cod_enabled?: boolean
+          created_at?: string
+          easypaisa_enabled?: boolean
+          id?: string
+          jazzcash_enabled?: boolean
+          max_delivery_radius_km?: number
+          opening_time?: string
+          operating_city?: string
+          per_km_rate?: number
+          platform_name?: string
+          rider_tier1_amount?: number
+          rider_tier1_max_km?: number
+          rider_tier2_amount?: number
+          singleton?: boolean
+          stripe_enabled?: boolean
+          support_email?: string | null
+          support_phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
