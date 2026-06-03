@@ -29,6 +29,8 @@ interface OrderDetail {
   order_number: string;
   status: string;
   delivery_address: string;
+  delivery_latitude: number | null;
+  delivery_longitude: number | null;
   subtotal: number;
   delivery_fee: number;
   total: number;
