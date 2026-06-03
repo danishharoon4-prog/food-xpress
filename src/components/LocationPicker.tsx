@@ -12,9 +12,10 @@ interface LocationPickerProps {
 // Default center: Mansehra, Pakistan
 const DEFAULT_CENTER = { lat: 34.3309, lng: 73.1968 };
 
-let mapsLoaderPromise: Promise<typeof google> | null = null;
+let mapsLoaderPromise: Promise<any> | null = null;
 
-async function loadGoogleMaps(): Promise<typeof google> {
+async function loadGoogleMaps(): Promise<any> {
+
   if (typeof window !== 'undefined' && (window as any).google?.maps) {
     return (window as any).google;
   }
