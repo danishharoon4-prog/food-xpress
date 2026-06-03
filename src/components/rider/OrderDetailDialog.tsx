@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Phone, MapPin, Clock, Store, User, Plus } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
+import { CustomerLocationMap } from '@/components/CustomerLocationMap';
 
 interface Props {
   orderId: string | null;
