@@ -20,6 +20,13 @@ serve(async (req) => {
     const { action, ...params } = await req.json();
 
     switch (action) {
+      case "get_key": {
+        return new Response(
+          JSON.stringify({ key: apiKey }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       case "geocode": {
         // Reverse geocoding: convert lat/lng to address
         const { latitude, longitude } = params;
