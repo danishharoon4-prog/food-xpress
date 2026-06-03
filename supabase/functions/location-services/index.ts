@@ -54,6 +54,54 @@ serve(async (req) => {
         );
       }
 
+      case "autocomplete": {
+        // Address autocomplete suggestions
+        const { input, sessionToken } = params;
+        if (!input || input.length < 2) {
+          return new Response(JSON.stringify({ predictions: [] }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+          input
+        )}&key=${apiKey}&components=country:pk${sessionToken ? `&sessiontoken=${sessionToken}` : ""}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        return new Response(
+          JSON.stringify({
+            predictions: (data.predictions || []).map((p: any) => ({
+              place_id: p.place_id,
+              description: p.description,
+              main_text: p.structured_formatting?.main_text,
+              secondary_text: p.structured_formatting?.secondary_text,
+            })),
+            status: data.status,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      case "place_details": {
+        // Get coordinates + formatted address for a place_id
+        const { placeId, sessionToken } = params;
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry,formatted_address&key=${apiKey}${
+          sessionToken ? `&sessiontoken=${sessionToken}` : ""
+        }`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.status === "OK" && data.result) {
+          return new Response(
+            JSON.stringify({
+              address: data.result.formatted_address,
+              latitude: data.result.geometry?.location?.lat,
+              longitude: data.result.geometry?.location?.lng,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        throw new Error(`Place details failed: ${data.status}`);
+      }
+
       case "distance": {
         // Calculate distance between two points
         const { origin, destination } = params;
