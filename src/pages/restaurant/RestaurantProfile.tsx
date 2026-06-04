@@ -11,7 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Store, CheckCircle2, Clock, XCircle, AlertCircle } from 'lucide-react';
+import { Loader2, User, Store, CheckCircle2, Clock, XCircle, AlertCircle, MapPin, Lock, Send } from 'lucide-react';
+import { LocationPicker } from '@/components/LocationPicker';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 const REQUIRED_FIELDS: Array<{ key: string; label: string }> = [
   { key: 'name', label: 'Restaurant name' },
