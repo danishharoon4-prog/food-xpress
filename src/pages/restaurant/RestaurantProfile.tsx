@@ -349,7 +349,7 @@ export default function RestaurantProfile() {
                 </div>
                 <div>
                   <Label>{req('Cover Image')}</Label>
-                  <ImageCropInput value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} aspect={16/9} previewClassName="w-full h-32 object-cover rounded-md border" />
+                  <ImageCropInput label="" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} aspect={16/9} previewClassName="w-full h-32 object-cover rounded-md border" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label>{req('Opens')}</Label><Input type="time" value={form.opening_time} onChange={(e) => setForm({ ...form, opening_time: e.target.value })} /></div>
