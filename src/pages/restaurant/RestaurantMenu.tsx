@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import ImageCropInput from '@/components/ImageCropInput';
 
 export default function RestaurantMenu() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
