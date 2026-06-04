@@ -131,6 +131,12 @@ export default function RestaurantProfile() {
 
     if (restaurant) {
       const payload: any = { ...form };
+      // Address fields are locked after approval (changed via admin request)
+      if (isApproved) {
+        delete payload.address;
+        delete payload.latitude;
+        delete payload.longitude;
+      }
       if (submitForReview && isRejected) {
         payload.approval_status = 'pending';
         payload.rejection_reason = null;
