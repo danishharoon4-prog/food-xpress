@@ -11,7 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Store, CheckCircle2, Clock, XCircle, AlertCircle } from 'lucide-react';
+import { Loader2, User, Store, CheckCircle2, Clock, XCircle, AlertCircle, MapPin, Lock, Send } from 'lucide-react';
+import { LocationPicker } from '@/components/LocationPicker';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 const REQUIRED_FIELDS: Array<{ key: string; label: string }> = [
   { key: 'name', label: 'Restaurant name' },
@@ -33,8 +35,17 @@ export default function RestaurantProfile() {
   const [form, setForm] = useState({
     name: '', description: '', cuisine_type: '', address: '', image_url: '',
     opening_time: '09:00', closing_time: '22:00', is_active: true,
+    latitude: null as number | null, longitude: null as number | null,
   });
   const [personal, setPersonal] = useState({ full_name: '', phone: '', email: '' });
+
+  // Location change request state
+  const [changeOpen, setChangeOpen] = useState(false);
+  const [changeAddress, setChangeAddress] = useState('');
+  const [changeCoords, setChangeCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [changeReason, setChangeReason] = useState('');
+  const [submittingChange, setSubmittingChange] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<any>(null);
 
   useEffect(() => {
     if (restaurant) {
@@ -47,9 +58,24 @@ export default function RestaurantProfile() {
         opening_time: restaurant.opening_time?.slice(0, 5) || '09:00',
         closing_time: restaurant.closing_time?.slice(0, 5) || '22:00',
         is_active: restaurant.is_active ?? true,
+        latitude: restaurant.latitude ?? null,
+        longitude: restaurant.longitude ?? null,
       });
     }
   }, [restaurant]);
+
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('restaurant_location_change_requests' as any)
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .eq('status', 'pending')
+        .maybeSingle();
+      setPendingRequest(data || null);
+    })();
+  }, [restaurant?.id]);
 
   useEffect(() => {
     if (profile) {
@@ -105,6 +131,12 @@ export default function RestaurantProfile() {
 
     if (restaurant) {
       const payload: any = { ...form };
+      // Address fields are locked after approval (changed via admin request)
+      if (isApproved) {
+        delete payload.address;
+        delete payload.latitude;
+        delete payload.longitude;
+      }
       if (submitForReview && isRejected) {
         payload.approval_status = 'pending';
         payload.rejection_reason = null;
@@ -255,7 +287,65 @@ export default function RestaurantProfile() {
                   <div><Label>{req('Cuisine')}</Label><Input value={form.cuisine_type} onChange={(e) => setForm({ ...form, cuisine_type: e.target.value })} placeholder="e.g. Pakistani" /></div>
                   <div><Label>City</Label><Input value="Mansehra" disabled /></div>
                 </div>
-                <div><Label>{req('Address')}</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    {req('Restaurant Location')}
+                    {isApproved && <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </Label>
+                  {isApproved ? (
+                    <div className="space-y-2">
+                      <div className="p-3 rounded-md border bg-muted/40">
+                        <div className="flex items-start gap-2 text-sm">
+                          <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                          <div className="flex-1">
+                            <p className="font-medium">{form.address || 'No address set'}</p>
+                            {form.latitude && form.longitude && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                📍 {Number(form.latitude).toFixed(6)}, {Number(form.longitude).toFixed(6)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      {pendingRequest ? (
+                        <div className="p-3 rounded-md border border-warning bg-warning/5 text-xs">
+                          <p className="font-semibold flex items-center gap-1 text-warning">
+                            <Clock className="w-3.5 h-3.5" /> Change request pending admin review
+                          </p>
+                          <p className="text-muted-foreground mt-1">Requested: {pendingRequest.requested_address}</p>
+                        </div>
+                      ) : (
+                        <Button type="button" variant="outline" size="sm" onClick={() => {
+                          setChangeAddress(form.address || '');
+                          setChangeCoords(form.latitude && form.longitude ? { latitude: Number(form.latitude), longitude: Number(form.longitude) } : null);
+                          setChangeReason('');
+                          setChangeOpen(true);
+                        }}>
+                          <Send className="w-3.5 h-3.5 mr-1.5" /> Request Address Change
+                        </Button>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Your address is locked. To change it, submit a request — an admin will review and apply it.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <LocationPicker
+                        value={form.address}
+                        onChange={(addr, coords) => setForm({
+                          ...form,
+                          address: addr,
+                          latitude: coords?.latitude ?? form.latitude,
+                          longitude: coords?.longitude ?? form.longitude,
+                        })}
+                        placeholder="Pin your restaurant location on the map..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Drag the pin or tap the map to set your exact restaurant location. Once approved, the address can only be changed by admin.
+                      </p>
+                    </>
+                  )}
+                </div>
                 <div><Label>{req('Cover Image URL')}</Label><Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." /></div>
                 {form.image_url && (
                   <img src={form.image_url} alt="Preview" className="w-full h-32 object-cover rounded-md border" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />
@@ -310,6 +400,69 @@ export default function RestaurantProfile() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={changeOpen} onOpenChange={setChangeOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Request Address Change</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Pin the new location on the map. Your request will be sent to admin for approval.
+            </p>
+            <LocationPicker
+              value={changeAddress}
+              onChange={(addr, coords) => {
+                setChangeAddress(addr);
+                if (coords) setChangeCoords(coords);
+              }}
+              placeholder="Pin new restaurant location..."
+            />
+            <div>
+              <Label>Reason (optional)</Label>
+              <Textarea
+                value={changeReason}
+                onChange={(e) => setChangeReason(e.target.value)}
+                rows={2}
+                placeholder="Why are you changing the location?"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChangeOpen(false)}>Cancel</Button>
+            <Button
+              disabled={submittingChange || !changeAddress.trim() || !changeCoords}
+              onClick={async () => {
+                if (!restaurant?.id || !user?.id || !changeCoords) return;
+                setSubmittingChange(true);
+                const { data, error } = await supabase
+                  .from('restaurant_location_change_requests' as any)
+                  .insert({
+                    restaurant_id: restaurant.id,
+                    requested_by: user.id,
+                    requested_address: changeAddress,
+                    requested_latitude: changeCoords.latitude,
+                    requested_longitude: changeCoords.longitude,
+                    reason: changeReason || null,
+                  })
+                  .select()
+                  .single();
+                setSubmittingChange(false);
+                if (error) {
+                  toast({ title: 'Failed to submit', description: error.message, variant: 'destructive' });
+                  return;
+                }
+                setPendingRequest(data);
+                setChangeOpen(false);
+                toast({ title: 'Request submitted', description: 'Admin will review your location change shortly.' });
+              }}
+            >
+              {submittingChange && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Submit Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

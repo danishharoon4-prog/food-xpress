@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, Store, Eye, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import type { Restaurant } from '@/types';
+import LocationChangeRequests from '@/components/admin/LocationChangeRequests';
 
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
@@ -154,7 +155,10 @@ export default function AdminRestaurants() {
         </Dialog>
       </div>
 
+      <LocationChangeRequests />
+
       <Tabs value={filter} onValueChange={(v) => setFilter(v as StatusFilter)}>
+
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
           <TabsTrigger value="pending" className="data-[state=active]:bg-warning/10 data-[state=active]:text-warning">

@@ -545,6 +545,62 @@ export type Database = {
           },
         ]
       }
+      restaurant_location_change_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          requested_address: string
+          requested_by: string
+          requested_latitude: number | null
+          requested_longitude: number | null
+          restaurant_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          requested_address: string
+          requested_by: string
+          requested_latitude?: number | null
+          requested_longitude?: number | null
+          restaurant_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          requested_address?: string
+          requested_by?: string
+          requested_latitude?: number | null
+          requested_longitude?: number | null
+          restaurant_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_location_change_requests_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurants: {
         Row: {
           address: string | null
@@ -833,6 +889,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_restaurant_location_change: {
+        Args: { _approve: boolean; _notes?: string; _request_id: string }
+        Returns: boolean
+      }
       approve_restaurant: {
         Args: { _approve: boolean; _reason?: string; _restaurant_id: string }
         Returns: boolean
