@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, Store, Eye, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import type { Restaurant } from '@/types';
 import LocationChangeRequests from '@/components/admin/LocationChangeRequests';
+import ImageCropInput from '@/components/ImageCropInput';
 
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
