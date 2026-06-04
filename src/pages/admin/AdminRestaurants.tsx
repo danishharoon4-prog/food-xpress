@@ -149,7 +149,7 @@ export default function AdminRestaurants() {
               <div><Label htmlFor="cuisineType">Cuisine Type</Label><Input id="cuisineType" value={cuisineType} onChange={(e) => setCuisineType(e.target.value)} placeholder="e.g., Pakistani" /></div>
               <div><Label htmlFor="address">Address</Label><Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
               <div><Label htmlFor="city">City *</Label><Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g., Mansehra" required /></div>
-              <div><Label htmlFor="imageUrl">Image URL</Label><Input id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." /></div>
+              <ImageCropInput label="Restaurant Cover Image" value={imageUrl} onChange={setImageUrl} aspect={16/9} previewClassName="w-full h-32 object-cover rounded-md border" />
               <Button type="submit" className="w-full">{editingRestaurant ? 'Update' : 'Add'} Restaurant</Button>
             </form>
           </DialogContent>
