@@ -287,7 +287,65 @@ export default function RestaurantProfile() {
                   <div><Label>{req('Cuisine')}</Label><Input value={form.cuisine_type} onChange={(e) => setForm({ ...form, cuisine_type: e.target.value })} placeholder="e.g. Pakistani" /></div>
                   <div><Label>City</Label><Input value="Mansehra" disabled /></div>
                 </div>
-                <div><Label>{req('Address')}</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    {req('Restaurant Location')}
+                    {isApproved && <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </Label>
+                  {isApproved ? (
+                    <div className="space-y-2">
+                      <div className="p-3 rounded-md border bg-muted/40">
+                        <div className="flex items-start gap-2 text-sm">
+                          <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                          <div className="flex-1">
+                            <p className="font-medium">{form.address || 'No address set'}</p>
+                            {form.latitude && form.longitude && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                📍 {Number(form.latitude).toFixed(6)}, {Number(form.longitude).toFixed(6)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      {pendingRequest ? (
+                        <div className="p-3 rounded-md border border-warning bg-warning/5 text-xs">
+                          <p className="font-semibold flex items-center gap-1 text-warning">
+                            <Clock className="w-3.5 h-3.5" /> Change request pending admin review
+                          </p>
+                          <p className="text-muted-foreground mt-1">Requested: {pendingRequest.requested_address}</p>
+                        </div>
+                      ) : (
+                        <Button type="button" variant="outline" size="sm" onClick={() => {
+                          setChangeAddress(form.address || '');
+                          setChangeCoords(form.latitude && form.longitude ? { latitude: Number(form.latitude), longitude: Number(form.longitude) } : null);
+                          setChangeReason('');
+                          setChangeOpen(true);
+                        }}>
+                          <Send className="w-3.5 h-3.5 mr-1.5" /> Request Address Change
+                        </Button>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Your address is locked. To change it, submit a request — an admin will review and apply it.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <LocationPicker
+                        value={form.address}
+                        onChange={(addr, coords) => setForm({
+                          ...form,
+                          address: addr,
+                          latitude: coords?.latitude ?? form.latitude,
+                          longitude: coords?.longitude ?? form.longitude,
+                        })}
+                        placeholder="Pin your restaurant location on the map..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Drag the pin or tap the map to set your exact restaurant location. Once approved, the address can only be changed by admin.
+                      </p>
+                    </>
+                  )}
+                </div>
                 <div><Label>{req('Cover Image URL')}</Label><Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." /></div>
                 {form.image_url && (
                   <img src={form.image_url} alt="Preview" className="w-full h-32 object-cover rounded-md border" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />
