@@ -155,7 +155,10 @@ export default function AdminRestaurants() {
         </Dialog>
       </div>
 
+      <LocationChangeRequests />
+
       <Tabs value={filter} onValueChange={(v) => setFilter(v as StatusFilter)}>
+
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
           <TabsTrigger value="pending" className="data-[state=active]:bg-warning/10 data-[state=active]:text-warning">
