@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, UtensilsCrossed } from 'lucide-react';
 import type { MenuItem, Restaurant } from '@/types';
+import ImageCropInput from '@/components/ImageCropInput';
 
 export default function AdminMenu() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
