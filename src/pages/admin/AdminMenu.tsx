@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, UtensilsCrossed } from 'lucide-react';
 import type { MenuItem, Restaurant } from '@/types';
+import ImageCropInput from '@/components/ImageCropInput';
 
 export default function AdminMenu() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -177,8 +178,7 @@ export default function AdminMenu() {
                 />
               </div>
               <div>
-                <Label htmlFor="itemImage">Image URL</Label>
-                <Input id="itemImage" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+              <ImageCropInput label="Item Image" value={imageUrl} onChange={setImageUrl} aspect={1} previewClassName="w-full h-40 object-cover rounded-md border" />
               </div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="itemAvailable">Available</Label>

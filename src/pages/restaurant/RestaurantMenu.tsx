@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import ImageCropInput from '@/components/ImageCropInput';
 
 export default function RestaurantMenu() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
@@ -102,7 +103,7 @@ export default function RestaurantMenu() {
                     </Select>
                   </div>
                 </div>
-                <div><Label>Image URL</Label><Input value={form.image_url} onChange={(e) => setForm({...form, image_url: e.target.value})} placeholder="https://..." /></div>
+                <ImageCropInput label="Item Image" value={form.image_url} onChange={(v) => setForm({...form, image_url: v})} aspect={1} previewClassName="w-full h-40 object-cover rounded-md border" />
                 <div className="flex items-center justify-between p-3 rounded bg-muted">
                   <Label>Available</Label>
                   <Switch checked={form.is_available} onCheckedChange={(v) => setForm({...form, is_available: v})} />
