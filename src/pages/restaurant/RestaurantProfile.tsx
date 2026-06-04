@@ -35,8 +35,17 @@ export default function RestaurantProfile() {
   const [form, setForm] = useState({
     name: '', description: '', cuisine_type: '', address: '', image_url: '',
     opening_time: '09:00', closing_time: '22:00', is_active: true,
+    latitude: null as number | null, longitude: null as number | null,
   });
   const [personal, setPersonal] = useState({ full_name: '', phone: '', email: '' });
+
+  // Location change request state
+  const [changeOpen, setChangeOpen] = useState(false);
+  const [changeAddress, setChangeAddress] = useState('');
+  const [changeCoords, setChangeCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [changeReason, setChangeReason] = useState('');
+  const [submittingChange, setSubmittingChange] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<any>(null);
 
   useEffect(() => {
     if (restaurant) {
@@ -49,9 +58,24 @@ export default function RestaurantProfile() {
         opening_time: restaurant.opening_time?.slice(0, 5) || '09:00',
         closing_time: restaurant.closing_time?.slice(0, 5) || '22:00',
         is_active: restaurant.is_active ?? true,
+        latitude: restaurant.latitude ?? null,
+        longitude: restaurant.longitude ?? null,
       });
     }
   }, [restaurant]);
+
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('restaurant_location_change_requests' as any)
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .eq('status', 'pending')
+        .maybeSingle();
+      setPendingRequest(data || null);
+    })();
+  }, [restaurant?.id]);
 
   useEffect(() => {
     if (profile) {
