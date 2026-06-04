@@ -400,6 +400,69 @@ export default function RestaurantProfile() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={changeOpen} onOpenChange={setChangeOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Request Address Change</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Pin the new location on the map. Your request will be sent to admin for approval.
+            </p>
+            <LocationPicker
+              value={changeAddress}
+              onChange={(addr, coords) => {
+                setChangeAddress(addr);
+                if (coords) setChangeCoords(coords);
+              }}
+              placeholder="Pin new restaurant location..."
+            />
+            <div>
+              <Label>Reason (optional)</Label>
+              <Textarea
+                value={changeReason}
+                onChange={(e) => setChangeReason(e.target.value)}
+                rows={2}
+                placeholder="Why are you changing the location?"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChangeOpen(false)}>Cancel</Button>
+            <Button
+              disabled={submittingChange || !changeAddress.trim() || !changeCoords}
+              onClick={async () => {
+                if (!restaurant?.id || !user?.id || !changeCoords) return;
+                setSubmittingChange(true);
+                const { data, error } = await supabase
+                  .from('restaurant_location_change_requests' as any)
+                  .insert({
+                    restaurant_id: restaurant.id,
+                    requested_by: user.id,
+                    requested_address: changeAddress,
+                    requested_latitude: changeCoords.latitude,
+                    requested_longitude: changeCoords.longitude,
+                    reason: changeReason || null,
+                  })
+                  .select()
+                  .single();
+                setSubmittingChange(false);
+                if (error) {
+                  toast({ title: 'Failed to submit', description: error.message, variant: 'destructive' });
+                  return;
+                }
+                setPendingRequest(data);
+                setChangeOpen(false);
+                toast({ title: 'Request submitted', description: 'Admin will review your location change shortly.' });
+              }}
+            >
+              {submittingChange && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Submit Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
