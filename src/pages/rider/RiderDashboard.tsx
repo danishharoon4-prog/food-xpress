@@ -93,6 +93,67 @@ export default function RiderDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rider?.is_online, rider?.is_verified]);
 
+  // Live GPS tracking — push rider coords to DB while online
+  useEffect(() => {
+    if (!rider?.id || !rider.is_online) return;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast({
+        title: 'GPS not supported',
+        description: 'Your browser does not support location tracking.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    let lastPushed = 0;
+    const pushLocation = async (lat: number, lng: number) => {
+      const { error } = await supabase
+        .from('riders')
+        .update({ current_latitude: lat, current_longitude: lng })
+        .eq('id', rider.id);
+      if (error) console.error('Failed to update rider location:', error);
+    };
+
+    const onSuccess = (pos: GeolocationPosition) => {
+      const now = Date.now();
+      // Throttle: at most every 8s
+      if (now - lastPushed < 8000) return;
+      lastPushed = now;
+      pushLocation(pos.coords.latitude, pos.coords.longitude);
+    };
+    const onError = (err: GeolocationPositionError) => {
+      console.error('Geolocation error:', err);
+      if (err.code === err.PERMISSION_DENIED) {
+        toast({
+          title: 'Location permission denied',
+          description: 'Please enable location access so customers can track you.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    // Initial one-shot to push location immediately
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        lastPushed = Date.now();
+        pushLocation(pos.coords.latitude, pos.coords.longitude);
+      },
+      onError,
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+
+    const watchId = navigator.geolocation.watchPosition(onSuccess, onError, {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 5000,
+    });
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rider?.id, rider?.is_online]);
+
   const refreshAvailable = async (newlyArrivedId?: string) => {
     const { data } = await supabase
       .from('orders')
