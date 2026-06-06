@@ -112,13 +112,13 @@ export default function Checkout() {
   
   const calculateDeliveryFee = (distanceInKm: number): number => {
     const baseDistance = 4; // 4 KM
-    const baseFee = 100; // RS 100 for first 4 KM
-    const additionalFeePerKm = 50; // RS 50 per additional KM
-    
+    const baseFee = 150; // PKR 150 for first 4 KM
+    const additionalFeePerKm = 25; // PKR 25 per additional KM
+
     if (distanceInKm <= baseDistance) {
       return baseFee;
     }
-    
+
     const additionalKm = Math.ceil(distanceInKm - baseDistance);
     return baseFee + (additionalKm * additionalFeePerKm);
   };
