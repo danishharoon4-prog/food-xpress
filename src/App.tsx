@@ -62,7 +62,8 @@ const App = () => (
           <BrowserRouter>
             <NotificationsListener />
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Navigate to="/restaurants" replace />} />
+              <Route path="/home" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               
               {/* Customer Routes */}
