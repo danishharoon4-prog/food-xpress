@@ -8,6 +8,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { NotificationsListener } from "@/components/NotificationsListener";
 
 // Pages
+import { Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
