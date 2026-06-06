@@ -36,7 +36,7 @@ export default function Checkout() {
   const [restaurantCoords, setRestaurantCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
-  const [deliveryFee, setDeliveryFee] = useState(100);
+  const [deliveryFee, setDeliveryFee] = useState(150);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [estimatedTime, setEstimatedTime] = useState<string | null>(null);
   const [estimatedMinutes, setEstimatedMinutes] = useState<number | null>(null);
@@ -126,7 +126,7 @@ export default function Checkout() {
   useEffect(() => {
     const fetchDeliveryFee = async () => {
       if (!restaurantCoords || !deliveryCoords) {
-        setDeliveryFee(100); // Default fee
+        setDeliveryFee(150); // Default fee
         setDistanceKm(null);
         setEstimatedTime(null);
         return;
@@ -152,7 +152,7 @@ export default function Checkout() {
         setEstimatedMinutes(totalMinutes);
       } catch (error) {
         console.error('Error calculating distance:', error);
-        setDeliveryFee(100); // Fallback to base fee
+        setDeliveryFee(150); // Fallback to base fee
         setEstimatedTime(null);
         setEstimatedMinutes(null);
       } finally {
