@@ -8,6 +8,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { NotificationsListener } from "@/components/NotificationsListener";
 
 // Pages
+import { Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -61,7 +62,8 @@ const App = () => (
           <BrowserRouter>
             <NotificationsListener />
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Navigate to="/restaurants" replace />} />
+              <Route path="/home" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               
               {/* Customer Routes */}
