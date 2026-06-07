@@ -40,7 +40,9 @@ export default function RestaurantMenu() {
     if (!form.name.trim() || !form.price) return toast({ title: 'Name and price required', variant: 'destructive' });
     const payload: any = {
       restaurant_id: restaurant.id, name: form.name, description: form.description || null,
-      price: Number(form.price), image_url: form.image_url || null,
+      price: Number(form.price), discount_price: form.discount_price ? Number(form.discount_price) : null,
+      is_deal: form.is_deal, deal_label: form.deal_label || null,
+      image_url: form.image_url || null,
       category_id: form.category_id || null, is_available: form.is_available,
     };
     const { error } = editing
