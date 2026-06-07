@@ -189,6 +189,35 @@ export default function AdminMenu() {
                   required
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="itemDeal">Fresh Deal</Label>
+                <Switch id="itemDeal" checked={isDeal} onCheckedChange={setIsDeal} />
+              </div>
+              {isDeal && (
+                <>
+                  <div>
+                    <Label htmlFor="discountPrice">Discount Price (PKR) *</Label>
+                    <Input
+                      id="discountPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={discountPrice}
+                      onChange={(e) => setDiscountPrice(e.target.value)}
+                      required={isDeal}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dealLabel">Deal Label</Label>
+                    <Input
+                      id="dealLabel"
+                      placeholder="e.g. Today Only, Hot Deal, Flash Sale"
+                      value={dealLabel}
+                      onChange={(e) => setDealLabel(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
               <div>
               <ImageCropInput label="Item Image" value={imageUrl} onChange={setImageUrl} aspect={1} previewClassName="w-full h-40 object-cover rounded-md border" />
               </div>
