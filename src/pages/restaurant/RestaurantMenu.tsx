@@ -129,7 +129,7 @@ export default function RestaurantMenu() {
                 <div className="flex gap-1">
                   <Button size="icon" variant="ghost" onClick={() => {
                     setEditing(it);
-                    setForm({ name: it.name, description: it.description || '', price: String(it.price), image_url: it.image_url || '', category_id: it.category_id || '', is_available: it.is_available });
+                    setForm({ name: it.name, description: it.description || '', price: String(it.price), discount_price: it.discount_price ? String(it.discount_price) : '', is_deal: it.is_deal || false, deal_label: it.deal_label || '', image_url: it.image_url || '', category_id: it.category_id || '', is_available: it.is_available });
                     setOpen(true);
                   }}><Pencil className="w-4 h-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => del(it.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
