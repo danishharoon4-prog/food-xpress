@@ -84,11 +84,14 @@ export default function AdminMenu() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const itemData = {
+    const itemData: any = {
       restaurant_id: restaurantId,
       name,
       description: description || null,
       price: parseFloat(price),
+      discount_price: discountPrice ? parseFloat(discountPrice) : null,
+      is_deal: isDeal,
+      deal_label: dealLabel || null,
       image_url: imageUrl || null,
       is_available: isAvailable,
       is_featured: isFeatured,
