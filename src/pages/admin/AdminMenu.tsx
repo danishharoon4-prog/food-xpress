@@ -26,6 +26,9 @@ export default function AdminMenu() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [discountPrice, setDiscountPrice] = useState('');
+  const [isDeal, setIsDeal] = useState(false);
+  const [dealLabel, setDealLabel] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
