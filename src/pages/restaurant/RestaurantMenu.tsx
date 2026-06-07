@@ -22,7 +22,7 @@ export default function RestaurantMenu() {
   const [catOpen, setCatOpen] = useState(false);
   const [newCat, setNewCat] = useState('');
   const [editing, setEditing] = useState<any | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', price: '', image_url: '', category_id: '', is_available: true });
+  const [form, setForm] = useState({ name: '', description: '', price: '', discount_price: '', is_deal: false, deal_label: '', image_url: '', category_id: '', is_available: true });
 
   const load = async () => {
     if (!restaurant?.id) return;
