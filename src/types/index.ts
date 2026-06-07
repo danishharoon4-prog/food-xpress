@@ -79,6 +79,9 @@ export interface MenuItem {
   name: string;
   description: string | null;
   price: number;
+  discount_price: number | null;
+  is_deal: boolean;
+  deal_label: string | null;
   image_url: string | null;
   is_available: boolean;
   is_featured: boolean;
