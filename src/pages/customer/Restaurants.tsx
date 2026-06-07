@@ -12,9 +12,9 @@ import { MapPin, Clock, Star, Heart, Utensils, Tag, ArrowRight } from 'lucide-re
 import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant, MenuItem } from '@/types';
 
-interface DealItem extends MenuItem {
+type DealItem = Omit<MenuItem, 'restaurant'> & {
   restaurant?: { id: string; name: string; image_url: string | null };
-}
+};
 
 export default function Restaurants() {
   const { user, profile } = useAuth();
