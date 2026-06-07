@@ -135,7 +135,15 @@ export default function RestaurantMenu() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-semibold truncate">{it.name}</p>
-                  <p className="text-sm text-primary font-bold">PKR {Number(it.price).toLocaleString()}</p>
+                  {it.is_deal && it.discount_price ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-primary font-bold">PKR {Number(it.discount_price).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground line-through">PKR {Number(it.price).toLocaleString()}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-primary font-bold">PKR {Number(it.price).toLocaleString()}</p>
+                  )}
+                  {it.is_deal && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive">Deal</span>}
                   {!it.is_available && <span className="text-xs text-muted-foreground">Unavailable</span>}
                 </div>
                 <div className="flex gap-1">
