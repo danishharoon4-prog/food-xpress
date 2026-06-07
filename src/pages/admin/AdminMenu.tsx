@@ -69,6 +69,9 @@ export default function AdminMenu() {
       setName(item.name);
       setDescription(item.description || '');
       setPrice(String(item.price));
+      setDiscountPrice(item.discount_price ? String(item.discount_price) : '');
+      setIsDeal(item.is_deal);
+      setDealLabel(item.deal_label || '');
       setImageUrl(item.image_url || '');
       setIsAvailable(item.is_available);
       setIsFeatured(item.is_featured);
