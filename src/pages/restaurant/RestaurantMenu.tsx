@@ -34,7 +34,7 @@ export default function RestaurantMenu() {
   };
   useEffect(() => { load(); }, [restaurant?.id]);
 
-  const reset = () => { setEditing(null); setForm({ name: '', description: '', price: '', image_url: '', category_id: '', is_available: true }); };
+  const reset = () => { setEditing(null); setForm({ name: '', description: '', price: '', discount_price: '', is_deal: false, deal_label: '', image_url: '', category_id: '', is_available: true }); };
 
   const save = async () => {
     if (!form.name.trim() || !form.price) return toast({ title: 'Name and price required', variant: 'destructive' });
