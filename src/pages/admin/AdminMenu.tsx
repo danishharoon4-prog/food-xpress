@@ -26,6 +26,9 @@ export default function AdminMenu() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [discountPrice, setDiscountPrice] = useState('');
+  const [isDeal, setIsDeal] = useState(false);
+  const [dealLabel, setDealLabel] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
@@ -50,6 +53,9 @@ export default function AdminMenu() {
     setName('');
     setDescription('');
     setPrice('');
+    setDiscountPrice('');
+    setIsDeal(false);
+    setDealLabel('');
     setImageUrl('');
     setIsAvailable(true);
     setIsFeatured(false);
@@ -63,6 +69,9 @@ export default function AdminMenu() {
       setName(item.name);
       setDescription(item.description || '');
       setPrice(String(item.price));
+      setDiscountPrice(item.discount_price ? String(item.discount_price) : '');
+      setIsDeal(item.is_deal);
+      setDealLabel(item.deal_label || '');
       setImageUrl(item.image_url || '');
       setIsAvailable(item.is_available);
       setIsFeatured(item.is_featured);
@@ -75,11 +84,14 @@ export default function AdminMenu() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const itemData = {
+    const itemData: any = {
       restaurant_id: restaurantId,
       name,
       description: description || null,
       price: parseFloat(price),
+      discount_price: discountPrice ? parseFloat(discountPrice) : null,
+      is_deal: isDeal,
+      deal_label: dealLabel || null,
       image_url: imageUrl || null,
       is_available: isAvailable,
       is_featured: isFeatured,
@@ -177,6 +189,35 @@ export default function AdminMenu() {
                   required
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="itemDeal">Fresh Deal</Label>
+                <Switch id="itemDeal" checked={isDeal} onCheckedChange={setIsDeal} />
+              </div>
+              {isDeal && (
+                <>
+                  <div>
+                    <Label htmlFor="discountPrice">Discount Price (PKR) *</Label>
+                    <Input
+                      id="discountPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={discountPrice}
+                      onChange={(e) => setDiscountPrice(e.target.value)}
+                      required={isDeal}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dealLabel">Deal Label</Label>
+                    <Input
+                      id="dealLabel"
+                      placeholder="e.g. Today Only, Hot Deal, Flash Sale"
+                      value={dealLabel}
+                      onChange={(e) => setDealLabel(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
               <div>
               <ImageCropInput label="Item Image" value={imageUrl} onChange={setImageUrl} aspect={1} previewClassName="w-full h-40 object-cover rounded-md border" />
               </div>
@@ -221,9 +262,12 @@ export default function AdminMenu() {
                   <span className="font-bold text-primary">PKR {Number(item.price).toLocaleString()}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.description}</p>
-                <div className="flex gap-2 mb-3">
+                <div className="flex gap-2 mb-3 flex-wrap">
                   {item.is_featured && (
                     <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">Featured</span>
+                  )}
+                  {item.is_deal && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive font-medium">Deal -{Math.round(((item.price - (item.discount_price || 0)) / item.price) * 100)}%</span>
                   )}
                   <span className={`text-xs px-2 py-1 rounded-full ${item.is_available ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
                     {item.is_available ? 'Available' : 'Unavailable'}

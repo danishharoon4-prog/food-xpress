@@ -8,21 +8,28 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, Star, Heart, Utensils } from 'lucide-react';
+import { MapPin, Clock, Star, Heart, Utensils, Tag, ArrowRight } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
-import type { Restaurant } from '@/types';
+import type { Restaurant, MenuItem } from '@/types';
+
+type DealItem = Omit<MenuItem, 'restaurant'> & {
+  restaurant?: { id: string; name: string; image_url: string | null };
+};
 
 export default function Restaurants() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [deals, setDeals] = useState<DealItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dealsLoading, setDealsLoading] = useState(true);
   const [city, setCity] = useState<string>('all');
   const [cuisine, setCuisine] = useState<string>('all');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchRestaurants();
+    fetchDeals();
   }, []);
 
   useEffect(() => {
@@ -43,6 +50,22 @@ export default function Restaurants() {
       .order('name');
     if (data) setRestaurants(data as Restaurant[]);
     setLoading(false);
+  };
+
+  const fetchDeals = async () => {
+    const { data } = await supabase
+      .from('menu_items')
+      .select(`
+        *,
+        restaurant:restaurant_id (id, name, image_url)
+      `)
+      .eq('is_available', true)
+      .eq('is_deal', true)
+      .not('discount_price', 'is', null)
+      .order('updated_at', { ascending: false })
+      .limit(12);
+    if (data) setDeals(data as DealItem[]);
+    setDealsLoading(false);
   };
 
   const fetchFavorites = async () => {
@@ -86,6 +109,11 @@ export default function Restaurants() {
     const matchesCuisine = cuisine === 'all' || r.cuisine_type === cuisine;
     return matchesCity && matchesCuisine;
   });
+
+  const discountPercent = (item: DealItem) => {
+    if (!item.discount_price || item.price <= 0) return 0;
+    return Math.round(((item.price - item.discount_price) / item.price) * 100);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,6 +174,94 @@ export default function Restaurants() {
             )}
           </div>
         </div>
+
+        {/* Fresh Deals Section */}
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Tag className="w-4 h-4 text-primary" />
+              </div>
+              <h2 className="text-xl font-bold">Fresh Deals</h2>
+              <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-200">
+                Top Discounts
+              </Badge>
+            </div>
+          </div>
+
+          {dealsLoading ? (
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="min-w-[220px] max-w-[220px] animate-pulse">
+                  <div className="h-36 bg-muted rounded-2xl" />
+                  <div className="h-4 w-32 bg-muted rounded mt-2" />
+                  <div className="h-4 w-20 bg-muted rounded mt-1" />
+                </div>
+              ))}
+            </div>
+          ) : deals.length === 0 ? (
+            <div className="text-center py-8 bg-muted/20 rounded-2xl">
+              <Tag className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No active deals right now</p>
+            </div>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide -mx-2 px-2">
+              {deals.map((deal) => (
+                <Link
+                  key={deal.id}
+                  to={`/restaurant/${deal.restaurant_id}`}
+                  className="min-w-[220px] max-w-[220px] group flex-shrink-0"
+                >
+                  <Card className="overflow-hidden border-0 shadow-sm bg-card transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-md rounded-2xl">
+                    <div className="h-36 bg-gradient-to-br from-primary/10 to-accent/40 overflow-hidden relative">
+                      {deal.image_url ? (
+                        <img
+                          src={deal.image_url}
+                          alt={deal.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : deal.restaurant?.image_url ? (
+                        <img
+                          src={deal.restaurant.image_url}
+                          alt={deal.restaurant.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Utensils className="w-8 h-8 text-primary/40" />
+                        </div>
+                      )}
+                      <div className="absolute top-2 left-2 bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        -{discountPercent(deal)}%
+                      </div>
+                      {deal.deal_label && (
+                        <div className="absolute bottom-2 left-2 bg-primary text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                          {deal.deal_label}
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-3">
+                      <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                        {deal.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground truncate mb-1.5">
+                        {deal.restaurant?.name || 'Restaurant'}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-primary">
+                          PKR {Number(deal.discount_price).toLocaleString()}
+                        </span>
+                        <span className="text-xs text-muted-foreground line-through">
+                          PKR {Number(deal.price).toLocaleString()}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Results summary */}
         {!loading && (

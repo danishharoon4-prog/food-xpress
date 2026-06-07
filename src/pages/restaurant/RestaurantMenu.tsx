@@ -22,7 +22,7 @@ export default function RestaurantMenu() {
   const [catOpen, setCatOpen] = useState(false);
   const [newCat, setNewCat] = useState('');
   const [editing, setEditing] = useState<any | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', price: '', image_url: '', category_id: '', is_available: true });
+  const [form, setForm] = useState({ name: '', description: '', price: '', discount_price: '', is_deal: false, deal_label: '', image_url: '', category_id: '', is_available: true });
 
   const load = async () => {
     if (!restaurant?.id) return;
@@ -34,13 +34,15 @@ export default function RestaurantMenu() {
   };
   useEffect(() => { load(); }, [restaurant?.id]);
 
-  const reset = () => { setEditing(null); setForm({ name: '', description: '', price: '', image_url: '', category_id: '', is_available: true }); };
+  const reset = () => { setEditing(null); setForm({ name: '', description: '', price: '', discount_price: '', is_deal: false, deal_label: '', image_url: '', category_id: '', is_available: true }); };
 
   const save = async () => {
     if (!form.name.trim() || !form.price) return toast({ title: 'Name and price required', variant: 'destructive' });
     const payload: any = {
       restaurant_id: restaurant.id, name: form.name, description: form.description || null,
-      price: Number(form.price), image_url: form.image_url || null,
+      price: Number(form.price), discount_price: form.discount_price ? Number(form.discount_price) : null,
+      is_deal: form.is_deal, deal_label: form.deal_label || null,
+      image_url: form.image_url || null,
       category_id: form.category_id || null, is_available: form.is_available,
     };
     const { error } = editing
@@ -103,6 +105,16 @@ export default function RestaurantMenu() {
                     </Select>
                   </div>
                 </div>
+                <div className="flex items-center justify-between p-3 rounded bg-muted">
+                  <Label>Fresh Deal</Label>
+                  <Switch checked={form.is_deal} onCheckedChange={(v) => setForm({...form, is_deal: v})} />
+                </div>
+                {form.is_deal && (
+                  <>
+                    <div><Label>Discount Price (PKR)</Label><Input type="number" value={form.discount_price} onChange={(e) => setForm({...form, discount_price: e.target.value})} /></div>
+                    <div><Label>Deal Label</Label><Input value={form.deal_label} onChange={(e) => setForm({...form, deal_label: e.target.value})} placeholder="e.g. Today Only, Hot Deal" /></div>
+                  </>
+                )}
                 <ImageCropInput label="Item Image" value={form.image_url} onChange={(v) => setForm({...form, image_url: v})} aspect={1} previewClassName="w-full h-40 object-cover rounded-md border" />
                 <div className="flex items-center justify-between p-3 rounded bg-muted">
                   <Label>Available</Label>
@@ -123,13 +135,21 @@ export default function RestaurantMenu() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-semibold truncate">{it.name}</p>
-                  <p className="text-sm text-primary font-bold">PKR {Number(it.price).toLocaleString()}</p>
+                  {it.is_deal && it.discount_price ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-primary font-bold">PKR {Number(it.discount_price).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground line-through">PKR {Number(it.price).toLocaleString()}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-primary font-bold">PKR {Number(it.price).toLocaleString()}</p>
+                  )}
+                  {it.is_deal && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive">Deal</span>}
                   {!it.is_available && <span className="text-xs text-muted-foreground">Unavailable</span>}
                 </div>
                 <div className="flex gap-1">
                   <Button size="icon" variant="ghost" onClick={() => {
                     setEditing(it);
-                    setForm({ name: it.name, description: it.description || '', price: String(it.price), image_url: it.image_url || '', category_id: it.category_id || '', is_available: it.is_available });
+                    setForm({ name: it.name, description: it.description || '', price: String(it.price), discount_price: it.discount_price ? String(it.discount_price) : '', is_deal: it.is_deal || false, deal_label: it.deal_label || '', image_url: it.image_url || '', category_id: it.category_id || '', is_available: it.is_available });
                     setOpen(true);
                   }}><Pencil className="w-4 h-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => del(it.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
