@@ -262,9 +262,12 @@ export default function AdminMenu() {
                   <span className="font-bold text-primary">PKR {Number(item.price).toLocaleString()}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.description}</p>
-                <div className="flex gap-2 mb-3">
+                <div className="flex gap-2 mb-3 flex-wrap">
                   {item.is_featured && (
                     <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">Featured</span>
+                  )}
+                  {item.is_deal && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive font-medium">Deal -{Math.round(((item.price - (item.discount_price || 0)) / item.price) * 100)}%</span>
                   )}
                   <span className={`text-xs px-2 py-1 rounded-full ${item.is_available ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
                     {item.is_available ? 'Available' : 'Unavailable'}
