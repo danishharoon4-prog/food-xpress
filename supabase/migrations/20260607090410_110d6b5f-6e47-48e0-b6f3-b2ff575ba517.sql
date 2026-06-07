@@ -1,0 +1,1 @@
+ALTER TABLE public.menu_items ADD COLUMN discount_price numeric DEFAULT NULL, ADD COLUMN is_deal boolean NOT NULL DEFAULT false, ADD COLUMN deal_label text DEFAULT NULL; GRANT SELECT, INSERT, UPDATE, DELETE ON public.menu_items TO authenticated; GRANT ALL ON public.menu_items TO service_role;

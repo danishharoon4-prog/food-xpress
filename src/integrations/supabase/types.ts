@@ -115,10 +115,13 @@ export type Database = {
         Row: {
           category_id: string | null
           created_at: string
+          deal_label: string | null
           description: string | null
+          discount_price: number | null
           id: string
           image_url: string | null
           is_available: boolean | null
+          is_deal: boolean
           is_featured: boolean | null
           name: string
           price: number
@@ -128,10 +131,13 @@ export type Database = {
         Insert: {
           category_id?: string | null
           created_at?: string
+          deal_label?: string | null
           description?: string | null
+          discount_price?: number | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          is_deal?: boolean
           is_featured?: boolean | null
           name: string
           price: number
@@ -141,10 +147,13 @@ export type Database = {
         Update: {
           category_id?: string | null
           created_at?: string
+          deal_label?: string | null
           description?: string | null
+          discount_price?: number | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          is_deal?: boolean
           is_featured?: boolean | null
           name?: string
           price?: number
