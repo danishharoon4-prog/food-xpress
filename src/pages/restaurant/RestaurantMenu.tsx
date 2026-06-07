@@ -105,6 +105,16 @@ export default function RestaurantMenu() {
                     </Select>
                   </div>
                 </div>
+                <div className="flex items-center justify-between p-3 rounded bg-muted">
+                  <Label>Fresh Deal</Label>
+                  <Switch checked={form.is_deal} onCheckedChange={(v) => setForm({...form, is_deal: v})} />
+                </div>
+                {form.is_deal && (
+                  <>
+                    <div><Label>Discount Price (PKR)</Label><Input type="number" value={form.discount_price} onChange={(e) => setForm({...form, discount_price: e.target.value})} /></div>
+                    <div><Label>Deal Label</Label><Input value={form.deal_label} onChange={(e) => setForm({...form, deal_label: e.target.value})} placeholder="e.g. Today Only, Hot Deal" /></div>
+                  </>
+                )}
                 <ImageCropInput label="Item Image" value={form.image_url} onChange={(v) => setForm({...form, image_url: v})} aspect={1} previewClassName="w-full h-40 object-cover rounded-md border" />
                 <div className="flex items-center justify-between p-3 rounded bg-muted">
                   <Label>Available</Label>
