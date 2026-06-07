@@ -53,6 +53,9 @@ export default function AdminMenu() {
     setName('');
     setDescription('');
     setPrice('');
+    setDiscountPrice('');
+    setIsDeal(false);
+    setDealLabel('');
     setImageUrl('');
     setIsAvailable(true);
     setIsFeatured(false);
