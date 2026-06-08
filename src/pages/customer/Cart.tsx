@@ -9,8 +9,6 @@ import { ShoppingCart, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, getSubtotal } = useCart();
   const subtotal = getSubtotal();
-  const deliveryFee = subtotal > 0 ? 100 : 0; // Fixed delivery fee
-  const total = subtotal + deliveryFee;
 
   if (items.length === 0) {
     return (
@@ -119,14 +117,14 @@ export default function Cart() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>PKR {subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Delivery Fee</span>
-                  <span>PKR {deliveryFee.toLocaleString()}</span>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Delivery Fee</span>
+                  <span>Calculated at checkout</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span className="text-primary">PKR {total.toLocaleString()}</span>
+                  <span className="text-primary">PKR {subtotal.toLocaleString()}</span>
                 </div>
 
                 <Link to="/checkout" className="block">
