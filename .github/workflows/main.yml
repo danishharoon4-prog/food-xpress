@@ -1,0 +1,45 @@
+name: Build Android APK
+on:
+  push:
+    branches: [ main, master ] # Jab bhi aap code push karenge, APK khud banegi
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-modules: true
+
+      - name: Install Dependencies & Build Web
+        run: |
+          npm install
+          npm run build
+
+      - name: Setup Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "Food X Press" "com.danishharoon.foodxpress" --web-dir=dist
+          npx cap add android
+          npx cap sync android
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Build Android APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
