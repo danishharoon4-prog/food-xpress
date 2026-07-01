@@ -12,6 +12,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 // Admin
@@ -67,6 +69,8 @@ const App = () => (
               <Route path="/" element={<Navigate to="/restaurants" replace />} />
               <Route path="/home" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               
               {/* Customer Routes */}
               <Route path="/dashboard" element={<Dashboard />} />
