@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, LocateFixed, Lock } from 'lucide-react';
 
 interface LocationPickerProps {
   value: string;
   onChange: (address: string, coords?: { latitude: number; longitude: number }) => void;
   placeholder?: string;
+  locked?: boolean;
+  coords?: { latitude: number; longitude: number } | null;
 }
 
 // Default center: Mansehra, Pakistan
