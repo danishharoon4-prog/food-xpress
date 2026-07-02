@@ -113,25 +113,6 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
     };
   }, [riderId, fetchRiderLocation]);
 
-  const openRiderLocation = async () => {
-    if (riderLocation?.current_latitude && riderLocation?.current_longitude) {
-      window.open(
-        `https://www.google.com/maps?q=${riderLocation.current_latitude},${riderLocation.current_longitude}`,
-        '_blank'
-      );
-    }
-  };
-
-  const openDirections = async () => {
-    if (riderLocation?.current_latitude && riderLocation?.current_longitude && customerCoords) {
-      const url = await getDirectionsUrl(
-        { lat: riderLocation.current_latitude, lng: riderLocation.current_longitude },
-        customerCoords
-      );
-      window.open(url, '_blank');
-    }
-  };
-
   // Only show tracking for relevant order statuses
   const showTracking = ['picked_up', 'on_the_way'].includes(orderStatus);
   
