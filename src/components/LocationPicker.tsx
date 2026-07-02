@@ -90,7 +90,21 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
     reverseGeocode(lat, lng);
   }, [reverseGeocode]);
 
+  const locateMe = useCallback(() => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        setPin(pos.coords.latitude, pos.coords.longitude, true);
+      },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }, [setPin]);
+
   useEffect(() => {
+    if (locked) return;
     let cancelled = false;
     (async () => {
       try {
@@ -98,14 +112,16 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
         if (cancelled || !mapDivRef.current) return;
 
         // Try GPS for initial centering only (silent — no manual button)
-        const initialCenter = await new Promise<{ lat: number; lng: number }>((resolve) => {
-          if (!navigator.geolocation) return resolve(DEFAULT_CENTER);
-          navigator.geolocation.getCurrentPosition(
-            (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-            () => resolve(DEFAULT_CENTER),
-            { timeout: 5000, enableHighAccuracy: true }
-          );
-        });
+        const initialCenter = initialCoords
+          ? { lat: initialCoords.latitude, lng: initialCoords.longitude }
+          : await new Promise<{ lat: number; lng: number }>((resolve) => {
+              if (!navigator.geolocation) return resolve(DEFAULT_CENTER);
+              navigator.geolocation.getCurrentPosition(
+                (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                () => resolve(DEFAULT_CENTER),
+                { timeout: 5000, enableHighAccuracy: true }
+              );
+            });
 
         const map = new google.maps.Map(mapDivRef.current, {
           center: initialCenter,
@@ -135,8 +151,11 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
         });
 
         setLoading(false);
-        // Trigger initial reverse geocode so address auto-fills
-        setPin(initialCenter.lat, initialCenter.lng, false);
+        if (!initialCoords) {
+          setPin(initialCenter.lat, initialCenter.lng, false);
+        } else {
+          setCoords(initialCoords);
+        }
       } catch (err) {
         console.error(err);
         setLoading(false);
@@ -144,7 +163,26 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [locked]);
+
+  if (locked) {
+    return (
+      <div className="space-y-2">
+        <div className="rounded-lg border bg-muted/40 p-4 flex items-start gap-3">
+          <Lock className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-primary mb-1">Permanent address locked</p>
+            <p className="text-sm break-words">{value || '—'}</p>
+            {coords && (
+              <p className="text-xs text-muted-foreground mt-1">
+                📍 {coords.latitude.toFixed(6)}, {coords.longitude.toFixed(6)}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -156,12 +194,26 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
           </div>
         )}
         {!loading && (
-          <div className="absolute top-2 left-2 right-2 bg-background/90 backdrop-blur rounded-md px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 shadow-sm">
-            <MapPin className="w-3.5 h-3.5 text-primary" />
-            Tap the map or drag the pin to set your exact location
-          </div>
+          <>
+            <div className="absolute top-2 left-2 right-16 bg-background/90 backdrop-blur rounded-md px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 shadow-sm">
+              <MapPin className="w-3.5 h-3.5 text-primary" />
+              Tap the map, drag the pin, or use GPS
+            </div>
+            <Button
+              type="button"
+              size="icon"
+              variant="default"
+              onClick={locateMe}
+              disabled={locating}
+              className="absolute top-2 right-2 shadow-md h-10 w-10 rounded-full"
+              title="Use my current GPS location"
+            >
+              {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <LocateFixed className="w-4 h-4" />}
+            </Button>
+          </>
         )}
       </div>
+
 
       <div className="relative">
         <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
