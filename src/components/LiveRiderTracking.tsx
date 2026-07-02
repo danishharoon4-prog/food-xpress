@@ -24,7 +24,7 @@ interface DistanceInfo {
 }
 
 export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: LiveRiderTrackingProps) {
-  const { calculateDistance, getDirectionsUrl } = useLocation();
+  const { calculateDistance } = useLocation();
   const [riderLocation, setRiderLocation] = useState<RiderLocation | null>(null);
   const [distanceInfo, setDistanceInfo] = useState<DistanceInfo | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
