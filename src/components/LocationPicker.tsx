@@ -55,7 +55,7 @@ async function loadGoogleMaps(): Promise<any> {
   return mapsLoaderPromise;
 }
 
-export function LocationPicker({ value, onChange, placeholder = "Your address will appear here..." }: LocationPickerProps) {
+export function LocationPicker({ value, onChange, placeholder = "Your address will appear here...", locked = false, coords: initialCoords = null }: LocationPickerProps) {
   const mapDivRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
