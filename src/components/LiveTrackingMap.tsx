@@ -30,25 +30,40 @@ async function loadGoogleMaps(): Promise<any> {
     const key = data.key as string;
 
     await new Promise<void>((resolve, reject) => {
-      const existing = document.getElementById('google-maps-js');
+      if ((window as any).google?.maps) return resolve();
+
+      const cbName = '__lovableInitGoogleMaps__';
+      (window as any)[cbName] = () => resolve();
+
+      const existing = document.getElementById('google-maps-js') as HTMLScriptElement | null;
       if (existing) {
-        existing.addEventListener('load', () => resolve());
-        existing.addEventListener('error', () => reject(new Error('Maps load failed')));
-        if ((window as any).google?.maps) resolve();
+        const start = Date.now();
+        const check = setInterval(() => {
+          if ((window as any).google?.maps) {
+            clearInterval(check);
+            resolve();
+          } else if (Date.now() - start > 15000) {
+            clearInterval(check);
+            reject(new Error('Maps load timeout'));
+          }
+        }, 100);
         return;
       }
       const script = document.createElement('script');
       script.id = 'google-maps-js';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&loading=async`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&loading=async&callback=${cbName}`;
       script.async = true;
       script.defer = true;
-      script.onload = () => resolve();
       script.onerror = () => reject(new Error('Maps load failed'));
       document.head.appendChild(script);
     });
 
     return (window as any).google;
   })();
+
+  mapsLoaderPromise.catch(() => {
+    mapsLoaderPromise = null;
+  });
 
   return mapsLoaderPromise;
 }
