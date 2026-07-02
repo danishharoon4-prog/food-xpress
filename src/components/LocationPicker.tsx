@@ -61,7 +61,8 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
   const markerRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(initialCoords);
+  const [locating, setLocating] = useState(false);
 
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
     setResolving(true);
