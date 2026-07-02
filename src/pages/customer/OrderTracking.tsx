@@ -303,6 +303,7 @@ export default function OrderTracking() {
                     ? { lat: order.delivery_latitude, lng: order.delivery_longitude }
                     : null
                 }
+                showDirectionsButton
               />
             </CardContent>
           </Card>

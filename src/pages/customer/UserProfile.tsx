@@ -186,9 +186,7 @@ export default function UserProfile() {
                 Permanent Address
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                {permanentAddress && permanentCoords
-                  ? 'Your permanent address is locked. Contact support if you need to change it.'
-                  : 'Pin your home on the map or tap the GPS button for precise location. Once saved, this address is locked.'}
+                This will be used as your default delivery address. You can change it during checkout.
               </p>
             </CardHeader>
             <CardContent>
@@ -196,12 +194,14 @@ export default function UserProfile() {
                 value={permanentAddress}
                 onChange={handlePermanentAddressChange}
                 placeholder="Enter your permanent/home address..."
-                locked={Boolean(permanentAddress && permanentCoords)}
-                coords={permanentCoords}
               />
+              {permanentCoords && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  📍 GPS: {permanentCoords.latitude.toFixed(6)}, {permanentCoords.longitude.toFixed(6)}
+                </p>
+              )}
             </CardContent>
           </Card>
-
 
           {/* Save Button */}
           <Button onClick={handleSave} disabled={loading} className="w-full gradient-primary h-12 text-lg">

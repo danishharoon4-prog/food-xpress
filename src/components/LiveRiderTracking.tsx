@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from '@/hooks/useLocation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bike, MapPin, Clock, Route, Loader2, RefreshCw } from 'lucide-react';
+import { Bike, MapPin, Clock, Route, Loader2, Navigation, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface LiveRiderTrackingProps {
@@ -24,7 +24,7 @@ interface DistanceInfo {
 }
 
 export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: LiveRiderTrackingProps) {
-  const { calculateDistance } = useLocation();
+  const { calculateDistance, getDirectionsUrl } = useLocation();
   const [riderLocation, setRiderLocation] = useState<RiderLocation | null>(null);
   const [distanceInfo, setDistanceInfo] = useState<DistanceInfo | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -113,6 +113,25 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
     };
   }, [riderId, fetchRiderLocation]);
 
+  const openRiderLocation = async () => {
+    if (riderLocation?.current_latitude && riderLocation?.current_longitude) {
+      window.open(
+        `https://www.google.com/maps?q=${riderLocation.current_latitude},${riderLocation.current_longitude}`,
+        '_blank'
+      );
+    }
+  };
+
+  const openDirections = async () => {
+    if (riderLocation?.current_latitude && riderLocation?.current_longitude && customerCoords) {
+      const url = await getDirectionsUrl(
+        { lat: riderLocation.current_latitude, lng: riderLocation.current_longitude },
+        customerCoords
+      );
+      window.open(url, '_blank');
+    }
+  };
+
   // Only show tracking for relevant order statuses
   const showTracking = ['picked_up', 'on_the_way'].includes(orderStatus);
   
@@ -176,6 +195,30 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
                 </div>
               </div>
             )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openRiderLocation}
+                className="flex-1"
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                See Rider Location
+              </Button>
+              {customerCoords && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openDirections}
+                  className="flex-1"
+                >
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Track Route
+                </Button>
+              )}
+            </div>
 
             {/* Last Updated */}
             {lastUpdated && (
