@@ -177,30 +177,6 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openRiderLocation}
-                className="flex-1"
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                See Rider Location
-              </Button>
-              {customerCoords && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openDirections}
-                  className="flex-1"
-                >
-                  <Navigation className="w-4 h-4 mr-2" />
-                  Track Route
-                </Button>
-              )}
-            </div>
-
             {/* Last Updated */}
             {lastUpdated && (
               <div className="flex items-center justify-between text-xs text-muted-foreground">
