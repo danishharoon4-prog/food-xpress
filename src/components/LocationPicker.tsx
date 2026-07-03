@@ -90,6 +90,31 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
     reverseGeocode(lat, lng);
   }, [reverseGeocode]);
 
+  const locateMe = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast({ title: 'GPS not available', description: 'Your browser does not support geolocation.', variant: 'destructive' });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        setPin(pos.coords.latitude, pos.coords.longitude, true);
+      },
+      (err) => {
+        setLocating(false);
+        toast({
+          title: 'Location error',
+          description: err.code === err.PERMISSION_DENIED
+            ? 'Please allow location access in your browser.'
+            : 'Could not detect your location. Try again.',
+          variant: 'destructive',
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }, [setPin, toast]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
