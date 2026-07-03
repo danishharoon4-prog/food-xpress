@@ -67,10 +67,11 @@ export default function Checkout() {
         if (p.permanent_latitude && p.permanent_longitude) {
           setDeliveryCoords({ latitude: Number(p.permanent_latitude), longitude: Number(p.permanent_longitude) });
         }
-        return; // Use saved address, skip GPS
+        setHasSavedAddress(true);
+        return; // Use saved address, don't ask again
       }
 
-      // Fallback: auto-detect GPS
+      // No saved address — auto-detect GPS as a starting point
       try {
         const data = await detectLocation();
         setDeliveryAddress(data.address);
