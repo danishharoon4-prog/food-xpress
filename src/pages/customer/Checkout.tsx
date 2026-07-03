@@ -41,6 +41,8 @@ export default function Checkout() {
   const [estimatedTime, setEstimatedTime] = useState<string | null>(null);
   const [estimatedMinutes, setEstimatedMinutes] = useState<number | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
+  const [hasSavedAddress, setHasSavedAddress] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(false);
 
   const subtotal = getSubtotal();
   const total = subtotal + deliveryFee;
@@ -65,10 +67,11 @@ export default function Checkout() {
         if (p.permanent_latitude && p.permanent_longitude) {
           setDeliveryCoords({ latitude: Number(p.permanent_latitude), longitude: Number(p.permanent_longitude) });
         }
-        return; // Use saved address, skip GPS
+        setHasSavedAddress(true);
+        return; // Use saved address, don't ask again
       }
 
-      // Fallback: auto-detect GPS
+      // No saved address — auto-detect GPS as a starting point
       try {
         const data = await detectLocation();
         setDeliveryAddress(data.address);
@@ -260,12 +263,39 @@ export default function Checkout() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <LocationPicker
-                  value={deliveryAddress}
-                  onChange={handleAddressChange}
-                  placeholder="Enter your complete delivery address..."
-                />
-                
+                {hasSavedAddress && !editingAddress ? (
+                  <div className="rounded-lg border bg-accent/40 p-4 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                          Delivering to your saved address
+                        </p>
+                        <p className="text-sm font-medium mt-1">{deliveryAddress}</p>
+                        {deliveryCoords && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            📍 {deliveryCoords.latitude.toFixed(5)}, {deliveryCoords.longitude.toFixed(5)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingAddress(true)}
+                      className="w-full"
+                    >
+                      Change address for this order
+                    </Button>
+                  </div>
+                ) : (
+                  <LocationPicker
+                    value={deliveryAddress}
+                    onChange={handleAddressChange}
+                    placeholder="Enter your complete delivery address..."
+                  />
+                )}
+
                 {/* Distance from restaurant */}
                 {deliveryCoords && (
                   <DistanceDisplay

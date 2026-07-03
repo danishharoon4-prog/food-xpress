@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { MapPin, Loader2, LocateFixed } from 'lucide-react';
 
 interface LocationPickerProps {
   value: string;
@@ -58,7 +60,9 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
   const markerRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const { toast } = useToast();
 
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
     setResolving(true);
@@ -85,6 +89,31 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
     }
     reverseGeocode(lat, lng);
   }, [reverseGeocode]);
+
+  const locateMe = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast({ title: 'GPS not available', description: 'Your browser does not support geolocation.', variant: 'destructive' });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        setPin(pos.coords.latitude, pos.coords.longitude, true);
+      },
+      (err) => {
+        setLocating(false);
+        toast({
+          title: 'Location error',
+          description: err.code === err.PERMISSION_DENIED
+            ? 'Please allow location access in your browser.'
+            : 'Could not detect your location. Try again.',
+          variant: 'destructive',
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }, [setPin, toast]);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,6 +185,21 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
             <MapPin className="w-3.5 h-3.5 text-primary" />
             Tap the map or drag the pin to set your exact location
           </div>
+        )}
+        {!loading && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={locateMe}
+            disabled={locating}
+            className="absolute bottom-3 right-3 gradient-primary shadow-glow"
+          >
+            {locating ? (
+              <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Locating…</>
+            ) : (
+              <><LocateFixed className="w-4 h-4 mr-1" /> Use my GPS</>
+            )}
+          </Button>
         )}
       </div>
 
