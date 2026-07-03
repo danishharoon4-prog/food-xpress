@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { MapPin, Loader2, LocateFixed } from 'lucide-react';
 
 interface LocationPickerProps {
   value: string;
