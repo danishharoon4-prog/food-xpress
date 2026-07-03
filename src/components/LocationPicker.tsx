@@ -186,6 +186,21 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
             Tap the map or drag the pin to set your exact location
           </div>
         )}
+        {!loading && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={locateMe}
+            disabled={locating}
+            className="absolute bottom-3 right-3 gradient-primary shadow-glow"
+          >
+            {locating ? (
+              <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Locating…</>
+            ) : (
+              <><LocateFixed className="w-4 h-4 mr-1" /> Use my GPS</>
+            )}
+          </Button>
+        )}
       </div>
 
       <div className="relative">
