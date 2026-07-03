@@ -41,6 +41,8 @@ export default function Checkout() {
   const [estimatedTime, setEstimatedTime] = useState<string | null>(null);
   const [estimatedMinutes, setEstimatedMinutes] = useState<number | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
+  const [hasSavedAddress, setHasSavedAddress] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(false);
 
   const subtotal = getSubtotal();
   const total = subtotal + deliveryFee;
