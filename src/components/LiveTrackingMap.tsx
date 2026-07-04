@@ -287,12 +287,22 @@ export function LiveTrackingMap({
       riderMarkerRef.current.setPosition(riderCoords);
     }
 
-    const bounds = new google.maps.LatLngBounds();
-    bounds.extend(riderCoords);
-    if (customerCoords) bounds.extend(customerCoords);
-    if (restaurantCoords) bounds.extend(restaurantCoords);
-    map.fitBounds(bounds, 70);
-  }, [riderCoords, customerCoords, restaurantCoords]);
+    if (autoFollowRef.current) {
+      programmaticMoveRef.current = true;
+      map.panTo(riderCoords);
+      if (!hasInitialFitRef.current) {
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend(riderCoords);
+        if (customerCoords) bounds.extend(customerCoords);
+        if (restaurantCoords) bounds.extend(restaurantCoords);
+        map.fitBounds(bounds, 70);
+        hasInitialFitRef.current = true;
+      }
+      window.setTimeout(() => {
+        programmaticMoveRef.current = false;
+      }, 300);
+    }
+  }, [riderCoords, customerCoords, restaurantCoords, autoFollow]);
 
   return (
     <div className="rounded-2xl overflow-hidden border border-border/60 bg-card shadow-sm animate-fade-in">
