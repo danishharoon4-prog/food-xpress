@@ -7,6 +7,13 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { NotificationsListener } from "@/components/NotificationsListener";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { patchSonnerForBrowserNotifications, requestNotificationPermission } from "@/lib/browserNotify";
+
+patchSonnerForBrowserNotifications();
+if (typeof window !== "undefined") {
+  // Ask once on load so background toasts can trigger browser notifications later.
+  requestNotificationPermission();
+}
 
 // Pages
 import { Navigate } from "react-router-dom";
