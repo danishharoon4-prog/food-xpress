@@ -157,6 +157,9 @@ function toast({ ...props }: Toast) {
     },
   });
 
+  // Mirror to native browser notification (fires when tab is hidden).
+  fireBrowserNotification(props.title, props.description);
+
   return {
     id: id,
     dismiss,
