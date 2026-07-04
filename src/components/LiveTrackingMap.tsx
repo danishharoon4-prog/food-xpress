@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Bike, Home, Store, Radio } from 'lucide-react';
+import { Loader2, Bike, Home, Store, Radio, Locate, LocateFixed } from 'lucide-react';
 
 interface Coords {
   lat: number;
@@ -94,6 +94,14 @@ export function LiveTrackingMap({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [riderCoords, setRiderCoords] = useState<Coords | null>(null);
+  const [autoFollow, setAutoFollow] = useState(true);
+  const autoFollowRef = useRef(true);
+  const hasInitialFitRef = useRef(false);
+  const programmaticMoveRef = useRef(false);
+
+  useEffect(() => {
+    autoFollowRef.current = autoFollow;
+  }, [autoFollow]);
 
   useEffect(() => {
     let cancelled = false;
@@ -133,6 +141,13 @@ export function LiveTrackingMap({
           styles: compactStyle,
         });
         mapRef.current = map;
+
+        // Disable auto-follow when the user drags the map manually
+        map.addListener('dragstart', () => {
+          if (!programmaticMoveRef.current && autoFollowRef.current) {
+            setAutoFollow(false);
+          }
+        });
 
         if (customerCoords) {
           new google.maps.Marker({
@@ -272,12 +287,22 @@ export function LiveTrackingMap({
       riderMarkerRef.current.setPosition(riderCoords);
     }
 
-    const bounds = new google.maps.LatLngBounds();
-    bounds.extend(riderCoords);
-    if (customerCoords) bounds.extend(customerCoords);
-    if (restaurantCoords) bounds.extend(restaurantCoords);
-    map.fitBounds(bounds, 70);
-  }, [riderCoords, customerCoords, restaurantCoords]);
+    if (autoFollowRef.current) {
+      programmaticMoveRef.current = true;
+      map.panTo(riderCoords);
+      if (!hasInitialFitRef.current) {
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend(riderCoords);
+        if (customerCoords) bounds.extend(customerCoords);
+        if (restaurantCoords) bounds.extend(restaurantCoords);
+        map.fitBounds(bounds, 70);
+        hasInitialFitRef.current = true;
+      }
+      window.setTimeout(() => {
+        programmaticMoveRef.current = false;
+      }, 300);
+    }
+  }, [riderCoords, customerCoords, restaurantCoords, autoFollow]);
 
   return (
     <div className="rounded-2xl overflow-hidden border border-border/60 bg-card shadow-sm animate-fade-in">
@@ -300,6 +325,28 @@ export function LiveTrackingMap({
 
       <div className="relative w-full" style={{ height }}>
         <div ref={mapDivRef} className="w-full h-full" />
+
+        {/* Auto-follow toggle */}
+        {!loading && !error && (
+          <button
+            type="button"
+            onClick={() => setAutoFollow((v) => !v)}
+            disabled={!riderCoords}
+            className={`absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold shadow-md backdrop-blur transition-all border ${
+              autoFollow
+                ? 'bg-primary text-primary-foreground border-primary/60 shadow-primary/30'
+                : 'bg-background/90 text-foreground border-border hover:bg-background'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={autoFollow ? 'Auto-follow rider is ON' : 'Auto-follow rider is OFF'}
+          >
+            {autoFollow ? (
+              <LocateFixed className="w-3.5 h-3.5" />
+            ) : (
+              <Locate className="w-3.5 h-3.5" />
+            )}
+            {autoFollow ? 'Following' : 'Follow rider'}
+          </button>
+        )}
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
             <Loader2 className="w-5 h-5 animate-spin text-primary" />
