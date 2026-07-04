@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Bike, Home, Store, Radio } from 'lucide-react';
+import { Loader2, Bike, Home, Store, Radio, Locate, LocateFixed } from 'lucide-react';
 
 interface Coords {
   lat: number;
