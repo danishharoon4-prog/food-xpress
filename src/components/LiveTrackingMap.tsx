@@ -142,6 +142,13 @@ export function LiveTrackingMap({
         });
         mapRef.current = map;
 
+        // Disable auto-follow when the user drags the map manually
+        map.addListener('dragstart', () => {
+          if (!programmaticMoveRef.current && autoFollowRef.current) {
+            setAutoFollow(false);
+          }
+        });
+
         if (customerCoords) {
           new google.maps.Marker({
             position: customerCoords,
