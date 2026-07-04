@@ -94,6 +94,14 @@ export function LiveTrackingMap({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [riderCoords, setRiderCoords] = useState<Coords | null>(null);
+  const [autoFollow, setAutoFollow] = useState(true);
+  const autoFollowRef = useRef(true);
+  const hasInitialFitRef = useRef(false);
+  const programmaticMoveRef = useRef(false);
+
+  useEffect(() => {
+    autoFollowRef.current = autoFollow;
+  }, [autoFollow]);
 
   useEffect(() => {
     let cancelled = false;
