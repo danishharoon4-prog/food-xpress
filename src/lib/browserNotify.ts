@@ -9,10 +9,11 @@ const toText = (v: unknown): string => {
 };
 
 export function requestNotificationPermission() {
-  if (typeof window === 'undefined' || typeof Notification === 'undefined') return;
+  if (typeof window === 'undefined' || typeof Notification === 'undefined') return Promise.resolve('unsupported' as NotificationPermission);
   if (Notification.permission === 'default') {
-    Notification.requestPermission().catch(() => {});
+    return Notification.requestPermission().catch(() => 'denied' as NotificationPermission);
   }
+  return Promise.resolve(Notification.permission);
 }
 
 // Simple de-dupe so identical messages don't spawn multiple notifications
@@ -26,8 +27,6 @@ export function fireBrowserNotification(
   opts?: { tag?: string; silent?: boolean },
 ) {
   if (typeof window === 'undefined' || typeof Notification === 'undefined') return;
-  // Don't notify while the tab is focused — the in-app toast is already visible.
-  if (typeof document !== 'undefined' && document.visibilityState === 'visible') return;
   if (Notification.permission !== 'granted') return;
 
   const t = toText(title).trim();

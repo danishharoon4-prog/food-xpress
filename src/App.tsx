@@ -11,8 +11,18 @@ import { patchSonnerForBrowserNotifications, requestNotificationPermission } fro
 
 patchSonnerForBrowserNotifications();
 if (typeof window !== "undefined") {
-  // Ask once on load so background toasts can trigger browser notifications later.
+  // Ask once on load so toasts can trigger native browser notifications.
   requestNotificationPermission();
+  // Some browsers require a user gesture — re-prompt on the first interaction.
+  const primePermission = () => {
+    requestNotificationPermission();
+    window.removeEventListener("pointerdown", primePermission);
+    window.removeEventListener("keydown", primePermission);
+  };
+  if (typeof Notification !== "undefined" && Notification.permission === "default") {
+    window.addEventListener("pointerdown", primePermission, { once: true });
+    window.addEventListener("keydown", primePermission, { once: true });
+  }
 }
 
 // Pages
