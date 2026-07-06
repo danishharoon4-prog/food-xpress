@@ -230,9 +230,7 @@ export default function AdminRiders() {
                 <div key={label} className="space-y-2">
                   <p className="text-sm font-medium">{label}</p>
                   {url ? (
-                    <a href={url} target="_blank" rel="noreferrer">
-                      <img src={url} alt={label} className="w-full max-h-64 object-contain rounded border bg-muted/30" />
-                    </a>
+                    <AdminDocImage value={url} alt={label} />
                   ) : (
                     <div className="border rounded p-6 text-center text-xs text-muted-foreground bg-muted/30">Not uploaded</div>
                   )}
