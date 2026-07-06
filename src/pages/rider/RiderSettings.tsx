@@ -216,11 +216,7 @@ export default function RiderSettings() {
           <Badge variant="outline" className="text-muted-foreground"><AlertCircle className="w-3 h-3 mr-1" />Required</Badge>
         )}
       </div>
-      {url && (
-        <a href={url} target="_blank" rel="noreferrer" className="block">
-          <img src={url} alt={title} className="w-full max-h-40 object-contain rounded border bg-muted/30" />
-        </a>
-      )}
+      {url && <SecureDocImage value={url} alt={title} />}
       <input
         ref={inputRef}
         type="file"
