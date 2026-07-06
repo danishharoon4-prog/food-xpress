@@ -9,6 +9,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { Bike, Star, DollarSign, Package, MapPin, FileImage, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { Rider } from '@/types';
+import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
+
+function AdminDocImage({ value, alt }: { value: string | null; alt: string }) {
+  const src = useRiderDocSignedUrl(value);
+  if (!src) return <div className="w-full h-40 rounded border bg-muted/30 animate-pulse" />;
+  return (
+    <a href={src} target="_blank" rel="noreferrer">
+      <img src={src} alt={alt} className="w-full max-h-64 object-contain rounded border bg-muted/30" />
+    </a>
+  );
+}
 
 interface RiderProfile {
   full_name: string;
