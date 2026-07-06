@@ -9,6 +9,17 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, CheckCircle2, AlertCircle, FileImage } from 'lucide-react';
 import type { Rider, RiderWallet } from '@/types';
+import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
+
+function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
+  const src = useRiderDocSignedUrl(value);
+  if (!src) return <div className="w-full h-40 rounded border bg-muted/30 animate-pulse" />;
+  return (
+    <a href={src} target="_blank" rel="noreferrer" className="block">
+      <img src={src} alt={alt} className="w-full max-h-40 object-contain rounded border bg-muted/30" />
+    </a>
+  );
+}
 
 type DocField = 'cnic_image_url' | 'vehicle_doc_url' | 'license_image_url';
 
