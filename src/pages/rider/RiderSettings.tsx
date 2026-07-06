@@ -166,11 +166,10 @@ export default function RiderSettings() {
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage.from('rider-documents').getPublicUrl(path);
-
+    // Bucket is private — store the storage path, not a public URL. Signed URLs are generated on read.
     const { error: updErr } = await supabase
       .from('riders')
-      .update({ [field]: publicUrl })
+      .update({ [field]: path })
       .eq('id', rider.id);
 
     if (updErr) {
