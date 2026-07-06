@@ -9,6 +9,17 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, CheckCircle2, AlertCircle, FileImage } from 'lucide-react';
 import type { Rider, RiderWallet } from '@/types';
+import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
+
+function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
+  const src = useRiderDocSignedUrl(value);
+  if (!src) return <div className="w-full h-40 rounded border bg-muted/30 animate-pulse" />;
+  return (
+    <a href={src} target="_blank" rel="noreferrer" className="block">
+      <img src={src} alt={alt} className="w-full max-h-40 object-contain rounded border bg-muted/30" />
+    </a>
+  );
+}
 
 type DocField = 'cnic_image_url' | 'vehicle_doc_url' | 'license_image_url';
 
@@ -166,11 +177,10 @@ export default function RiderSettings() {
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage.from('rider-documents').getPublicUrl(path);
-
+    // Bucket is private — store the storage path, not a public URL. Signed URLs are generated on read.
     const { error: updErr } = await supabase
       .from('riders')
-      .update({ [field]: publicUrl })
+      .update({ [field]: path })
       .eq('id', rider.id);
 
     if (updErr) {
@@ -206,11 +216,7 @@ export default function RiderSettings() {
           <Badge variant="outline" className="text-muted-foreground"><AlertCircle className="w-3 h-3 mr-1" />Required</Badge>
         )}
       </div>
-      {url && (
-        <a href={url} target="_blank" rel="noreferrer" className="block">
-          <img src={url} alt={title} className="w-full max-h-40 object-contain rounded border bg-muted/30" />
-        </a>
-      )}
+      {url && <SecureDocImage value={url} alt={title} />}
       <input
         ref={inputRef}
         type="file"
