@@ -426,6 +426,7 @@ export default function UserProfile() {
 
           {/* Notification Settings */}
           <NotificationSettings />
+          <SupportChatPanel defaultIssueType="order" />
         </div>
       </main>
     </div>
