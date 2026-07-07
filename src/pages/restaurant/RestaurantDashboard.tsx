@@ -68,6 +68,40 @@ export default function RestaurantDashboard() {
     })();
   }, [restaurant?.id]);
 
+  // Realtime: new-order notification
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    const ch = supabase
+      .channel(`rest-dash-orders-${restaurant.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurant.id}` },
+        (payload) => {
+          const o: any = payload.new;
+          setNewOrders((prev) => [{ id: o.id, order_number: o.order_number, total: Number(o.total || 0) }, ...prev].slice(0, 5));
+          setRecent((prev) => [{ id: o.id, order_number: o.order_number, total: o.total, status: o.status, created_at: o.created_at }, ...prev].slice(0, 6));
+          setOrders((prev) => [o, ...prev]);
+          try {
+            const audio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+            audio.play().catch(() => {});
+          } catch {}
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [restaurant?.id]);
+
+  const openNewOrder = (id: string) => {
+    setNewOrders((prev) => prev.filter((n) => n.id !== id));
+    navigate(`/restaurant/orders?highlight=${id}`);
+  };
+
+  const dismissNewOrder = (id: string) => {
+    setNewOrders((prev) => prev.filter((n) => n.id !== id));
+  };
+
+
+
   const stats = useMemo(() => {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const yStart = new Date(todayStart); yStart.setDate(yStart.getDate() - 1);
