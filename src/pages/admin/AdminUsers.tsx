@@ -10,6 +10,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, Search, Ban, ShieldCheck, Trash2, Bike, Store, User as UserIcon, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -84,6 +85,23 @@ export default function AdminUsers() {
       return toast.error(error?.message || (data as { error?: string })?.error || 'Failed to delete');
     }
     toast.success('User deleted');
+    fetchUsers();
+  };
+
+  const handleRoleChange = async (u: UserRow, newRole: AppRole) => {
+    if (newRole === u.role) return;
+    if (u.id === currentUser?.id && newRole !== 'admin') {
+      return toast.error("You can't change your own admin role");
+    }
+    const confirmMsg = newRole === 'admin'
+      ? `Make "${u.full_name}" an ADMIN? They will have full platform access.`
+      : `Change "${u.full_name}" role to ${newRole}?`;
+    if (!confirm(confirmMsg)) return;
+    const { error } = await supabase.rpc('admin_set_user_role' as never, {
+      _user_id: u.id, _role: newRole,
+    } as never);
+    if (error) return toast.error(error.message);
+    toast.success(`Role updated to ${newRole}`);
     fetchUsers();
   };
 
@@ -194,7 +212,22 @@ export default function AdminUsers() {
                             <p className="text-xs text-destructive mt-0.5">Reason: {u.banned_reason}</p>
                           )}
                         </div>
-                        <div className="flex gap-2 sm:justify-end">
+                        <div className="flex flex-wrap gap-2 sm:justify-end items-center">
+                          <Select
+                            value={u.role}
+                            onValueChange={(v) => handleRoleChange(u, v as AppRole)}
+                            disabled={isSelf}
+                          >
+                            <SelectTrigger className="h-9 w-[130px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="customer">Customer</SelectItem>
+                              <SelectItem value="rider">Rider</SelectItem>
+                              <SelectItem value="restaurant">Restaurant</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <Button
                             size="sm"
                             variant={u.is_banned ? 'default' : 'outline'}
