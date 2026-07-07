@@ -25,11 +25,13 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function RestaurantDashboard() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [itemsCount, setItemsCount] = useState(0);
   const [topItems, setTopItems] = useState<{ name: string; qty: number }[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newOrders, setNewOrders] = useState<{ id: string; order_number: string; total: number }[]>([]);
 
   useEffect(() => {
     if (!restaurant?.id) return;
