@@ -251,7 +251,7 @@ export default function Restaurants() {
               Clear
             </Button>
           )}
-        </section>
+        </motion.section>
 
         {/* Fresh Deals Section */}
         <section className="space-y-6">
