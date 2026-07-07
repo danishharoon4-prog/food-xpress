@@ -127,6 +127,18 @@ export default function UserProfile() {
     }
   };
 
+  const handleRemoveFavorite = async (favoriteId: string) => {
+    const { error } = await supabase.from('favorite_restaurants').delete().eq('id', favoriteId);
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to remove favorite', variant: 'destructive' });
+    } else {
+      setFavorites((prev) => prev.filter((f) => f.id !== favoriteId));
+      toast({ title: 'Removed', description: 'Restaurant removed from favorites.' });
+    }
+  };
+
+
+
   const handleAvatarUpload = async (file: File) => {
     if (!user) return;
     if (!file.type.startsWith('image/')) {
