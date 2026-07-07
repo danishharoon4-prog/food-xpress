@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { fireBrowserNotification, requestNotificationPermission } from '@/lib/browserNotify';
+import { ensurePushSubscription } from '@/lib/pushSubscription';
 
 const PROMPT_KEY = 'notif-permission-prompted';
 
@@ -14,13 +15,20 @@ export function useBrowserNotifications() {
   useEffect(() => {
     if (!user) return;
 
-    // Auto-prompt permission once per browser
+    // Auto-prompt permission once per browser, then subscribe to Web Push.
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       const already = localStorage.getItem(PROMPT_KEY);
       if (!already) {
         localStorage.setItem(PROMPT_KEY, '1');
-        setTimeout(() => { requestNotificationPermission(); }, 1500);
+        setTimeout(() => {
+          requestNotificationPermission().then((p) => {
+            if (p === 'granted') ensurePushSubscription();
+          });
+        }, 1500);
       }
+    } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      // Already granted — make sure this browser has a live subscription.
+      ensurePushSubscription();
     }
 
     // Subscribe to notifications for this user
