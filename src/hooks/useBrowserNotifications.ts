@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { fireBrowserNotification, requestNotificationPermission } from '@/lib/browserNotify';
 
 const PROMPT_KEY = 'notif-permission-prompted';
 
@@ -18,10 +19,7 @@ export function useBrowserNotifications() {
       const already = localStorage.getItem(PROMPT_KEY);
       if (!already) {
         localStorage.setItem(PROMPT_KEY, '1');
-        // Slight delay so it doesn't block initial render
-        setTimeout(() => {
-          Notification.requestPermission().catch(() => {});
-        }, 1500);
+        setTimeout(() => { requestNotificationPermission(); }, 1500);
       }
     }
 
@@ -37,9 +35,10 @@ export function useBrowserNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          const n = payload.new as { title?: string; message?: string; type?: string };
+          const n = payload.new as { title?: string; message?: string; type?: string; data?: any };
           const title = n.title || 'Notification';
           const body = n.message || '';
+          const orderId = n.data?.order_id;
 
           // In-app toast
           toast({
@@ -48,12 +47,11 @@ export function useBrowserNotifications() {
             variant: n.type === 'warning' || n.type === 'error' ? 'destructive' : 'default',
           });
 
-          // Browser notification
-          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            try {
-              new Notification(title, { body, icon: '/favicon.ico' });
-            } catch { /* noop */ }
-          }
+          // Browser / mobile notification (uses SW showNotification when available)
+          fireBrowserNotification(title, body, {
+            tag: orderId ? `order-${orderId}` : undefined,
+            url: orderId ? `/order/${orderId}` : undefined,
+          });
         }
       )
       .subscribe();
