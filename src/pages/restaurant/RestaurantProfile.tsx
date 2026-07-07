@@ -428,6 +428,10 @@ export default function RestaurantProfile() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="notifications" className="mt-4">
+          <NotificationSettings />
+        </TabsContent>
       </Tabs>
 
       <Dialog open={changeOpen} onOpenChange={setChangeOpen}>
