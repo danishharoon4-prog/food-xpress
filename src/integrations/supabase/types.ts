@@ -177,6 +177,60 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          event_awaiting_confirmation: boolean
+          event_cancelled: boolean
+          event_confirmed: boolean
+          event_delivered: boolean
+          event_on_the_way: boolean
+          event_order_placed: boolean
+          event_picked_up: boolean
+          event_preparing: boolean
+          event_ready_for_pickup: boolean
+          push_enabled: boolean
+          sound_enabled: boolean
+          toast_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_awaiting_confirmation?: boolean
+          event_cancelled?: boolean
+          event_confirmed?: boolean
+          event_delivered?: boolean
+          event_on_the_way?: boolean
+          event_order_placed?: boolean
+          event_picked_up?: boolean
+          event_preparing?: boolean
+          event_ready_for_pickup?: boolean
+          push_enabled?: boolean
+          sound_enabled?: boolean
+          toast_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_awaiting_confirmation?: boolean
+          event_cancelled?: boolean
+          event_confirmed?: boolean
+          event_delivered?: boolean
+          event_on_the_way?: boolean
+          event_order_placed?: boolean
+          event_picked_up?: boolean
+          event_preparing?: boolean
+          event_ready_for_pickup?: boolean
+          push_enabled?: boolean
+          sound_enabled?: boolean
+          toast_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -397,6 +451,9 @@ export type Database = {
           id: string
           jazzcash_enabled: boolean
           max_delivery_radius_km: number
+          notifications_push_enabled: boolean
+          notifications_sound_enabled: boolean
+          notifications_toast_enabled: boolean
           opening_time: string
           operating_city: string
           per_km_rate: number
@@ -420,6 +477,9 @@ export type Database = {
           id?: string
           jazzcash_enabled?: boolean
           max_delivery_radius_km?: number
+          notifications_push_enabled?: boolean
+          notifications_sound_enabled?: boolean
+          notifications_toast_enabled?: boolean
           opening_time?: string
           operating_city?: string
           per_km_rate?: number
@@ -443,6 +503,9 @@ export type Database = {
           id?: string
           jazzcash_enabled?: boolean
           max_delivery_radius_km?: number
+          notifications_push_enabled?: boolean
+          notifications_sound_enabled?: boolean
+          notifications_toast_enabled?: boolean
           opening_time?: string
           operating_city?: string
           per_km_rate?: number
