@@ -33,10 +33,19 @@ function StarPicker({ value, onChange }: { value: number; onChange: (n: number) 
   );
 }
 
-export default function FeedbackDialog({ orderId, riderId, restaurantId, alreadyRated, onRated }: Props) {
+export default function FeedbackDialog({
+  orderId, riderId, restaurantId, alreadyRated, onRated,
+  open: openProp, onOpenChange, hideTrigger,
+}: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : openState;
+  const setOpen = (v: boolean) => {
+    if (!isControlled) setOpenState(v);
+    onOpenChange?.(v);
+  };
   const [food, setFood] = useState(0);
   const [rider, setRider] = useState(0);
   const [resto, setResto] = useState(0);
@@ -65,15 +74,17 @@ export default function FeedbackDialog({ orderId, riderId, restaurantId, already
     onRated?.();
   };
 
-  if (alreadyRated) {
+  if (alreadyRated && !isControlled) {
     return <Button variant="ghost" size="sm" disabled className="h-7 text-xs"><Star className="w-3 h-3 mr-1 fill-warning text-warning" />Rated</Button>;
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7 text-xs"><Star className="w-3 h-3 mr-1" />Rate</Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="h-7 text-xs"><Star className="w-3 h-3 mr-1" />Rate</Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Rate your experience</DialogTitle></DialogHeader>
         <div className="space-y-5">
