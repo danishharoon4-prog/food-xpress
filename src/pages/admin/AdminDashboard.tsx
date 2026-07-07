@@ -278,9 +278,65 @@ export default function AdminDashboard() {
             Last updated {timeAgo(lastUpdate.toISOString())}
           </span>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => { fetchAll(); fetchNotifications(); }}>
-          <Radio className="w-4 h-4 mr-1.5" /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => { fetchAll(); fetchNotifications(); }}>
+            <Radio className="w-4 h-4 mr-1.5" /> Refresh
+          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="relative">
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-[380px] p-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4" />
+                  <span className="font-semibold text-sm">Notifications</span>
+                  {unreadCount > 0 && (
+                    <Badge className="bg-destructive text-destructive-foreground text-xs">{unreadCount}</Badge>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={markAllRead}>Mark all read</Button>
+                )}
+              </div>
+              {notifications.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">No notifications yet.</p>
+              ) : (
+                <ScrollArea className="h-[420px]">
+                  <div className="space-y-1 p-3">
+                    {notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        className={`p-3 rounded-lg border ${!n.is_read ? 'bg-primary/5 border-primary/30' : 'bg-background'}`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className={`p-1.5 rounded ${typeColors[n.type] || 'bg-muted'} shrink-0`}>
+                            <Bell className="w-3 h-3" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-medium truncate">{n.title}</p>
+                              {!n.is_read && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(n.created_at)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       {/* Alerts */}
