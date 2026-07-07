@@ -4,9 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 import {
   ShoppingBag, Banknote, UtensilsCrossed, Clock, TrendingUp, Star, Store,
-  ArrowUpRight, CheckCircle2, XCircle, ChefHat, BellRing, X,
+  ArrowUpRight, CheckCircle2, XCircle, ChefHat, BellRing, X, Power,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
