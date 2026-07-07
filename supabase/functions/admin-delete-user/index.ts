@@ -1,10 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -37,9 +32,13 @@ Deno.serve(async (req) => {
     if (!user_id) return json({ error: "user_id required" }, 400);
     if (user_id === caller.id) return json({ error: "Cannot delete yourself" }, 400);
 
-    // Pre-clean rows that don't cascade from auth.users
-    await admin.from("favorite_restaurants").delete().eq("user_id", user_id);
-    await admin.from("restaurants").delete().eq("owner_id", user_id);
+    // Pre-clean rows tied to owned restaurants before removing the auth user.
+    // User-owned rows cascade from auth.users; restaurant-owned data does not.
+    const { error: favoritesError } = await admin.from("favorite_restaurants").delete().eq("user_id", user_id);
+    if (favoritesError) return json({ error: favoritesError.message }, 400);
+
+    const { error: restaurantsError } = await admin.from("restaurants").delete().eq("owner_id", user_id);
+    if (restaurantsError) return json({ error: restaurantsError.message }, 400);
 
     const { error } = await admin.auth.admin.deleteUser(user_id);
     if (error) {
