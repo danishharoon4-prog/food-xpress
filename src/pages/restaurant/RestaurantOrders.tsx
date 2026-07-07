@@ -463,11 +463,27 @@ export default function RestaurantOrders() {
                   {pickupSubmitting === 'rider' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm">Rider Lookup</p>
+                  <p className="font-semibold text-sm flex items-center gap-2">
+                    Rider Lookup
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                        ridersLoading
+                          ? 'bg-muted text-muted-foreground'
+                          : (availableRiders ?? 0) > 0
+                            ? 'bg-success/10 text-success'
+                            : 'bg-destructive/10 text-destructive'
+                      }`}
+                    >
+                      {ridersLoading ? '…' : `${availableRiders ?? 0} online`}
+                    </span>
+                  </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Notify all online riders in your city. First to accept picks it up.
+                    {(availableRiders ?? 0) > 0
+                      ? 'Notify all online riders in your city. First to accept picks it up.'
+                      : 'No riders are online in your city right now — consider self delivery or cancelling.'}
                   </p>
                 </div>
+
               </div>
             </button>
           </div>
