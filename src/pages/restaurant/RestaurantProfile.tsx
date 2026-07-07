@@ -286,22 +286,32 @@ export default function RestaurantProfile() {
             <CardHeader><CardTitle>Restaurant Details</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <fieldset disabled={locked} className="space-y-4 disabled:opacity-70">
-                <div className="flex items-center gap-4 p-3 rounded-lg border bg-muted/30">
-                  <div className="relative shrink-0">
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary/20 bg-background flex items-center justify-center">
+                <div className="flex items-center gap-4 p-4 rounded-xl border bg-gradient-to-br from-primary/5 to-transparent">
+                  <button
+                    type="button"
+                    onClick={() => form.logo_url && setViewImage(form.logo_url)}
+                    className="relative shrink-0 group"
+                    title={form.logo_url ? 'View logo' : 'No logo yet'}
+                  >
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/20 bg-background flex items-center justify-center shadow-md">
                       {form.logo_url ? (
                         <img src={form.logo_url} alt="Restaurant logo" className="w-full h-full object-cover" />
                       ) : (
-                        <Store className="w-8 h-8 text-muted-foreground" />
+                        <Store className="w-10 h-10 text-muted-foreground" />
                       )}
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow">
-                      <Camera className="w-3.5 h-3.5" />
+                    {form.logo_url && (
+                      <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Eye className="w-6 h-6 text-white" />
+                      </div>
+                    )}
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-background">
+                      <Camera className="w-4 h-4" />
                     </div>
-                  </div>
+                  </button>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold">Restaurant Logo</p>
-                    <p className="text-xs text-muted-foreground mb-2">Square image shown as your profile avatar</p>
+                    <p className="text-xs text-muted-foreground mb-2">Square image shown as your profile avatar {form.logo_url && '· click avatar to view'}</p>
                     <ImageCropInput
                       label=""
                       value={form.logo_url}
