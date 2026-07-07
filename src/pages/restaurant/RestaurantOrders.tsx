@@ -288,18 +288,45 @@ export default function RestaurantOrders() {
                 </div>
               )}
 
-              {/* Items toggle */}
-              <button
-                type="button"
-                onClick={() => setExpanded((p) => ({ ...p, [o.id]: !isOpen }))}
-                className="flex items-center justify-between w-full text-sm font-medium pt-1"
-              >
-                <span className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-primary" />
-                  {o.order_items?.length || 0} item{(o.order_items?.length || 0) === 1 ? '' : 's'}
-                </span>
-                {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
+              {o.status === 'ready_for_pickup' && !o.is_self_delivery && !o.rider && (
+                <div
+                  className={`rounded-lg p-3 text-xs flex items-start gap-2 border ${
+                    (availableRiders ?? 0) > 0
+                      ? 'bg-success/5 border-success/30 text-success'
+                      : 'bg-destructive/5 border-destructive/30 text-destructive'
+                  }`}
+                >
+                  {(availableRiders ?? 0) > 0 ? (
+                    <Search className="w-4 h-4 mt-0.5 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                  )}
+                  <div className="flex-1 space-y-0.5">
+                    <p className="font-medium">
+                      {ridersLoading
+                        ? 'Checking available riders…'
+                        : (availableRiders ?? 0) > 0
+                          ? `${availableRiders} rider${availableRiders === 1 ? '' : 's'} available in your city`
+                          : 'No riders available in your city right now'}
+                    </p>
+                    <p className="opacity-80">
+                      {(availableRiders ?? 0) > 0
+                        ? 'Waiting for a rider to accept this pickup.'
+                        : 'You may want to cancel this order or deliver it yourself.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={loadAvailableRiders}
+                    disabled={ridersLoading}
+                    className="shrink-0 opacity-70 hover:opacity-100"
+                    aria-label="Refresh rider count"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${ridersLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+              )}
+
 
               {isOpen && (
                 <ul className="text-sm space-y-1 pl-6">
