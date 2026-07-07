@@ -149,6 +149,70 @@ export default function AdminRiders() {
             <p className="text-muted-foreground">No riders found{cityFilter !== 'all' ? ` in ${cityFilter}` : ''}.</p>
           </CardContent>
         </Card>
+      ) : viewMode === 'list' ? (
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>Vehicle</TableHead>
+                  <TableHead>License</TableHead>
+                  <TableHead className="text-center">Deliveries</TableHead>
+                  <TableHead className="text-center">Rating</TableHead>
+                  <TableHead>Wallet (PKR)</TableHead>
+                  <TableHead>Total Earned</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Verified</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibleRiders.map((rider) => (
+                  <TableRow key={rider.id}>
+                    <TableCell className="font-medium">{rider.profile?.full_name || 'Unknown'}</TableCell>
+                    <TableCell>{rider.profile?.phone || 'N/A'}</TableCell>
+                    <TableCell>{rider.profile?.city || 'N/A'}</TableCell>
+                    <TableCell className="capitalize">{rider.vehicle_type} · {rider.vehicle_number || '—'}</TableCell>
+                    <TableCell>{(rider as any).license_number || '—'}</TableCell>
+                    <TableCell className="text-center">{rider.total_deliveries}</TableCell>
+                    <TableCell className="text-center">
+                      <span className="inline-flex items-center gap-1">
+                        <Star className="w-3 h-3 text-warning fill-warning" />
+                        {Number(rider.average_rating).toFixed(1)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-success font-medium">
+                      {Number(rider.wallet?.balance || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {Number(rider.wallet?.total_earned || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={rider.is_online ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
+                        {rider.is_online ? 'Online' : 'Offline'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={rider.is_verified}
+                        disabled={updatingId === rider.id}
+                        onCheckedChange={(v) => toggleVerified(rider, v)}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" onClick={() => setDocsRider(rider)}>
+                        <FileImage className="w-4 h-4 mr-1" /> Docs
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {visibleRiders.map((rider) => (
