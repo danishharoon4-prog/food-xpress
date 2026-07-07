@@ -259,9 +259,10 @@ export default function RestaurantProfile() {
       <StatusBanner />
 
       <Tabs defaultValue="restaurant">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="personal"><User className="w-4 h-4 mr-2" />Personal</TabsTrigger>
           <TabsTrigger value="restaurant"><Store className="w-4 h-4 mr-2" />Restaurant</TabsTrigger>
+          <TabsTrigger value="notifications"><Bell className="w-4 h-4 mr-2" />Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="personal" className="mt-4">
