@@ -285,7 +285,32 @@ export default function RestaurantProfile() {
             <CardHeader><CardTitle>Restaurant Details</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <fieldset disabled={locked} className="space-y-4 disabled:opacity-70">
-                <div><Label>{req('Name')}</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div className="flex items-center gap-4 p-3 rounded-lg border bg-muted/30">
+                  <div className="relative shrink-0">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary/20 bg-background flex items-center justify-center">
+                      {form.logo_url ? (
+                        <img src={form.logo_url} alt="Restaurant logo" className="w-full h-full object-cover" />
+                      ) : (
+                        <Store className="w-8 h-8 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow">
+                      <Camera className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold">Restaurant Logo</p>
+                    <p className="text-xs text-muted-foreground mb-2">Square image shown as your profile avatar</p>
+                    <ImageCropInput
+                      label=""
+                      value={form.logo_url}
+                      onChange={(v) => setForm({ ...form, logo_url: v })}
+                      aspect={1}
+                      previewClassName="hidden"
+                    />
+                  </div>
+                </div>
+                <div><Label>{req('Restaurant Name')}</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Karachi Biryani House" /></div>
                 <div><Label>{req('Description')}</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Tell customers about your restaurant..." /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label>{req('Cuisine')}</Label><Input value={form.cuisine_type} onChange={(e) => setForm({ ...form, cuisine_type: e.target.value })} placeholder="e.g. Pakistani" /></div>
