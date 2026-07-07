@@ -28,12 +28,40 @@ const STATUS_COLORS: Record<string, string> = {
 export default function RestaurantDashboard() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [itemsCount, setItemsCount] = useState(0);
   const [topItems, setTopItems] = useState<{ name: string; qty: number }[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newOrders, setNewOrders] = useState<{ id: string; order_number: string; total: number }[]>([]);
+  const [togglingOpen, setTogglingOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(!!restaurant?.is_active);
+
+  useEffect(() => { setIsOpen(!!restaurant?.is_active); }, [restaurant?.is_active]);
+
+  const toggleOpen = async (next: boolean) => {
+    if (!restaurant?.id || togglingOpen) return;
+    setTogglingOpen(true);
+    setIsOpen(next); // optimistic
+    const { error } = await supabase.rpc('set_restaurant_open', {
+      _restaurant_id: restaurant.id,
+      _is_open: next,
+    });
+    setTogglingOpen(false);
+    if (error) {
+      setIsOpen(!next);
+      toast({ title: 'Failed to update', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({
+      title: next ? 'Restaurant is now Open' : 'Restaurant is now Closed',
+      description: next
+        ? 'Customers can place orders again.'
+        : 'New orders are blocked until you reopen.',
+    });
+  };
+
 
   useEffect(() => {
     if (!restaurant?.id) return;
