@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Loader2, LocateFixed } from 'lucide-react';
+import { loadGoogleMaps } from '@/lib/googleMapsLoader';
 
 interface LocationPickerProps {
   value: string;
@@ -14,46 +15,6 @@ interface LocationPickerProps {
 
 // Default center: Mansehra, Pakistan
 const DEFAULT_CENTER = { lat: 34.3309, lng: 73.1968 };
-
-let mapsLoaderPromise: Promise<any> | null = null;
-
-async function loadGoogleMaps(): Promise<any> {
-
-  if (typeof window !== 'undefined' && (window as any).google?.maps) {
-    return (window as any).google;
-  }
-  if (mapsLoaderPromise) return mapsLoaderPromise;
-
-  mapsLoaderPromise = (async () => {
-    const { data, error } = await supabase.functions.invoke('location-services', {
-      body: { action: 'get_key' },
-    });
-    if (error || !data?.key) throw new Error('Failed to load map');
-    const key = data.key as string;
-
-    await new Promise<void>((resolve, reject) => {
-      const existing = document.getElementById('google-maps-js');
-      if (existing) {
-        existing.addEventListener('load', () => resolve());
-        existing.addEventListener('error', () => reject(new Error('Maps load failed')));
-        if ((window as any).google?.maps) resolve();
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = 'google-maps-js';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&loading=async`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Maps load failed'));
-      document.head.appendChild(script);
-    });
-
-    return (window as any).google;
-  })();
-
-  return mapsLoaderPromise;
-}
 
 export function LocationPicker({ value, onChange, placeholder = "Your address will appear here...", initialCoords }: LocationPickerProps) {
   const mapDivRef = useRef<HTMLDivElement | null>(null);
