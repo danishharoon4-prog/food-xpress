@@ -1125,6 +1125,10 @@ export type Database = {
         Returns: string[]
       }
       get_owned_restaurant_id: { Args: { _user_id: string }; Returns: string[] }
+      get_restaurant_phone_for_order: {
+        Args: { _order_id: string }
+        Returns: string
+      }
       get_restaurant_rating_summary: {
         Args: { _restaurant_id: string }
         Returns: {

@@ -40,7 +40,8 @@ interface OrderDetail {
   customer_id: string;
   restaurant_id: string | null;
   rider_id: string | null;
-  restaurant?: { name: string; address: string | null; city: string | null } | null;
+  restaurant?: { name: string; address: string | null; city: string | null; owner_id: string | null } | null;
+  restaurantPhone?: string | null;
   items: Array<{ item_name: string; item_price: number; quantity: number; subtotal: number; special_instructions: string | null }>;
   customer?: { full_name: string; phone: string | null } | null;
 }
@@ -64,7 +65,7 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
     const [{ data: o }, { data: userRes }] = await Promise.all([
       supabase
         .from('orders')
-        .select('*, restaurant:restaurants(name, address, city), order_items(item_name, item_price, quantity, subtotal, special_instructions)')
+        .select('*, restaurant:restaurants(name, address, city, owner_id), order_items(item_name, item_price, quantity, subtotal, special_instructions)')
         .eq('id', orderId!)
         .maybeSingle(),
       supabase.auth.getUser(),
@@ -82,16 +83,16 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
       setMyRiderId(rider?.id ?? null);
     }
 
-    const { data: cust } = await supabase
-      .from('profiles')
-      .select('full_name, phone')
-      .eq('id', o.customer_id)
-      .maybeSingle();
+    const [{ data: cust }, phoneRes] = await Promise.all([
+      supabase.from('profiles').select('full_name, phone').eq('id', o.customer_id).maybeSingle(),
+      supabase.rpc('get_restaurant_phone_for_order', { _order_id: o.id }),
+    ]);
 
     setOrder({
       ...(o as any),
       items: (o as any).order_items || [],
       customer: cust || null,
+      restaurantPhone: (phoneRes as any)?.data ?? null,
     });
     setLoading(false);
   };
@@ -169,16 +170,28 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
               <p className="font-medium">{order.restaurant?.name || 'Restaurant'}</p>
               <p className="text-sm text-muted-foreground">{order.restaurant?.address}</p>
               {order.restaurant?.city && <p className="text-xs text-primary mt-1">📍 {order.restaurant.city}</p>}
+              {order.restaurantPhone ? (
+                <a
+                  href={`tel:${order.restaurantPhone}`}
+                  className="text-sm text-primary hover:underline flex items-center gap-1 mt-2 font-medium"
+                >
+                  <Phone className="w-3.5 h-3.5" /> {order.restaurantPhone}
+                </a>
+              ) : (
+                <p className="text-xs text-muted-foreground italic mt-2">No restaurant phone on file</p>
+              )}
             </div>
 
             {/* Customer */}
             <div className="p-3 rounded-lg border bg-muted/30">
               <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><User className="w-3 h-3" /> Customer</p>
               <p className="font-medium">{order.customer?.full_name || 'Customer'}</p>
-              {order.customer?.phone && (
-                <a href={`tel:${order.customer.phone}`} className="text-sm text-primary hover:underline flex items-center gap-1 mt-1">
+              {order.customer?.phone ? (
+                <a href={`tel:${order.customer.phone}`} className="text-sm text-primary hover:underline flex items-center gap-1 mt-1 font-medium">
                   <Phone className="w-3.5 h-3.5" /> {order.customer.phone}
                 </a>
+              ) : (
+                <p className="text-xs text-muted-foreground italic mt-1">No customer phone on file</p>
               )}
               {order.status !== 'delivered' && (
                 <>
