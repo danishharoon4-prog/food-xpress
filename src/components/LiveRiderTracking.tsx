@@ -121,6 +121,90 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
     };
   }, [riderId, fetchRiderLocation]);
 
+  // Initialize the live map and keep the rider marker synced
+  useEffect(() => {
+    const showTrackingLocal = ['picked_up', 'on_the_way'].includes(orderStatus);
+    if (!showTrackingLocal) return;
+    const riderLat = riderLocation?.current_latitude;
+    const riderLng = riderLocation?.current_longitude;
+    if (!mapDivRef.current || (!riderLat && !customerCoords)) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const google = await loadGoogleMaps();
+        if (cancelled || !mapDivRef.current) return;
+
+        const riderPos = riderLat && riderLng ? { lat: riderLat, lng: riderLng } : null;
+        const custPos = customerCoords ? { lat: customerCoords.lat, lng: customerCoords.lng } : null;
+        const center = riderPos || custPos!;
+
+        if (!mapRef.current) {
+          mapRef.current = new google.maps.Map(mapDivRef.current, {
+            center,
+            zoom: 15,
+            streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: true,
+            clickableIcons: false,
+          });
+        }
+
+        if (custPos) {
+          if (!customerMarkerRef.current) {
+            customerMarkerRef.current = new google.maps.Marker({
+              position: custPos,
+              map: mapRef.current,
+              title: 'Delivery location',
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: '#16a34a',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+              },
+            });
+          }
+        }
+
+        if (riderPos) {
+          if (!riderMarkerRef.current) {
+            riderMarkerRef.current = new google.maps.Marker({
+              position: riderPos,
+              map: mapRef.current,
+              title: 'Rider',
+              icon: {
+                path: 'M -8 0 A 8 8 0 1 0 8 0 A 8 8 0 1 0 -8 0',
+                scale: 1,
+                fillColor: '#2563eb',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+              },
+            });
+          } else {
+            riderMarkerRef.current.setPosition(riderPos);
+          }
+        }
+
+        // Fit bounds to include both
+        if (riderPos && custPos) {
+          const bounds = new google.maps.LatLngBounds();
+          bounds.extend(riderPos);
+          bounds.extend(custPos);
+          mapRef.current.fitBounds(bounds, 60);
+        }
+      } catch (e: any) {
+        console.error('LiveRiderTracking map error', e);
+        setMapError('Could not load map');
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [riderLocation, customerCoords, orderStatus]);
+
+
   const openRiderLocation = async () => {
     if (riderLocation?.current_latitude && riderLocation?.current_longitude) {
       window.open(
