@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Bike, Star, Banknote, Package, MapPin, FileImage, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Bike, Star, Banknote, Package, MapPin, FileImage, CheckCircle2, AlertCircle, LayoutGrid, List } from 'lucide-react';
 import type { Rider } from '@/types';
 import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
 
