@@ -50,6 +50,7 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
   const [loading, setLoading] = useState(false);
   const [customMinutes, setCustomMinutes] = useState('');
   const [savingEta, setSavingEta] = useState(false);
+  const [myRiderId, setMyRiderId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
