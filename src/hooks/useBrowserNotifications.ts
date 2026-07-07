@@ -2,11 +2,9 @@ import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { fireBrowserNotification, requestNotificationPermission } from '@/lib/browserNotify';
+import { fireBrowserNotification } from '@/lib/browserNotify';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
 import { DEFAULT_PREFS, NotifPrefs, STATUS_TO_PREF } from '@/lib/notificationPrefs';
-
-const PROMPT_KEY = 'notif-permission-prompted';
 
 type GlobalToggles = {
   notifications_toast_enabled: boolean;
@@ -48,18 +46,9 @@ export function useBrowserNotifications() {
       if (data) globalsRef.current = data as GlobalToggles;
     })();
 
-    // Auto-prompt permission once per browser, then subscribe to Web Push.
-    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      const already = localStorage.getItem(PROMPT_KEY);
-      if (!already) {
-        localStorage.setItem(PROMPT_KEY, '1');
-        setTimeout(() => {
-          requestNotificationPermission().then((p) => {
-            if (p === 'granted') ensurePushSubscription();
-          });
-        }, 1500);
-      }
-    } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    // Never auto-prompt. Browsers require notification permission prompts to be
+    // tied to the rider/customer's explicit Enable click.
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       ensurePushSubscription();
     }
 

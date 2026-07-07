@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { Bell, Loader2, Volume2 } from 'lucide-react';
 import { DEFAULT_PREFS, EVENT_LABELS, NotifPrefs } from '@/lib/notificationPrefs';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
-import { fireBrowserNotification } from '@/lib/browserNotify';
+import { fireBrowserNotification, requestNotificationPermission } from '@/lib/browserNotify';
 
 export function NotificationSettings() {
   const { user } = useAuth();
@@ -33,6 +33,18 @@ export function NotificationSettings() {
       setLoading(false);
     })();
   }, [user]);
+
+  useEffect(() => {
+    const syncPermission = () => {
+      if (typeof Notification !== 'undefined') setPermission(Notification.permission);
+    };
+    window.addEventListener('focus', syncPermission);
+    document.addEventListener('visibilitychange', syncPermission);
+    return () => {
+      window.removeEventListener('focus', syncPermission);
+      document.removeEventListener('visibilitychange', syncPermission);
+    };
+  }, []);
 
   const set = <K extends keyof NotifPrefs>(key: K, v: NotifPrefs[K]) => {
     setPrefs((p) => (p ? { ...p, [key]: v } : p));
@@ -60,7 +72,7 @@ export function NotificationSettings() {
     }
     try {
       // Must be called synchronously from the click (no awaits before this line).
-      const p = await Notification.requestPermission();
+      const p = await requestNotificationPermission();
       setPermission(p);
       if (p !== 'granted') {
         toast.error('Notification permission was not granted');
@@ -138,7 +150,13 @@ export function NotificationSettings() {
             {permission === 'granted' ? (
               <Button size="sm" variant="outline" onClick={sendTest}>Send test</Button>
             ) : permission === 'denied' ? (
-              <Button size="sm" variant="outline" disabled>Blocked</Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => toast.info('Open browser site settings, allow Notifications for this app, then return here.')}
+              >
+                How to allow
+              </Button>
             ) : (
               <Button size="sm" onClick={enableBrowserPush}>Enable</Button>
             )}
