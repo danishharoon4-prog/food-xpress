@@ -26,6 +26,7 @@ export default function AdminRestaurants() {
   const [rejectReason, setRejectReason] = useState('');
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const [filter, setFilter] = useState<StatusFilter>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const { toast } = useToast();
 
   const [name, setName] = useState('');
