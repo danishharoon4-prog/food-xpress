@@ -45,9 +45,7 @@ export function SupportChatWidget() {
   const [issueType, setIssueType] = useState<IssueType>("order");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Don't show for admins (they have the admin support page) or unauthenticated users
-  if (!user || role === "admin") return null;
+  const shouldHide = !user || role === "admin";
 
   const loadConversation = async () => {
     if (!user) return;
