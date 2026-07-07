@@ -308,6 +308,7 @@ export default function OrderTracking() {
               />
             </CardContent>
           </Card>
+          )}
         </div>
 
         {/* Order Items */}
