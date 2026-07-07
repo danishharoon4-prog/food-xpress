@@ -83,6 +83,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <NotificationsListener />
+            <PageTransition>
             <Routes>
               <Route path="/" element={<Navigate to="/restaurants" replace />} />
               <Route path="/home" element={<Index />} />
