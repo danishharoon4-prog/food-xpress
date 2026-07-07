@@ -315,6 +315,7 @@ export default function UserProfile() {
                 value={permanentAddress}
                 onChange={handlePermanentAddressChange}
                 placeholder="Enter your permanent/home address..."
+                initialCoords={initialCoords}
               />
               {permanentCoords && (
                 <p className="text-xs text-muted-foreground mt-2">
