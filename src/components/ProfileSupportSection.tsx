@@ -86,14 +86,6 @@ export function ProfileSupportSection({ defaultIssueType = "order" }: Props) {
           </div>
         </div>
 
-        {/* Optional backdrop clicker (no dimming, just closes on outside click) */}
-        {open && (
-          <div
-            className="fixed inset-0 z-30 hidden xl:block"
-            onClick={() => setOpen(false)}
-            aria-hidden
-          />
-        )}
       </div>
     </>
   );
