@@ -142,14 +142,6 @@ export default function RestaurantOrders() {
                   ) : (
                     <p className="text-xs text-muted-foreground italic">No phone on file</p>
                   )}
-                  {o.customer?.email && (
-                    <a
-                      href={`mailto:${o.customer.email}`}
-                      className="flex items-center gap-1.5 text-xs text-primary hover:underline break-all"
-                    >
-                      <Mail className="w-3 h-3 shrink-0" /> {o.customer.email}
-                    </a>
-                  )}
                   {o.delivery_address && (
                     <a
                       href={
