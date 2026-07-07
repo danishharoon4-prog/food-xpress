@@ -9,6 +9,7 @@ interface LocationPickerProps {
   value: string;
   onChange: (address: string, coords?: { latitude: number; longitude: number }) => void;
   placeholder?: string;
+  initialCoords?: { latitude: number; longitude: number } | null;
 }
 
 // Default center: Mansehra, Pakistan
@@ -54,14 +55,16 @@ async function loadGoogleMaps(): Promise<any> {
   return mapsLoaderPromise;
 }
 
-export function LocationPicker({ value, onChange, placeholder = "Your address will appear here..." }: LocationPickerProps) {
+export function LocationPicker({ value, onChange, placeholder = "Your address will appear here...", initialCoords }: LocationPickerProps) {
   const mapDivRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(
+    initialCoords ?? null
+  );
   const { toast } = useToast();
 
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
@@ -122,15 +125,20 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
         const google = await loadGoogleMaps();
         if (cancelled || !mapDivRef.current) return;
 
-        // Try GPS for initial centering only (silent — no manual button)
-        const initialCenter = await new Promise<{ lat: number; lng: number }>((resolve) => {
-          if (!navigator.geolocation) return resolve(DEFAULT_CENTER);
-          navigator.geolocation.getCurrentPosition(
-            (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-            () => resolve(DEFAULT_CENTER),
-            { timeout: 5000, enableHighAccuracy: true }
-          );
-        });
+        // Use saved coords if provided; otherwise try GPS silently, else default center
+        let initialCenter: { lat: number; lng: number };
+        if (initialCoords) {
+          initialCenter = { lat: initialCoords.latitude, lng: initialCoords.longitude };
+        } else {
+          initialCenter = await new Promise<{ lat: number; lng: number }>((resolve) => {
+            if (!navigator.geolocation) return resolve(DEFAULT_CENTER);
+            navigator.geolocation.getCurrentPosition(
+              (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+              () => resolve(DEFAULT_CENTER),
+              { timeout: 5000, enableHighAccuracy: true }
+            );
+          });
+        }
 
         const map = new google.maps.Map(mapDivRef.current, {
           center: initialCenter,
@@ -160,8 +168,12 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
         });
 
         setLoading(false);
-        // Trigger initial reverse geocode so address auto-fills
-        setPin(initialCenter.lat, initialCenter.lng, false);
+        // If we already had saved coords + address, don't re-geocode (avoid overwriting saved address)
+        if (!initialCoords) {
+          setPin(initialCenter.lat, initialCenter.lng, false);
+        } else {
+          setCoords({ latitude: initialCenter.lat, longitude: initialCenter.lng });
+        }
       } catch (err) {
         console.error(err);
         setLoading(false);

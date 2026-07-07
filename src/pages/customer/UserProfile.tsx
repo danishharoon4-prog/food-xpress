@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,10 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
-import { useLocation } from '@/hooks/useLocation';
-import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2 } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
 
 interface FavoriteRestaurant {
@@ -24,15 +24,18 @@ export default function UserProfile() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { detectLocation } = useLocation();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [permanentAddress, setPermanentAddress] = useState('');
   const [permanentCoords, setPermanentCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [initialCoords, setInitialCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState(true);
 
@@ -58,12 +61,15 @@ export default function UserProfile() {
       setEmail(data.email || '');
       setPhone(data.phone || '');
       setCity((data as any).city || '');
+      setAvatarUrl((data as any).avatar_url || null);
       setPermanentAddress((data as any).permanent_address || '');
       if ((data as any).permanent_latitude && (data as any).permanent_longitude) {
-        setPermanentCoords({
+        const c = {
           latitude: Number((data as any).permanent_latitude),
           longitude: Number((data as any).permanent_longitude),
-        });
+        };
+        setPermanentCoords(c);
+        setInitialCoords(c);
       }
     }
   };
@@ -131,6 +137,70 @@ export default function UserProfile() {
     }
   };
 
+
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Invalid file', description: 'Please choose an image.', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      toast({ title: 'Too large', description: 'Image must be under 3 MB.', variant: 'destructive' });
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, cacheControl: '3600' });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+      const { error: dbErr } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl } as any)
+        .eq('id', user.id);
+      if (dbErr) throw dbErr;
+      setAvatarUrl(publicUrl);
+      await refreshProfile();
+      toast({ title: 'Profile picture updated' });
+    } catch (e: any) {
+      toast({ title: 'Upload failed', description: e.message, variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null } as any)
+        .eq('id', user.id);
+      if (error) throw error;
+      setAvatarUrl(null);
+      await refreshProfile();
+      toast({ title: 'Profile picture removed' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const initials = (fullName || email || 'U')
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   return (
     <div className="min-h-screen bg-background pb-8">
       <CustomerHeader />
@@ -141,6 +211,56 @@ export default function UserProfile() {
         </h1>
 
         <div className="space-y-6">
+          {/* Avatar */}
+          <Card>
+            <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-5">
+              <div className="relative">
+                <Avatar className="w-24 h-24 border-4 border-background shadow-md">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground font-semibold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 rounded-full bg-background/70 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 text-center sm:text-left space-y-2">
+                <p className="font-semibold text-lg">{fullName || 'Your Name'}</p>
+                <p className="text-sm text-muted-foreground">{email}</p>
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleAvatarUpload(f);
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                  >
+                    <Camera className="w-4 h-4 mr-1.5" />
+                    {avatarUrl ? 'Change photo' : 'Upload photo'}
+                  </Button>
+                  {avatarUrl && (
+                    <Button size="sm" variant="ghost" onClick={handleRemoveAvatar} disabled={uploadingAvatar}>
+                      <X className="w-4 h-4 mr-1.5" /> Remove
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Personal Info */}
           <Card>
             <CardHeader>
@@ -195,6 +315,7 @@ export default function UserProfile() {
                 value={permanentAddress}
                 onChange={handlePermanentAddressChange}
                 placeholder="Enter your permanent/home address..."
+                initialCoords={initialCoords}
               />
               {permanentCoords && (
                 <p className="text-xs text-muted-foreground mt-2">
