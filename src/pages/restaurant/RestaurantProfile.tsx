@@ -57,6 +57,7 @@ export default function RestaurantProfile() {
         cuisine_type: restaurant.cuisine_type || '',
         address: restaurant.address || '',
         image_url: restaurant.image_url || '',
+        logo_url: restaurant.logo_url || '',
         opening_time: restaurant.opening_time?.slice(0, 5) || '09:00',
         closing_time: restaurant.closing_time?.slice(0, 5) || '22:00',
         is_active: restaurant.is_active ?? true,
