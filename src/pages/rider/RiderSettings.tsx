@@ -11,7 +11,7 @@ import { Upload, CheckCircle2, AlertCircle, FileImage } from 'lucide-react';
 import type { Rider, RiderWallet } from '@/types';
 import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
 import { NotificationSettings } from '@/components/NotificationSettings';
-import { SupportChatPanel } from '@/components/SupportChatPanel';
+import { ProfileSupportSection } from '@/components/ProfileSupportSection';
 
 function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
   const src = useRiderDocSignedUrl(value);
@@ -371,7 +371,7 @@ export default function RiderSettings() {
       </Card>
 
       <NotificationSettings />
-      <SupportChatPanel defaultIssueType="rider" />
+      <ProfileSupportSection defaultIssueType="rider" />
     </div>
   );
 }
