@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
-import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X, CheckCircle2, Pencil } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
 
 interface FavoriteRestaurant {
