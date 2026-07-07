@@ -139,8 +139,8 @@ export default function AdminLayout() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 pb-16 lg:pb-0">
-        <header className="h-14 lg:h-16 flex items-center gap-3 px-4 border-b bg-card lg:px-6 sticky top-0 z-30">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 pb-16 lg:pb-0">
+        <header className="h-14 lg:h-16 flex items-center gap-3 px-4 border-b bg-card lg:px-6 shrink-0">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
@@ -149,7 +149,7 @@ export default function AdminLayout() {
           </h1>
         </header>
 
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 min-h-0 p-4 lg:p-6 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
 
