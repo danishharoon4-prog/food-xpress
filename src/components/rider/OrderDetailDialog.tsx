@@ -61,13 +61,26 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
 
   const load = async () => {
     setLoading(true);
-    const { data: o } = await supabase
-      .from('orders')
-      .select('*, restaurant:restaurants(name, address, city), order_items(item_name, item_price, quantity, subtotal, special_instructions)')
-      .eq('id', orderId!)
-      .maybeSingle();
+    const [{ data: o }, { data: userRes }] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('*, restaurant:restaurants(name, address, city), order_items(item_name, item_price, quantity, subtotal, special_instructions)')
+        .eq('id', orderId!)
+        .maybeSingle(),
+      supabase.auth.getUser(),
+    ]);
 
     if (!o) { setLoading(false); return; }
+
+    const uid = userRes?.user?.id;
+    if (uid) {
+      const { data: rider } = await supabase
+        .from('riders')
+        .select('id')
+        .eq('user_id', uid)
+        .maybeSingle();
+      setMyRiderId(rider?.id ?? null);
+    }
 
     const { data: cust } = await supabase
       .from('profiles')
