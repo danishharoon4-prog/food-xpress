@@ -100,6 +100,26 @@ export default function RestaurantOrders() {
     };
   }, [restaurant?.id]);
 
+  // Handle ?highlight=<orderId> — auto-expand + scroll + pulse
+  useEffect(() => {
+    const hid = searchParams.get('highlight');
+    if (!hid || orders.length === 0) return;
+    const found = orders.find((o) => o.id === hid);
+    if (!found) return;
+    setExpanded((prev) => ({ ...prev, [hid]: true }));
+    setHighlightId(hid);
+    setTimeout(() => {
+      cardRefs.current[hid]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    const t = setTimeout(() => {
+      setHighlightId(null);
+      searchParams.delete('highlight');
+      setSearchParams(searchParams, { replace: true });
+    }, 3000);
+    return () => clearTimeout(t);
+  }, [searchParams, orders, setSearchParams]);
+
+
   const advance = async (id: string, status: OrderStatus) => {
     const { error } = await supabase.from('orders').update({ status }).eq('id', id);
     if (error) return toast({ title: 'Failed', description: error.message, variant: 'destructive' });
