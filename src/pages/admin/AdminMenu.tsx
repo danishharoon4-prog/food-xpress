@@ -8,8 +8,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, UtensilsCrossed } from 'lucide-react';
+import { Plus, Pencil, Trash2, UtensilsCrossed, LayoutGrid, List } from 'lucide-react';
 import type { MenuItem, Restaurant } from '@/types';
 import ImageCropInput from '@/components/ImageCropInput';
 
@@ -19,6 +21,7 @@ export default function AdminMenu() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const { toast } = useToast();
 
   // Form state
@@ -144,7 +147,16 @@ export default function AdminMenu() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Menu Items</h2>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center border rounded-md p-0.5">
+            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('list')}>
+              <List className="w-4 h-4" />
+            </Button>
+            <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('grid')}>
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => openDialog()} className="gradient-primary">
               <Plus className="w-4 h-4 mr-2" />
@@ -233,6 +245,7 @@ export default function AdminMenu() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {menuItems.length === 0 ? (
@@ -240,6 +253,71 @@ export default function AdminMenu() {
           <CardContent className="py-10 text-center">
             <UtensilsCrossed className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No menu items yet. Add your first item!</p>
+          </CardContent>
+        </Card>
+      ) : viewMode === 'list' ? (
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Restaurant</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">Discount</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead>Available</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {menuItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-12 h-12 rounded object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
+                          <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{(item as any).restaurant?.name || '—'}</TableCell>
+                    <TableCell className="max-w-[240px] truncate text-muted-foreground" title={item.description || ''}>
+                      {item.description || '—'}
+                    </TableCell>
+                    <TableCell className="text-right">PKR {Number(item.price).toLocaleString()}</TableCell>
+                    <TableCell className="text-right">
+                      {item.discount_price ? `PKR ${Number(item.discount_price).toLocaleString()}` : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {item.is_featured && <Badge variant="secondary">Featured</Badge>}
+                        {item.is_deal && <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Deal</Badge>}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={item.is_available ? 'bg-success/10 text-success hover:bg-success/10' : 'bg-muted text-muted-foreground hover:bg-muted'}>
+                        {item.is_available ? 'Yes' : 'No'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="inline-flex gap-1">
+                        <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       ) : (
