@@ -25,7 +25,7 @@ const statusColors: Record<string, string> = {
 const nextStatus: Record<string, OrderStatus | null> = {
   pending: 'confirmed',
   confirmed: 'preparing',
-  preparing: 'ready_for_pickup',
+  // 'preparing' → handled via pickup-choice dialog
 };
 
 export default function RestaurantOrders() {
