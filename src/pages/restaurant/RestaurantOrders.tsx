@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink, Truck, Search, Loader2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink, Truck, Search, Loader2, XCircle } from 'lucide-react';
 import type { OrderStatus } from '@/types';
 
 const statusColors: Record<string, string> = {
@@ -38,6 +39,29 @@ export default function RestaurantOrders() {
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [pickupOrder, setPickupOrder] = useState<any | null>(null);
   const [pickupSubmitting, setPickupSubmitting] = useState<'self' | 'rider' | null>(null);
+  const [cancelOrder, setCancelOrder] = useState<any | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+
+  const submitCancel = async () => {
+    if (!cancelOrder) return;
+    const reason = cancelReason.trim();
+    if (reason.length < 3) {
+      toast({ title: 'Reason required', description: 'Please provide a short reason (min 3 chars).', variant: 'destructive' });
+      return;
+    }
+    setCancelSubmitting(true);
+    const { error } = await supabase.rpc('cancel_order', { _order_id: cancelOrder.id, _reason: reason });
+    setCancelSubmitting(false);
+    if (error) {
+      toast({ title: 'Cancel failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Order cancelled', description: 'The customer has been notified.' });
+    setCancelOrder(null);
+    setCancelReason('');
+    load();
+  };
 
   const load = async () => {
     if (!restaurant?.id) return;
@@ -321,6 +345,16 @@ export default function RestaurantOrders() {
                       Mark Delivered
                     </Button>
                   )}
+                  {['pending','confirmed','preparing','ready_for_pickup'].includes(o.status) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setCancelOrder(o); setCancelReason(''); }}
+                      className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <XCircle className="w-4 h-4 mr-1" /> Can't Fulfil
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -379,6 +413,38 @@ export default function RestaurantOrders() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setPickupOrder(null)} disabled={!!pickupSubmitting}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!cancelOrder} onOpenChange={(o) => { if (!o) { setCancelOrder(null); setCancelReason(''); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <XCircle className="w-5 h-5" /> Cancel this order?
+            </DialogTitle>
+            <DialogDescription>
+              Order <span className="font-semibold text-foreground">#{cancelOrder?.order_number}</span> will be cancelled and the customer will be notified. Any payment will be refunded.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <label className="text-xs font-medium text-muted-foreground">Reason (shown to customer)</label>
+            <Textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="e.g. Out of ingredients, kitchen closed, unable to fulfil right now…"
+              rows={3}
+              disabled={cancelSubmitting}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setCancelOrder(null); setCancelReason(''); }} disabled={cancelSubmitting}>
+              Keep Order
+            </Button>
+            <Button variant="destructive" onClick={submitCancel} disabled={cancelSubmitting}>
+              {cancelSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <XCircle className="w-4 h-4 mr-1" />}
+              Cancel Order
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
