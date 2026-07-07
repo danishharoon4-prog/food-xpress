@@ -232,7 +232,7 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
             )}
 
             {/* ETA controls (only if order still active) */}
-            {!['delivered', 'cancelled'].includes(order.status) && (
+            {canEditEta && (
               <div className="border rounded-lg p-4 space-y-3 bg-primary/5">
                 <p className="font-medium text-sm flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Update Estimated Arrival</p>
                 <div className="flex gap-2 flex-wrap">
