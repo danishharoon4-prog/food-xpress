@@ -115,22 +115,36 @@ export function NotificationSettings() {
         {/* Permission block */}
         <div className="rounded-lg border p-4 space-y-3">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <p className="font-medium">Browser permission</p>
               <p className="text-sm text-muted-foreground">
                 Status:{' '}
-                <span className={permission === 'granted' ? 'text-[hsl(var(--success))] font-medium' : 'text-[hsl(var(--warning))] font-medium'}>
+                <span className={
+                  permission === 'granted'
+                    ? 'text-[hsl(var(--success))] font-medium'
+                    : permission === 'denied'
+                    ? 'text-destructive font-medium'
+                    : 'text-[hsl(var(--warning))] font-medium'
+                }>
                   {permission}
                 </span>
               </p>
+              {permission === 'denied' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Notifications are blocked for this site. Click the lock icon in the address bar → Site settings → allow Notifications, then reload.
+                </p>
+              )}
             </div>
-            {permission !== 'granted' ? (
-              <Button size="sm" onClick={enableBrowserPush}>Enable</Button>
-            ) : (
+            {permission === 'granted' ? (
               <Button size="sm" variant="outline" onClick={sendTest}>Send test</Button>
+            ) : permission === 'denied' ? (
+              <Button size="sm" variant="outline" disabled>Blocked</Button>
+            ) : (
+              <Button size="sm" onClick={enableBrowserPush}>Enable</Button>
             )}
           </div>
         </div>
+
 
         {/* Master toggles */}
         <div className="space-y-3">
