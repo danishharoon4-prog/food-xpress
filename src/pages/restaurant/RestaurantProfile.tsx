@@ -16,7 +16,6 @@ import { LocationPicker } from '@/components/LocationPicker';
 import ImageCropInput from '@/components/ImageCropInput';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { NotificationSettings } from '@/components/NotificationSettings';
-import { ProfileSupportSection } from '@/components/ProfileSupportSection';
 
 const REQUIRED_FIELDS: Array<{ key: string; label: string }> = [
   { key: 'name', label: 'Restaurant name' },
@@ -450,7 +449,6 @@ export default function RestaurantProfile() {
 
         <TabsContent value="notifications" className="mt-4">
           <NotificationSettings />
-          <ProfileSupportSection defaultIssueType="restaurant" />
         </TabsContent>
       </Tabs>
 
