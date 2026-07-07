@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { Bell, Loader2, Volume2 } from 'lucide-react';
 import { DEFAULT_PREFS, EVENT_LABELS, NotifPrefs } from '@/lib/notificationPrefs';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
-import { requestNotificationPermission, fireBrowserNotification } from '@/lib/browserNotify';
+import { fireBrowserNotification } from '@/lib/browserNotify';
 
 export function NotificationSettings() {
   const { user } = useAuth();
@@ -50,20 +50,46 @@ export function NotificationSettings() {
   };
 
   const enableBrowserPush = async () => {
-    const p = await requestNotificationPermission();
-    setPermission(p);
-    if (p === 'granted') {
-      const ok = await ensurePushSubscription();
-      if (ok) toast.success('Browser push enabled on this device');
-      else toast.error('Could not subscribe this device to push');
-    } else {
-      toast.error('Notification permission denied');
+    if (typeof window === 'undefined' || typeof Notification === 'undefined') {
+      toast.error('This browser does not support notifications');
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      toast.error('Notifications are blocked. Enable them in your browser site settings, then reload.');
+      return;
+    }
+    try {
+      // Must be called synchronously from the click (no awaits before this line).
+      const p = await Notification.requestPermission();
+      setPermission(p);
+      if (p !== 'granted') {
+        toast.error('Notification permission was not granted');
+        return;
+      }
+      toast.success('Browser notifications enabled');
+      // Try to also register background push (only works in production/live app).
+      try {
+        const ok = await ensurePushSubscription();
+        if (ok) toast.success('Background push enabled on this device');
+      } catch {
+        /* silent — background push only works on the published app */
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not enable notifications');
     }
   };
 
-  const sendTest = () => {
-    fireBrowserNotification('Test Notification', 'Your notifications are working ✅');
-    toast.success('Test notification fired');
+  const sendTest = async () => {
+    if (Notification.permission !== 'granted') {
+      toast.error('Enable notifications first');
+      return;
+    }
+    try {
+      await fireBrowserNotification('Test Notification', 'Your notifications are working ✅');
+      toast.success('Test notification sent');
+    } catch {
+      toast.error('Could not fire test notification');
+    }
   };
 
   if (loading || !prefs) {
@@ -89,22 +115,36 @@ export function NotificationSettings() {
         {/* Permission block */}
         <div className="rounded-lg border p-4 space-y-3">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <p className="font-medium">Browser permission</p>
               <p className="text-sm text-muted-foreground">
                 Status:{' '}
-                <span className={permission === 'granted' ? 'text-[hsl(var(--success))] font-medium' : 'text-[hsl(var(--warning))] font-medium'}>
+                <span className={
+                  permission === 'granted'
+                    ? 'text-[hsl(var(--success))] font-medium'
+                    : permission === 'denied'
+                    ? 'text-destructive font-medium'
+                    : 'text-[hsl(var(--warning))] font-medium'
+                }>
                   {permission}
                 </span>
               </p>
+              {permission === 'denied' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Notifications are blocked for this site. Click the lock icon in the address bar → Site settings → allow Notifications, then reload.
+                </p>
+              )}
             </div>
-            {permission !== 'granted' ? (
-              <Button size="sm" onClick={enableBrowserPush}>Enable</Button>
-            ) : (
+            {permission === 'granted' ? (
               <Button size="sm" variant="outline" onClick={sendTest}>Send test</Button>
+            ) : permission === 'denied' ? (
+              <Button size="sm" variant="outline" disabled>Blocked</Button>
+            ) : (
+              <Button size="sm" onClick={enableBrowserPush}>Enable</Button>
             )}
           </div>
         </div>
+
 
         {/* Master toggles */}
         <div className="space-y-3">
