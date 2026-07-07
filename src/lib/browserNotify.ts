@@ -1,5 +1,8 @@
 // Fire native browser notifications alongside any in-app toast/popup.
+// On mobile browsers (Android Chrome/Edge/Firefox), `new Notification()`
+// is not allowed — we must use ServiceWorkerRegistration.showNotification().
 import { toast as sonnerToast } from 'sonner';
+import { ensureNotificationsSW } from './notificationsSW';
 
 const toText = (v: unknown): string => {
   if (v == null) return '';
@@ -9,22 +12,30 @@ const toText = (v: unknown): string => {
 };
 
 export function requestNotificationPermission() {
-  if (typeof window === 'undefined' || typeof Notification === 'undefined') return Promise.resolve('unsupported' as NotificationPermission);
+  if (typeof window === 'undefined' || typeof Notification === 'undefined') {
+    return Promise.resolve('unsupported' as NotificationPermission);
+  }
+  // Kick off SW registration in parallel so showNotification is ready on mobile.
+  ensureNotificationsSW();
   if (Notification.permission === 'default') {
-    return Notification.requestPermission().catch(() => 'denied' as NotificationPermission);
+    return Notification.requestPermission()
+      .then((perm) => {
+        if (perm === 'granted') ensureNotificationsSW();
+        return perm;
+      })
+      .catch(() => 'denied' as NotificationPermission);
   }
   return Promise.resolve(Notification.permission);
 }
 
-// Simple de-dupe so identical messages don't spawn multiple notifications
-// when both a toast helper AND our monkey-patch run in the same tick.
+// Simple de-dupe so identical messages don't spawn multiple notifications.
 let lastKey = '';
 let lastTs = 0;
 
 export function fireBrowserNotification(
   title: unknown,
   body?: unknown,
-  opts?: { tag?: string; silent?: boolean },
+  opts?: { tag?: string; silent?: boolean; url?: string },
 ) {
   if (typeof window === 'undefined' || typeof Notification === 'undefined') return;
   if (Notification.permission !== 'granted') return;
@@ -39,16 +50,28 @@ export function fireBrowserNotification(
   lastKey = key;
   lastTs = now;
 
-  try {
-    new Notification(t || 'Notification', {
-      body: b || undefined,
-      icon: '/favicon.ico',
-      tag: opts?.tag,
-      silent: opts?.silent,
+  const finalTitle = t || 'Notification';
+  const notifOpts: NotificationOptions = {
+    body: b || undefined,
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: opts?.tag,
+    silent: opts?.silent,
+    data: { url: opts?.url || window.location.pathname },
+  };
+
+  // Prefer service-worker notifications (works on mobile + desktop).
+  ensureNotificationsSW()
+    .then((reg) => {
+      if (reg && typeof reg.showNotification === 'function') {
+        return reg.showNotification(finalTitle, notifOpts);
+      }
+      // Desktop fallback when no SW is available (e.g. Lovable preview).
+      try { new Notification(finalTitle, notifOpts); } catch { /* noop */ }
+    })
+    .catch(() => {
+      try { new Notification(finalTitle, notifOpts); } catch { /* noop */ }
     });
-  } catch {
-    /* noop */
-  }
 }
 
 let sonnerPatched = false;
