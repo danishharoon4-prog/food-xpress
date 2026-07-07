@@ -1,52 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Loader2, MapPin, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { loadGoogleMaps } from '@/lib/googleMapsLoader';
 
 interface Props {
   latitude: number | null | undefined;
   longitude: number | null | undefined;
   address?: string;
   height?: number;
-}
-
-let mapsLoaderPromise: Promise<any> | null = null;
-
-async function loadGoogleMaps(): Promise<any> {
-  if (typeof window !== 'undefined' && (window as any).google?.maps) {
-    return (window as any).google;
-  }
-  if (mapsLoaderPromise) return mapsLoaderPromise;
-
-  mapsLoaderPromise = (async () => {
-    const { data, error } = await supabase.functions.invoke('location-services', {
-      body: { action: 'get_key' },
-    });
-    if (error || !data?.key) throw new Error('Failed to load map');
-    const key = data.key as string;
-
-    await new Promise<void>((resolve, reject) => {
-      const existing = document.getElementById('google-maps-js');
-      if (existing) {
-        existing.addEventListener('load', () => resolve());
-        existing.addEventListener('error', () => reject(new Error('Maps load failed')));
-        if ((window as any).google?.maps) resolve();
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = 'google-maps-js';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&loading=async`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Maps load failed'));
-      document.head.appendChild(script);
-    });
-
-    return (window as any).google;
-  })();
-
-  return mapsLoaderPromise;
 }
 
 export function CustomerLocationMap({ latitude, longitude, address, height = 240 }: Props) {
@@ -57,6 +18,8 @@ export function CustomerLocationMap({ latitude, longitude, address, height = 240
   const hasCoords =
     typeof latitude === 'number' && typeof longitude === 'number' &&
     !isNaN(latitude) && !isNaN(longitude);
+
+
 
   useEffect(() => {
     if (!hasCoords) {

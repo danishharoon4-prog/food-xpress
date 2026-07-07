@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, CheckCircle2, AlertCircle, FileImage } from 'lucide-react';
 import type { Rider, RiderWallet } from '@/types';
 import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
+import { NotificationSettings } from '@/components/NotificationSettings';
 
 function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
   const src = useRiderDocSignedUrl(value);
@@ -367,6 +368,8 @@ export default function RiderSettings() {
           </form>
         </CardContent>
       </Card>
+
+      <NotificationSettings />
     </div>
   );
 }

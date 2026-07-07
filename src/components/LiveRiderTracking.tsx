@@ -1,10 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from '@/hooks/useLocation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bike, MapPin, Clock, Route, Loader2, Navigation, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+
 
 interface LiveRiderTrackingProps {
   riderId: string | null;
@@ -29,6 +31,12 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
   const [distanceInfo, setDistanceInfo] = useState<DistanceInfo | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
+  const mapDivRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<any>(null);
+  const riderMarkerRef = useRef<any>(null);
+  const customerMarkerRef = useRef<any>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+
 
   // Fetch initial rider location
   const fetchRiderLocation = useCallback(async () => {
@@ -113,6 +121,90 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
     };
   }, [riderId, fetchRiderLocation]);
 
+  // Initialize the live map and keep the rider marker synced
+  useEffect(() => {
+    const showTrackingLocal = ['picked_up', 'on_the_way'].includes(orderStatus);
+    if (!showTrackingLocal) return;
+    const riderLat = riderLocation?.current_latitude;
+    const riderLng = riderLocation?.current_longitude;
+    if (!mapDivRef.current || (!riderLat && !customerCoords)) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const google = await loadGoogleMaps();
+        if (cancelled || !mapDivRef.current) return;
+
+        const riderPos = riderLat && riderLng ? { lat: riderLat, lng: riderLng } : null;
+        const custPos = customerCoords ? { lat: customerCoords.lat, lng: customerCoords.lng } : null;
+        const center = riderPos || custPos!;
+
+        if (!mapRef.current) {
+          mapRef.current = new google.maps.Map(mapDivRef.current, {
+            center,
+            zoom: 15,
+            streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: true,
+            clickableIcons: false,
+          });
+        }
+
+        if (custPos) {
+          if (!customerMarkerRef.current) {
+            customerMarkerRef.current = new google.maps.Marker({
+              position: custPos,
+              map: mapRef.current,
+              title: 'Delivery location',
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: '#16a34a',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+              },
+            });
+          }
+        }
+
+        if (riderPos) {
+          if (!riderMarkerRef.current) {
+            riderMarkerRef.current = new google.maps.Marker({
+              position: riderPos,
+              map: mapRef.current,
+              title: 'Rider',
+              icon: {
+                path: 'M -8 0 A 8 8 0 1 0 8 0 A 8 8 0 1 0 -8 0',
+                scale: 1,
+                fillColor: '#2563eb',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+              },
+            });
+          } else {
+            riderMarkerRef.current.setPosition(riderPos);
+          }
+        }
+
+        // Fit bounds to include both
+        if (riderPos && custPos) {
+          const bounds = new google.maps.LatLngBounds();
+          bounds.extend(riderPos);
+          bounds.extend(custPos);
+          mapRef.current.fitBounds(bounds, 60);
+        }
+      } catch (e: any) {
+        console.error('LiveRiderTracking map error', e);
+        setMapError('Could not load map');
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [riderLocation, customerCoords, orderStatus]);
+
+
   const openRiderLocation = async () => {
     if (riderLocation?.current_latitude && riderLocation?.current_longitude) {
       window.open(
@@ -174,6 +266,21 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Live Map */}
+        <div className="relative w-full rounded-lg overflow-hidden border" style={{ height: 240 }}>
+          <div ref={mapDivRef} className="w-full h-full" />
+          {mapError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 text-sm text-destructive">
+              {mapError}
+            </div>
+          )}
+          {!mapError && !hasLocation && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/70 text-xs text-muted-foreground">
+              Waiting for rider location…
+            </div>
+          )}
+        </div>
+
         {hasLocation ? (
           <>
             {/* Distance and ETA */}
@@ -186,6 +293,7 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
                     <p className="text-xs text-muted-foreground">away</p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-2">
                   <Clock className="w-5 h-5 text-primary" />
                   <div>
