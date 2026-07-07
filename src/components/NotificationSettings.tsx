@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { Bell, Loader2, Volume2 } from 'lucide-react';
 import { DEFAULT_PREFS, EVENT_LABELS, NotifPrefs } from '@/lib/notificationPrefs';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
-import { requestNotificationPermission, fireBrowserNotification } from '@/lib/browserNotify';
+import { fireBrowserNotification } from '@/lib/browserNotify';
 
 export function NotificationSettings() {
   const { user } = useAuth();
