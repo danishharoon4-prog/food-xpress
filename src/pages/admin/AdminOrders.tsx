@@ -234,127 +234,139 @@ export default function AdminOrders() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {orders.map((order) => (
             <Card key={order.id}>
-              <CardContent className="p-3">
-                {/* Header row */}
-                <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm">#{order.order_number}</span>
+              <CardContent className="p-4 space-y-2 text-sm">
+                {/* Row 1: Order # | Status, Amount */}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-semibold">Order #{order.order_number}</span>
+                  <div className="flex items-center gap-2">
                     <Badge className={`${statusColors[order.status]} text-xs`}>
                       {order.status.replace(/_/g, ' ')}
                     </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {(order as any).restaurant?.name || 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <DeliveryCountdown
-                      estimatedDeliveryTime={order.estimated_delivery_time}
-                      status={order.status}
-                    />
-                    <span className="font-bold text-primary text-sm">
+                    <span className="font-bold text-primary">
                       PKR {Number(order.total).toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                {/* Info row: customer / rider / address */}
-                <div className="grid gap-2 md:grid-cols-3 text-xs mb-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <span className="font-medium truncate">{order.customer?.full_name || 'N/A'}</span>
-                    {order.customer?.phone && (
-                      <a href={`tel:${order.customer.phone}`} className="text-primary hover:underline flex items-center gap-0.5 shrink-0">
-                        <Phone className="w-3 h-3" />{order.customer.phone}
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <Bike className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    {order.rider_id ? (
-                      <>
-                        <span className="font-medium text-success truncate">
-                          {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
-                        </span>
-                        {order.assigned_rider?.profile?.phone && (
-                          <a href={`tel:${order.assigned_rider.profile.phone}`} className="text-primary hover:underline flex items-center gap-0.5 shrink-0">
-                            <Phone className="w-3 h-3" />{order.assigned_rider.profile.phone}
-                          </a>
-                        )}
-                      </>
-                    ) : (
-                      <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
-                        <SelectTrigger className="h-7 text-xs">
-                          <SelectValue placeholder="Assign rider" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {riders.filter(r => r.is_online).length === 0 ? (
-                            <SelectItem value="_none" disabled>No online riders</SelectItem>
-                          ) : (
-                            riders.filter(r => r.is_online).map((rider) => (
-                              <SelectItem key={rider.id} value={rider.id}>
-                                {rider.profile?.full_name || 'Rider'} (Online)
-                              </SelectItem>
-                            ))
-                          )}
-                          {riders.filter(r => !r.is_online).map((rider) => (
-                            <SelectItem key={rider.id} value={rider.id}>
-                              {rider.profile?.full_name || 'Rider'} (Offline)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
-                  <div className="text-muted-foreground truncate" title={order.delivery_address}>
-                    {order.order_items?.length || 0} items · {order.delivery_address}
-                  </div>
+                {/* Customer Name */}
+                <div>
+                  <span className="text-muted-foreground">Customer Name: </span>
+                  <span className="font-medium">{order.customer?.full_name || 'N/A'}</span>
                 </div>
 
-                {/* Actions row */}
-                <div className="flex items-center gap-2 flex-wrap pt-2 border-t">
-                  <Select
-                    value={order.status}
-                    onValueChange={(value) => updateStatus(order.id, value as OrderStatus)}
-                  >
-                    <SelectTrigger className="h-7 w-40 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="confirmed">Confirmed</SelectItem>
-                      <SelectItem value="preparing">Preparing</SelectItem>
-                      <SelectItem value="ready_for_pickup">Ready for Pickup</SelectItem>
-                      <SelectItem value="picked_up">Picked Up</SelectItem>
-                      <SelectItem value="on_the_way">On the Way</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {(order.status === 'pending' || order.status === 'confirmed') && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => {
-                        setCancelOrderId(order.id);
-                        setCancelReason('');
-                      }}
+                {/* Customer contact */}
+                <div>
+                  <span className="text-muted-foreground">Customer contact: </span>
+                  {order.customer?.phone ? (
+                    <a href={`tel:${order.customer.phone}`} className="text-primary hover:underline">
+                      {order.customer.phone}
+                    </a>
+                  ) : (
+                    <span>N/A</span>
+                  )}
+                </div>
+
+                {/* Address */}
+                <div>
+                  <span className="text-muted-foreground">Address: </span>
+                  <span>{order.delivery_address || 'N/A'}</span>
+                </div>
+
+                {/* Rider Assign */}
+                <div className="pt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Bike className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Rider Assign:</span>
+                  </div>
+                  {order.rider_id ? (
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="font-medium text-success">
+                        {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
+                      </span>
+                      {order.assigned_rider?.profile?.phone && (
+                        <a href={`tel:${order.assigned_rider.profile.phone}`} className="text-primary hover:underline flex items-center gap-1 text-xs">
+                          <Phone className="w-3 h-3" />
+                          {order.assigned_rider.profile.phone}
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Select a rider to assign" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {riders.filter(r => r.is_online).length === 0 ? (
+                          <SelectItem value="_none" disabled>No online riders</SelectItem>
+                        ) : (
+                          riders.filter(r => r.is_online).map((rider) => (
+                            <SelectItem key={rider.id} value={rider.id}>
+                              {rider.profile?.full_name || 'Rider'} (Online)
+                            </SelectItem>
+                          ))
+                        )}
+                        {riders.filter(r => !r.is_online).map((rider) => (
+                          <SelectItem key={rider.id} value={rider.id}>
+                            {rider.profile?.full_name || 'Rider'} (Offline)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {/* Status | Timestamp */}
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-2 border-t">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select
+                      value={order.status}
+                      onValueChange={(value) => updateStatus(order.id, value as OrderStatus)}
                     >
-                      <X className="w-3.5 h-3.5 mr-1" /> Cancel
-                    </Button>
-                  )}
-                  {order.status === 'cancelled' && (order as any).cancellation_reason && (
-                    <span className="text-xs text-destructive truncate">
-                      Reason: {(order as any).cancellation_reason}
-                    </span>
-                  )}
-                  <span className="text-xs text-muted-foreground ml-auto">
+                      <SelectTrigger className="h-8 w-44 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="preparing">Preparing</SelectItem>
+                        <SelectItem value="ready_for_pickup">Ready for Pickup</SelectItem>
+                        <SelectItem value="picked_up">Picked Up</SelectItem>
+                        <SelectItem value="on_the_way">On the Way</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {(order.status === 'pending' || order.status === 'confirmed') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => {
+                          setCancelOrderId(order.id);
+                          setCancelReason('');
+                        }}
+                      >
+                        <X className="w-3.5 h-3.5 mr-1" /> Cancel
+                      </Button>
+                    )}
+                    <DeliveryCountdown
+                      estimatedDeliveryTime={order.estimated_delivery_time}
+                      status={order.status}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
                     {new Date(order.created_at).toLocaleString()}
                   </span>
                 </div>
+
+                {order.status === 'cancelled' && (order as any).cancellation_reason && (
+                  <p className="text-xs text-destructive">
+                    Reason: {(order as any).cancellation_reason}
+                  </p>
+                )}
               </CardContent>
             </Card>
           ))}
