@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Bike, Star, Banknote, Package, MapPin, FileImage, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Bike, Star, Banknote, Package, MapPin, FileImage, CheckCircle2, AlertCircle, LayoutGrid, List } from 'lucide-react';
 import type { Rider } from '@/types';
 import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
 
@@ -41,6 +42,7 @@ export default function AdminRiders() {
   const [riders, setRiders] = useState<RiderWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [cityFilter, setCityFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [docsRider, setDocsRider] = useState<RiderWithDetails | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -116,6 +118,14 @@ export default function AdminRiders() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold">Registered Riders</h2>
         <div className="flex items-center gap-2">
+          <div className="flex items-center border rounded-md p-0.5">
+            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('list')}>
+              <List className="w-4 h-4" />
+            </Button>
+            <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('grid')}>
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
           <Select value={cityFilter} onValueChange={setCityFilter}>
             <SelectTrigger className="w-44">
               <MapPin className="w-4 h-4 mr-1 text-muted-foreground" />
@@ -137,6 +147,70 @@ export default function AdminRiders() {
           <CardContent className="py-10 text-center">
             <Bike className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No riders found{cityFilter !== 'all' ? ` in ${cityFilter}` : ''}.</p>
+          </CardContent>
+        </Card>
+      ) : viewMode === 'list' ? (
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>Vehicle</TableHead>
+                  <TableHead>License</TableHead>
+                  <TableHead className="text-center">Deliveries</TableHead>
+                  <TableHead className="text-center">Rating</TableHead>
+                  <TableHead>Wallet (PKR)</TableHead>
+                  <TableHead>Total Earned</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Verified</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibleRiders.map((rider) => (
+                  <TableRow key={rider.id}>
+                    <TableCell className="font-medium">{rider.profile?.full_name || 'Unknown'}</TableCell>
+                    <TableCell>{rider.profile?.phone || 'N/A'}</TableCell>
+                    <TableCell>{rider.profile?.city || 'N/A'}</TableCell>
+                    <TableCell className="capitalize">{rider.vehicle_type} · {rider.vehicle_number || '—'}</TableCell>
+                    <TableCell>{(rider as any).license_number || '—'}</TableCell>
+                    <TableCell className="text-center">{rider.total_deliveries}</TableCell>
+                    <TableCell className="text-center">
+                      <span className="inline-flex items-center gap-1">
+                        <Star className="w-3 h-3 text-warning fill-warning" />
+                        {Number(rider.average_rating).toFixed(1)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-success font-medium">
+                      {Number(rider.wallet?.balance || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {Number(rider.wallet?.total_earned || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={rider.is_online ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
+                        {rider.is_online ? 'Online' : 'Offline'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={rider.is_verified}
+                        disabled={updatingId === rider.id}
+                        onCheckedChange={(v) => toggleVerified(rider, v)}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" onClick={() => setDocsRider(rider)}>
+                        <FileImage className="w-4 h-4 mr-1" /> Docs
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       ) : (

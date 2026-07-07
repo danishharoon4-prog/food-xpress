@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Store, Eye, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Plus, Pencil, Trash2, Store, Eye, CheckCircle2, XCircle, Clock, LayoutGrid, List } from 'lucide-react';
 import type { Restaurant } from '@/types';
 import LocationChangeRequests from '@/components/admin/LocationChangeRequests';
 import ImageCropInput from '@/components/ImageCropInput';
@@ -25,6 +26,7 @@ export default function AdminRestaurants() {
   const [rejectReason, setRejectReason] = useState('');
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const [filter, setFilter] = useState<StatusFilter>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const { toast } = useToast();
 
   const [name, setName] = useState('');
@@ -135,13 +137,22 @@ export default function AdminRestaurants() {
             </p>
           )}
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => openDialog()} className="gradient-primary">
-              <Plus className="w-4 h-4 mr-2" />Add Restaurant
+        <div className="flex items-center gap-2">
+          <div className="flex items-center border rounded-md p-0.5">
+            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('list')}>
+              <List className="w-4 h-4" />
             </Button>
-          </DialogTrigger>
-          <DialogContent>
+            <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('grid')}>
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => openDialog()} className="gradient-primary">
+                <Plus className="w-4 h-4 mr-2" />Add Restaurant
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
             <DialogHeader><DialogTitle>{editingRestaurant ? 'Edit Restaurant' : 'Add Restaurant'}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div><Label htmlFor="name">Name *</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required /></div>
@@ -152,8 +163,9 @@ export default function AdminRestaurants() {
               <ImageCropInput label="Restaurant Cover Image" value={imageUrl} onChange={setImageUrl} aspect={16/9} previewClassName="w-full h-32 object-cover rounded-md border" />
               <Button type="submit" className="w-full">{editingRestaurant ? 'Update' : 'Add'} Restaurant</Button>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <LocationChangeRequests />
@@ -175,6 +187,81 @@ export default function AdminRestaurants() {
           <CardContent className="py-10 text-center">
             <Store className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No restaurants in this category.</p>
+          </CardContent>
+        </Card>
+      ) : viewMode === 'list' ? (
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Cuisine</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Hours</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Active</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((restaurant) => {
+                  const status = (restaurant as any).approval_status;
+                  const isPending = status === 'pending';
+                  const open = (restaurant as any).opening_time?.slice(0, 5);
+                  const close = (restaurant as any).closing_time?.slice(0, 5);
+                  return (
+                    <TableRow key={restaurant.id}>
+                      <TableCell>
+                        {restaurant.image_url ? (
+                          <img src={restaurant.image_url} alt={restaurant.name} className="w-14 h-14 rounded object-cover" />
+                        ) : (
+                          <div className="w-14 h-14 rounded bg-muted flex items-center justify-center">
+                            <Store className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">{restaurant.name}</TableCell>
+                      <TableCell>{restaurant.cuisine_type || '—'}</TableCell>
+                      <TableCell>{restaurant.city || '—'}</TableCell>
+                      <TableCell className="max-w-[220px] truncate" title={restaurant.address || ''}>
+                        {restaurant.address || '—'}
+                      </TableCell>
+                      <TableCell>{open && close ? `${open}–${close}` : '—'}</TableCell>
+                      <TableCell>{statusBadge(status)}</TableCell>
+                      <TableCell>
+                        <Badge variant={(restaurant as any).is_active ? 'default' : 'outline'}>
+                          {(restaurant as any).is_active ? 'Yes' : 'No'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="inline-flex gap-1">
+                          {isPending ? (
+                            <Button size="sm" className="gradient-primary" onClick={() => openReview(restaurant)}>
+                              <Eye className="w-4 h-4 mr-1" />Review
+                            </Button>
+                          ) : (
+                            <>
+                              <Button variant="outline" size="sm" onClick={() => openReview(restaurant)}>
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => openDialog(restaurant)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDelete(restaurant.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       ) : (
