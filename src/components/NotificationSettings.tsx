@@ -93,7 +93,7 @@ export function NotificationSettings() {
               <p className="font-medium">Browser permission</p>
               <p className="text-sm text-muted-foreground">
                 Status:{' '}
-                <span className={permission === 'granted' ? 'text-green-600' : 'text-orange-600'}>
+                <span className={permission === 'granted' ? 'text-[hsl(var(--success))] font-medium' : 'text-[hsl(var(--warning))] font-medium'}>
                   {permission}
                 </span>
               </p>
