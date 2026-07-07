@@ -173,16 +173,28 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
               <p className="font-medium">{order.restaurant?.name || 'Restaurant'}</p>
               <p className="text-sm text-muted-foreground">{order.restaurant?.address}</p>
               {order.restaurant?.city && <p className="text-xs text-primary mt-1">📍 {order.restaurant.city}</p>}
+              {order.restaurantPhone ? (
+                <a
+                  href={`tel:${order.restaurantPhone}`}
+                  className="text-sm text-primary hover:underline flex items-center gap-1 mt-2 font-medium"
+                >
+                  <Phone className="w-3.5 h-3.5" /> {order.restaurantPhone}
+                </a>
+              ) : (
+                <p className="text-xs text-muted-foreground italic mt-2">No restaurant phone on file</p>
+              )}
             </div>
 
             {/* Customer */}
             <div className="p-3 rounded-lg border bg-muted/30">
               <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><User className="w-3 h-3" /> Customer</p>
               <p className="font-medium">{order.customer?.full_name || 'Customer'}</p>
-              {order.customer?.phone && (
-                <a href={`tel:${order.customer.phone}`} className="text-sm text-primary hover:underline flex items-center gap-1 mt-1">
+              {order.customer?.phone ? (
+                <a href={`tel:${order.customer.phone}`} className="text-sm text-primary hover:underline flex items-center gap-1 mt-1 font-medium">
                   <Phone className="w-3.5 h-3.5" /> {order.customer.phone}
                 </a>
+              ) : (
+                <p className="text-xs text-muted-foreground italic mt-1">No customer phone on file</p>
               )}
               {order.status !== 'delivered' && (
                 <>
