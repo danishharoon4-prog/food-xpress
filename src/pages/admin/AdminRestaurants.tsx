@@ -189,6 +189,81 @@ export default function AdminRestaurants() {
             <p className="text-muted-foreground">No restaurants in this category.</p>
           </CardContent>
         </Card>
+      ) : viewMode === 'list' ? (
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Cuisine</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Hours</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Active</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((restaurant) => {
+                  const status = (restaurant as any).approval_status;
+                  const isPending = status === 'pending';
+                  const open = (restaurant as any).opening_time?.slice(0, 5);
+                  const close = (restaurant as any).closing_time?.slice(0, 5);
+                  return (
+                    <TableRow key={restaurant.id}>
+                      <TableCell>
+                        {restaurant.image_url ? (
+                          <img src={restaurant.image_url} alt={restaurant.name} className="w-14 h-14 rounded object-cover" />
+                        ) : (
+                          <div className="w-14 h-14 rounded bg-muted flex items-center justify-center">
+                            <Store className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">{restaurant.name}</TableCell>
+                      <TableCell>{restaurant.cuisine_type || '—'}</TableCell>
+                      <TableCell>{restaurant.city || '—'}</TableCell>
+                      <TableCell className="max-w-[220px] truncate" title={restaurant.address || ''}>
+                        {restaurant.address || '—'}
+                      </TableCell>
+                      <TableCell>{open && close ? `${open}–${close}` : '—'}</TableCell>
+                      <TableCell>{statusBadge(status)}</TableCell>
+                      <TableCell>
+                        <Badge variant={(restaurant as any).is_active ? 'default' : 'outline'}>
+                          {(restaurant as any).is_active ? 'Yes' : 'No'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="inline-flex gap-1">
+                          {isPending ? (
+                            <Button size="sm" className="gradient-primary" onClick={() => openReview(restaurant)}>
+                              <Eye className="w-4 h-4 mr-1" />Review
+                            </Button>
+                          ) : (
+                            <>
+                              <Button variant="outline" size="sm" onClick={() => openReview(restaurant)}>
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => openDialog(restaurant)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDelete(restaurant.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((restaurant) => {
