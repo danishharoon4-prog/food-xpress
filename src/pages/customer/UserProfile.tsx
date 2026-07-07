@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
-import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X, CheckCircle2, Pencil } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
 
 interface FavoriteRestaurant {
@@ -38,6 +38,7 @@ export default function UserProfile() {
   const [initialCoords, setInitialCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState(true);
+  const [editingAddress, setEditingAddress] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -111,6 +112,8 @@ export default function UserProfile() {
         .eq('id', user.id);
 
       if (error) throw error;
+      if (permanentCoords) setInitialCoords(permanentCoords);
+      setEditingAddress(false);
       await refreshProfile();
       toast({ title: 'Profile Updated', description: 'Your profile has been saved successfully.' });
     } catch (error: any) {
@@ -302,25 +305,61 @@ export default function UserProfile() {
           {/* Permanent Address */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
-                Permanent Address
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                This will be used as your default delivery address. You can change it during checkout.
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Permanent Address
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Set once — used as your default delivery address. You can still change it at checkout.
+                  </p>
+                </div>
+                {permanentAddress && initialCoords && !editingAddress && (
+                  <Button size="sm" variant="outline" onClick={() => setEditingAddress(true)}>
+                    <Pencil className="w-3.5 h-3.5 mr-1.5" /> Change
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <LocationPicker
-                value={permanentAddress}
-                onChange={handlePermanentAddressChange}
-                placeholder="Enter your permanent/home address..."
-                initialCoords={initialCoords}
-              />
-              {permanentCoords && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  📍 GPS: {permanentCoords.latitude.toFixed(6)}, {permanentCoords.longitude.toFixed(6)}
-                </p>
+              {permanentAddress && initialCoords && !editingAddress ? (
+                <div className="rounded-lg border bg-success/5 border-success/30 p-4 flex items-start gap-3">
+                  <div className="p-2 rounded-full bg-success/10 shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-success" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">Address confirmed</p>
+                    <p className="text-sm text-muted-foreground mt-0.5 break-words">{permanentAddress}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1.5">
+                      📍 {initialCoords.latitude.toFixed(6)}, {initialCoords.longitude.toFixed(6)}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <LocationPicker
+                    value={permanentAddress}
+                    onChange={handlePermanentAddressChange}
+                    placeholder="Enter your permanent/home address..."
+                    initialCoords={initialCoords}
+                  />
+                  {permanentCoords && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      📍 GPS: {permanentCoords.latitude.toFixed(6)}, {permanentCoords.longitude.toFixed(6)}
+                    </p>
+                  )}
+                  {initialCoords && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="mt-2"
+                      onClick={() => setEditingAddress(false)}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
