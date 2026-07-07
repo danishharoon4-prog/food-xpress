@@ -493,6 +493,7 @@ export default function Restaurants() {
                       )}
                     </div>
                   </Link>
+                  </motion.div>
                 );
               })}
             </div>
