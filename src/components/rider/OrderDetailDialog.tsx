@@ -83,19 +83,16 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
       setMyRiderId(rider?.id ?? null);
     }
 
-    const ownerId = (o as any).restaurant?.owner_id;
-    const [{ data: cust }, restOwnerRes] = await Promise.all([
+    const [{ data: cust }, phoneRes] = await Promise.all([
       supabase.from('profiles').select('full_name, phone').eq('id', o.customer_id).maybeSingle(),
-      ownerId
-        ? supabase.from('profiles').select('phone').eq('id', ownerId).maybeSingle()
-        : Promise.resolve({ data: null } as any),
+      supabase.rpc('get_restaurant_phone_for_order', { _order_id: o.id }),
     ]);
 
     setOrder({
       ...(o as any),
       items: (o as any).order_items || [],
       customer: cust || null,
-      restaurantPhone: (restOwnerRes as any)?.data?.phone ?? null,
+      restaurantPhone: (phoneRes as any)?.data ?? null,
     });
     setLoading(false);
   };
