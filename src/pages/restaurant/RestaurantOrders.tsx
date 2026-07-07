@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { User, Phone, Mail, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import type { OrderStatus } from '@/types';
 
 const statusColors: Record<string, string> = {
@@ -141,14 +141,6 @@ export default function RestaurantOrders() {
                     </a>
                   ) : (
                     <p className="text-xs text-muted-foreground italic">No phone on file</p>
-                  )}
-                  {o.customer?.email && (
-                    <a
-                      href={`mailto:${o.customer.email}`}
-                      className="flex items-center gap-1.5 text-xs text-primary hover:underline break-all"
-                    >
-                      <Mail className="w-3 h-3 shrink-0" /> {o.customer.email}
-                    </a>
                   )}
                   {o.delivery_address && (
                     <a
