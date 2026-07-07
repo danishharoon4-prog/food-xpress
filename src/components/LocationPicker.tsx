@@ -9,6 +9,7 @@ interface LocationPickerProps {
   value: string;
   onChange: (address: string, coords?: { latitude: number; longitude: number }) => void;
   placeholder?: string;
+  initialCoords?: { latitude: number; longitude: number } | null;
 }
 
 // Default center: Mansehra, Pakistan
