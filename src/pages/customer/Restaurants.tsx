@@ -26,6 +26,7 @@ export default function Restaurants() {
   const [city, setCity] = useState<string>('all');
   const [cuisine, setCuisine] = useState<string>('all');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [ratings, setRatings] = useState<Record<string, { avg: number; count: number }>>({});
 
   useEffect(() => {
     fetchRestaurants();
