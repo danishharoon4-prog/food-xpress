@@ -12,6 +12,7 @@ export function isLovablePreviewNotificationContext() {
   const previewHost =
     host.startsWith('id-preview--') ||
     host.startsWith('preview--') ||
+    (host.includes('-preview--') && host.endsWith('.lovable.app')) ||
     host.endsWith('.lovableproject.com') ||
     host.endsWith('.lovableproject-dev.com');
 
