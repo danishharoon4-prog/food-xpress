@@ -55,14 +55,16 @@ async function loadGoogleMaps(): Promise<any> {
   return mapsLoaderPromise;
 }
 
-export function LocationPicker({ value, onChange, placeholder = "Your address will appear here..." }: LocationPickerProps) {
+export function LocationPicker({ value, onChange, placeholder = "Your address will appear here...", initialCoords }: LocationPickerProps) {
   const mapDivRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(
+    initialCoords ?? null
+  );
   const { toast } = useToast();
 
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
