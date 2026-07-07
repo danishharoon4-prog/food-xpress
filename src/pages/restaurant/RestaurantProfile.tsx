@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Store, CheckCircle2, Clock, XCircle, AlertCircle, MapPin, Lock, Send, Bell, Camera } from 'lucide-react';
+import { Loader2, User, Store, CheckCircle2, Clock, XCircle, AlertCircle, MapPin, Lock, Send, Bell, Camera, Eye, ImageIcon } from 'lucide-react';
 import { LocationPicker } from '@/components/LocationPicker';
 import ImageCropInput from '@/components/ImageCropInput';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
