@@ -345,6 +345,16 @@ export default function RestaurantOrders() {
                       Mark Delivered
                     </Button>
                   )}
+                  {['pending','confirmed','preparing','ready_for_pickup'].includes(o.status) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setCancelOrder(o); setCancelReason(''); }}
+                      className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <XCircle className="w-4 h-4 mr-1" /> Can't Fulfil
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
