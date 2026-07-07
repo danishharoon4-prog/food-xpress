@@ -135,7 +135,34 @@ export default function OrderTracking() {
     <div className="min-h-screen bg-background pb-8">
       <CustomerHeader />
 
+      <FeedbackDialog
+        orderId={order.id}
+        riderId={order.rider_id}
+        restaurantId={order.restaurant_id}
+        alreadyRated={alreadyRated}
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        hideTrigger
+        onRated={() => setAlreadyRated(true)}
+      />
+
       <main className="container py-8 space-y-6">
+        {isDelivered && !alreadyRated && (
+          <Card className="border-primary bg-primary/5 animate-fade-in">
+            <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Star className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold">Order delivered — how was it?</p>
+                  <p className="text-sm text-muted-foreground">Rate the rider, restaurant, and food.</p>
+                </div>
+              </div>
+              <Button onClick={() => setFeedbackOpen(true)} className="gradient-primary">Give Feedback</Button>
+            </CardContent>
+          </Card>
+        )}
         {/* Order Header */}
         <Card className={isCancelled ? 'border-destructive' : isDelivered ? 'border-success' : 'border-primary'}>
           <CardContent className="py-6">
