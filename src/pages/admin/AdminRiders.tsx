@@ -118,6 +118,14 @@ export default function AdminRiders() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold">Registered Riders</h2>
         <div className="flex items-center gap-2">
+          <div className="flex items-center border rounded-md p-0.5">
+            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('list')}>
+              <List className="w-4 h-4" />
+            </Button>
+            <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('grid')}>
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
           <Select value={cityFilter} onValueChange={setCityFilter}>
             <SelectTrigger className="w-44">
               <MapPin className="w-4 h-4 mr-1 text-muted-foreground" />
