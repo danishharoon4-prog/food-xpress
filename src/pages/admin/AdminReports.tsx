@@ -185,12 +185,28 @@ export default function AdminReports() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Reports</h2>
-          <p className="text-sm text-muted-foreground">Orders, revenue and performance insights.</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold">Reports</h2>
+            <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 border border-green-500/20">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Live
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Orders, revenue and performance insights · Updated {format(lastUpdated, 'HH:mm:ss')}
+          </p>
         </div>
-        <Button variant="outline" onClick={exportCSV}>
-          <Download className="w-4 h-4 mr-2" /> Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchAll} disabled={refreshing}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
+          <Button variant="outline" onClick={exportCSV}>
+            <Download className="w-4 h-4 mr-2" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
