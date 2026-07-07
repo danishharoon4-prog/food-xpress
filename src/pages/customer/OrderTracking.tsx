@@ -68,6 +68,19 @@ export default function OrderTracking() {
 
         if (riderData) setRider(riderData as any);
       }
+
+      // Check if already rated & auto-open feedback when delivered
+      if (data.status === 'delivered' && user?.id) {
+        const { data: existing } = await supabase
+          .from('ratings')
+          .select('id')
+          .eq('order_id', data.id)
+          .eq('customer_id', user.id)
+          .maybeSingle();
+        const rated = !!existing;
+        setAlreadyRated(rated);
+        if (!rated) setFeedbackOpen(true);
+      }
     }
     setLoading(false);
   };
