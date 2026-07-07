@@ -50,20 +50,46 @@ export function NotificationSettings() {
   };
 
   const enableBrowserPush = async () => {
-    const p = await requestNotificationPermission();
-    setPermission(p);
-    if (p === 'granted') {
-      const ok = await ensurePushSubscription();
-      if (ok) toast.success('Browser push enabled on this device');
-      else toast.error('Could not subscribe this device to push');
-    } else {
-      toast.error('Notification permission denied');
+    if (typeof window === 'undefined' || typeof Notification === 'undefined') {
+      toast.error('This browser does not support notifications');
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      toast.error('Notifications are blocked. Enable them in your browser site settings, then reload.');
+      return;
+    }
+    try {
+      // Must be called synchronously from the click (no awaits before this line).
+      const p = await Notification.requestPermission();
+      setPermission(p);
+      if (p !== 'granted') {
+        toast.error('Notification permission was not granted');
+        return;
+      }
+      toast.success('Browser notifications enabled');
+      // Try to also register background push (only works in production/live app).
+      try {
+        const ok = await ensurePushSubscription();
+        if (ok) toast.success('Background push enabled on this device');
+      } catch {
+        /* silent — background push only works on the published app */
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not enable notifications');
     }
   };
 
-  const sendTest = () => {
-    fireBrowserNotification('Test Notification', 'Your notifications are working ✅');
-    toast.success('Test notification fired');
+  const sendTest = async () => {
+    if (Notification.permission !== 'granted') {
+      toast.error('Enable notifications first');
+      return;
+    }
+    try {
+      await fireBrowserNotification('Test Notification', 'Your notifications are working ✅');
+      toast.success('Test notification sent');
+    } catch {
+      toast.error('Could not fire test notification');
+    }
   };
 
   if (loading || !prefs) {
