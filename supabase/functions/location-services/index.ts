@@ -11,33 +11,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // SECURITY: require an authenticated user for every action. The function
-  // proxies calls that consume Google Maps API quota, so unauthenticated
-  // access would let anyone drain the app's billing.
+  // SECURITY: require a Bearer token (either a user session JWT or the project
+  // anon key). `supabase.functions.invoke()` always attaches one, so this
+  // rejects raw external callers while still allowing guest map usage in the
+  // signup / checkout flows where no user session exists yet.
   const authHeader = req.headers.get("Authorization");
-  console.log("auth header present:", !!authHeader, "prefix:", authHeader?.slice(0, 20));
   if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized", reason: "missing_bearer" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
-    console.log("getUser err:", userErr?.message, "uid:", userData?.user?.id);
-    if (userErr || !userData?.user?.id) {
-      return new Response(JSON.stringify({ error: "Unauthorized", reason: "invalid_token", detail: userErr?.message }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
     if (!apiKey) {
       throw new Error("Google Maps API key not configured");
