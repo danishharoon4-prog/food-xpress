@@ -33,6 +33,8 @@ export default function RestaurantOrders() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [pickupOrder, setPickupOrder] = useState<any | null>(null);
+  const [pickupSubmitting, setPickupSubmitting] = useState<'self' | 'rider' | null>(null);
 
   const load = async () => {
     if (!restaurant?.id) return;
