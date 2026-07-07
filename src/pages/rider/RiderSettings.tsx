@@ -138,16 +138,15 @@ export default function RiderSettings() {
     e.preventDefault();
     if (!wallet) return;
 
-    const { error } = await supabase
-      .from('rider_wallets')
-      .update({
-        easypaisa_number: easypaisaNumber || null,
-        jazzcash_number: jazzcashNumber || null,
-        bank_name: bankName || null,
-        account_number: accountNumber || null,
-        account_title: accountTitle || null,
-      })
-      .eq('id', wallet.id);
+    // SECURITY: direct rider_wallets UPDATE is blocked. Use RPC that only
+    // allows changing payment-info columns, never balance/earnings.
+    const { error } = await supabase.rpc('update_rider_payment_info', {
+      _bank_name: bankName || null,
+      _account_number: accountNumber || null,
+      _account_title: accountTitle || null,
+      _easypaisa_number: easypaisaNumber || null,
+      _jazzcash_number: jazzcashNumber || null,
+    });
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });

@@ -1119,6 +1119,13 @@ export type Database = {
         Returns: string[]
       }
       get_owned_restaurant_id: { Args: { _user_id: string }; Returns: string[] }
+      get_restaurant_rating_summary: {
+        Args: { _restaurant_id: string }
+        Returns: {
+          avg_rating: number
+          rating_count: number
+        }[]
+      }
       get_rider_id_for_user: { Args: { _user_id: string }; Returns: string[] }
       get_rider_ids_for_customer_orders: {
         Args: { _customer_id: string }
@@ -1147,8 +1154,44 @@ export type Database = {
         }
         Returns: boolean
       }
+      place_order: {
+        Args: {
+          _delivery_address: string
+          _delivery_latitude: number
+          _delivery_longitude: number
+          _estimated_minutes: number
+          _items: Json
+          _payment_method: string
+          _restaurant_id: string
+          _special_instructions: string
+        }
+        Returns: {
+          order_id: string
+          order_number: string
+        }[]
+      }
+      submit_rating: {
+        Args: {
+          _food_rating: number
+          _order_id: string
+          _restaurant_rating: number
+          _review_text: string
+          _rider_rating: number
+        }
+        Returns: string
+      }
       update_order_eta: {
         Args: { _new_eta: string; _order_id: string }
+        Returns: boolean
+      }
+      update_rider_payment_info: {
+        Args: {
+          _account_number: string
+          _account_title: string
+          _bank_name: string
+          _easypaisa_number: string
+          _jazzcash_number: string
+        }
         Returns: boolean
       }
     }

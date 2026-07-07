@@ -58,24 +58,19 @@ export default function Restaurants() {
 
   const fetchRatings = async (restaurantIds: string[]) => {
     if (!restaurantIds.length) return;
-    const { data } = await supabase
-      .from('ratings')
-      .select('restaurant_id, restaurant_rating, food_rating')
-      .in('restaurant_id', restaurantIds)
-      .not('restaurant_id', 'is', null);
-    if (!data) return;
-    const agg: Record<string, { sum: number; count: number }> = {};
-    data.forEach((r) => {
-      const rid = r.restaurant_id as string;
-      const score = r.restaurant_rating ?? r.food_rating;
-      if (!rid || score == null) return;
-      if (!agg[rid]) agg[rid] = { sum: 0, count: 0 };
-      agg[rid].sum += Number(score);
-      agg[rid].count += 1;
-    });
+    // SECURITY: ratings table is no longer publicly readable. Use aggregate RPC.
+    const results = await Promise.all(
+      restaurantIds.map(async (rid) => {
+        const { data } = await supabase.rpc('get_restaurant_rating_summary', {
+          _restaurant_id: rid,
+        });
+        const row = Array.isArray(data) ? data[0] : data;
+        return { rid, avg: Number(row?.avg_rating ?? 0), count: Number(row?.rating_count ?? 0) };
+      }),
+    );
     const map: Record<string, { avg: number; count: number }> = {};
-    Object.entries(agg).forEach(([k, v]) => {
-      map[k] = { avg: v.sum / v.count, count: v.count };
+    results.forEach((r) => {
+      if (r.count > 0) map[r.rid] = { avg: r.avg, count: r.count };
     });
     setRatings(map);
   };
