@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useOutletContext, Link } from 'react-router-dom';
+import { useOutletContext, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   ShoppingBag, Banknote, UtensilsCrossed, Clock, TrendingUp, Star, Store,
-  ArrowUpRight, CheckCircle2, XCircle, ChefHat,
+  ArrowUpRight, CheckCircle2, XCircle, ChefHat, BellRing, X,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
