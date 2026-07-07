@@ -97,7 +97,12 @@ Deno.serve(async (req) => {
       .limit(20);
 
     const messages = [
-      { role: "system", content: SUPPORT_SYSTEM_PROMPT + `\n\nCurrent user role: ${role}.` },
+      {
+        role: "system",
+        content:
+          SUPPORT_SYSTEM_PROMPT +
+          `\n\nCurrent user role: ${role}. Issue category selected by user: ${safeCategory}. Focus your reply on this category first.`,
+      },
       ...(history ?? []).map((m: any) => ({
         role: m.sender === "user" ? "user" : m.sender === "ai" ? "assistant" : "system",
         content: m.sender === "admin" ? `[Admin reply]: ${m.content}` : m.content,
