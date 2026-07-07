@@ -7,24 +7,10 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { NotificationsListener } from "@/components/NotificationsListener";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { patchSonnerForBrowserNotifications, requestNotificationPermission } from "@/lib/browserNotify";
+import { patchSonnerForBrowserNotifications } from "@/lib/browserNotify";
 import { PageTransition } from "@/components/PageTransition";
 
 patchSonnerForBrowserNotifications();
-if (typeof window !== "undefined") {
-  // Ask once on load so toasts can trigger native browser notifications.
-  requestNotificationPermission();
-  // Some browsers require a user gesture — re-prompt on the first interaction.
-  const primePermission = () => {
-    requestNotificationPermission();
-    window.removeEventListener("pointerdown", primePermission);
-    window.removeEventListener("keydown", primePermission);
-  };
-  if (typeof Notification !== "undefined" && Notification.permission === "default") {
-    window.addEventListener("pointerdown", primePermission, { once: true });
-    window.addEventListener("keydown", primePermission, { once: true });
-  }
-}
 
 // Pages
 import { Navigate } from "react-router-dom";

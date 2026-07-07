@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Bike, ShoppingBag, Star, TrendingUp, Bell, BellOff, PackageCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Rider, RiderWallet } from '@/types';
+import { ensurePushSubscription } from '@/lib/pushSubscription';
+import { requestNotificationPermission } from '@/lib/browserNotify';
 
 export default function RiderDashboard() {
   const { user } = useAuth();
@@ -35,6 +37,18 @@ export default function RiderDashboard() {
     audioRef.current = new Audio(
       'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
     );
+  }, []);
+
+  useEffect(() => {
+    const syncPermission = () => {
+      if (typeof Notification !== 'undefined') setNotifPermission(Notification.permission);
+    };
+    window.addEventListener('focus', syncPermission);
+    document.addEventListener('visibilitychange', syncPermission);
+    return () => {
+      window.removeEventListener('focus', syncPermission);
+      document.removeEventListener('visibilitychange', syncPermission);
+    };
   }, []);
 
   useEffect(() => {
@@ -201,10 +215,22 @@ export default function RiderDashboard() {
       toast({ title: 'Not supported', description: 'Browser notifications unavailable.', variant: 'destructive' });
       return;
     }
-    const perm = await Notification.requestPermission();
+    if (Notification.permission === 'denied') {
+      toast({
+        title: 'Notifications blocked',
+        description: 'Open browser site settings, allow Notifications for this app, then come back and try again.',
+        variant: 'destructive',
+      });
+      setNotifPermission('denied');
+      return;
+    }
+    const perm = await requestNotificationPermission();
     setNotifPermission(perm);
     if (perm === 'granted') {
+      await ensurePushSubscription();
       toast({ title: 'Notifications enabled', description: "You'll be alerted on new orders." });
+    } else {
+      toast({ title: 'Not enabled', description: 'Please allow notifications when your browser asks.', variant: 'destructive' });
     }
   };
 
@@ -332,9 +358,9 @@ export default function RiderDashboard() {
                 </p>
               </div>
             </div>
-            {notifPermission !== 'denied' && (
-              <Button size="sm" onClick={requestNotifPermission}>Enable</Button>
-            )}
+            <Button size="sm" variant={notifPermission === 'denied' ? 'outline' : 'default'} onClick={requestNotifPermission}>
+              {notifPermission === 'denied' ? 'How to allow' : 'Enable'}
+            </Button>
           </CardContent>
         </Card>
       )}
