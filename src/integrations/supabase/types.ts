@@ -1180,6 +1180,10 @@ export type Database = {
           order_number: string
         }[]
       }
+      set_restaurant_open: {
+        Args: { _is_open: boolean; _restaurant_id: string }
+        Returns: boolean
+      }
       submit_rating: {
         Args: {
           _food_rating: number
