@@ -8,6 +8,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { NotificationsListener } from "@/components/NotificationsListener";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { patchSonnerForBrowserNotifications, requestNotificationPermission } from "@/lib/browserNotify";
+import { PageTransition } from "@/components/PageTransition";
 
 patchSonnerForBrowserNotifications();
 if (typeof window !== "undefined") {
