@@ -259,10 +259,12 @@ export default function AdminOrders() {
                     <p className="text-sm text-muted-foreground mb-1">Total</p>
                     <p className="font-bold text-primary">PKR {Number(order.total).toLocaleString()}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Delivery Address</p>
-                    <p className="text-sm">{order.delivery_address}</p>
-                  </div>
+                  {order.status !== 'delivered' && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Delivery Address</p>
+                      <p className="text-sm">{order.delivery_address}</p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Items</p>
                     <p className="text-sm">{order.order_items?.length || 0} items</p>

@@ -148,16 +148,20 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
                   <Phone className="w-3.5 h-3.5" /> {order.customer.phone}
                 </a>
               )}
-              <p className="text-sm text-muted-foreground mt-2 flex items-start gap-1">
-                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" /> {order.delivery_address}
-              </p>
-              <div className="mt-3">
-                <CustomerLocationMap
-                  latitude={order.delivery_latitude}
-                  longitude={order.delivery_longitude}
-                  address={order.delivery_address}
-                />
-              </div>
+              {order.status !== 'delivered' && (
+                <>
+                  <p className="text-sm text-muted-foreground mt-2 flex items-start gap-1">
+                    <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" /> {order.delivery_address}
+                  </p>
+                  <div className="mt-3">
+                    <CustomerLocationMap
+                      latitude={order.delivery_latitude}
+                      longitude={order.delivery_longitude}
+                      address={order.delivery_address}
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Items */}

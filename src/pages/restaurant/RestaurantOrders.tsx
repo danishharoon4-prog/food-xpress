@@ -140,20 +140,22 @@ export default function RestaurantOrders() {
                       <Phone className="w-3 h-3" /> {o.customer.phone}
                     </a>
                   )}
-                  <a
-                    href={
-                      o.delivery_latitude && o.delivery_longitude
-                        ? `https://www.google.com/maps?q=${o.delivery_latitude},${o.delivery_longitude}`
-                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.delivery_address)}`
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-start gap-1.5 text-xs text-primary hover:underline"
-                  >
-                    <MapPin className="w-3 h-3 mt-0.5 shrink-1" />
-                    <span className="break-all">{o.delivery_address}</span>
-                    <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
-                  </a>
+                  {o.status !== 'delivered' && (
+                    <a
+                      href={
+                        o.delivery_latitude && o.delivery_longitude
+                          ? `https://www.google.com/maps?q=${o.delivery_latitude},${o.delivery_longitude}`
+                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.delivery_address)}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-1.5 text-xs text-primary hover:underline"
+                    >
+                      <MapPin className="w-3 h-3 mt-0.5 shrink-1" />
+                      <span className="break-all">{o.delivery_address}</span>
+                      <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
+                    </a>
+                  )}
                 </div>
               </div>
 

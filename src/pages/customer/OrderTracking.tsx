@@ -280,7 +280,8 @@ export default function OrderTracking() {
             </Card>
           )}
 
-          {/* Delivery Address */}
+          {/* Delivery Address — hidden after delivery */}
+          {order.status !== 'delivered' && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -307,6 +308,7 @@ export default function OrderTracking() {
               />
             </CardContent>
           </Card>
+          )}
         </div>
 
         {/* Order Items */}

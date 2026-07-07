@@ -179,13 +179,15 @@ export default function RiderOrders() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <Navigation className="w-4 h-4 mt-1 text-success" />
-                      <div>
-                        <p className="text-sm font-medium">Deliver to:</p>
-                        <p className="text-xs text-muted-foreground">{order.delivery_address}</p>
+                    {order.status !== 'delivered' && (
+                      <div className="flex items-start gap-2">
+                        <Navigation className="w-4 h-4 mt-1 text-success" />
+                        <div>
+                          <p className="text-sm font-medium">Deliver to:</p>
+                          <p className="text-xs text-muted-foreground">{order.delivery_address}</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="font-bold text-lg">PKR {Number(order.total).toLocaleString()}</span>
@@ -243,13 +245,15 @@ export default function RiderOrders() {
                         <p className="text-xs text-muted-foreground">{(order as any).restaurant?.address}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <Navigation className="w-4 h-4 mt-1 text-success" />
-                      <div>
-                        <p className="text-sm font-medium">Deliver to:</p>
-                        <p className="text-xs text-muted-foreground">{order.delivery_address}</p>
+                    {order.status !== 'delivered' && (
+                      <div className="flex items-start gap-2">
+                        <Navigation className="w-4 h-4 mt-1 text-success" />
+                        <div>
+                          <p className="text-sm font-medium">Deliver to:</p>
+                          <p className="text-xs text-muted-foreground">{order.delivery_address}</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Customer info */}
