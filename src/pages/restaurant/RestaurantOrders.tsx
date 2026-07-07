@@ -155,8 +155,13 @@ export default function RestaurantOrders() {
         const next = nextStatus[o.status];
         const isOpen = expanded[o.id];
         return (
-          <Card key={o.id} className="overflow-hidden">
+          <Card
+            key={o.id}
+            ref={(el) => { cardRefs.current[o.id] = el; }}
+            className={`overflow-hidden transition-all ${highlightId === o.id ? 'ring-2 ring-primary shadow-lg animate-pulse' : ''}`}
+          >
             <CardContent className="p-4 space-y-3">
+
               {/* Header */}
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div>
