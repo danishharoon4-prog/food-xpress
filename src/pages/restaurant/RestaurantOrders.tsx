@@ -39,6 +39,29 @@ export default function RestaurantOrders() {
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [pickupOrder, setPickupOrder] = useState<any | null>(null);
   const [pickupSubmitting, setPickupSubmitting] = useState<'self' | 'rider' | null>(null);
+  const [cancelOrder, setCancelOrder] = useState<any | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+
+  const submitCancel = async () => {
+    if (!cancelOrder) return;
+    const reason = cancelReason.trim();
+    if (reason.length < 3) {
+      toast({ title: 'Reason required', description: 'Please provide a short reason (min 3 chars).', variant: 'destructive' });
+      return;
+    }
+    setCancelSubmitting(true);
+    const { error } = await supabase.rpc('cancel_order', { _order_id: cancelOrder.id, _reason: reason });
+    setCancelSubmitting(false);
+    if (error) {
+      toast({ title: 'Cancel failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Order cancelled', description: 'The customer has been notified.' });
+    setCancelOrder(null);
+    setCancelReason('');
+    load();
+  };
 
   const load = async () => {
     if (!restaurant?.id) return;
