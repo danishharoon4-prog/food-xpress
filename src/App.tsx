@@ -133,6 +133,7 @@ const App = () => (
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </PageTransition>
           </BrowserRouter>
         </TooltipProvider>
       </CartProvider>
