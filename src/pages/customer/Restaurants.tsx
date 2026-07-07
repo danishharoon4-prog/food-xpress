@@ -362,10 +362,15 @@ export default function Restaurants() {
                       <h3 className="font-semibold text-base leading-tight group-hover:text-primary transition-colors">
                         {restaurant.name}
                       </h3>
-                      <Badge variant="secondary" className="text-xs shrink-0 h-6">
-                        <Star className="w-3 h-3 mr-1 fill-warning text-warning" />
-                        4.5
-                      </Badge>
+                      {(() => {
+                        const r = ratings[restaurant.id];
+                        return (
+                          <Badge variant="secondary" className="text-xs shrink-0 h-6">
+                            <Star className="w-3 h-3 mr-1 fill-warning text-warning" />
+                            {r ? `${r.avg.toFixed(1)} (${r.count})` : 'New'}
+                          </Badge>
+                        );
+                      })()}
                     </div>
 
                     {restaurant.cuisine_type && (
