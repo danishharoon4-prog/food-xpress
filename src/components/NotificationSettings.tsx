@@ -11,12 +11,14 @@ import { Bell, Loader2, Volume2 } from 'lucide-react';
 import { DEFAULT_PREFS, EVENT_LABELS, NotifPrefs } from '@/lib/notificationPrefs';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
 import { fireBrowserNotification, requestNotificationPermission } from '@/lib/browserNotify';
+import { isLovablePreviewNotificationContext, openNotificationPermissionTab } from '@/lib/notificationPermission';
 
 export function NotificationSettings() {
   const { user } = useAuth();
   const [prefs, setPrefs] = useState<NotifPrefs | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEmbeddedPreview, setIsEmbeddedPreview] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
@@ -35,6 +37,7 @@ export function NotificationSettings() {
   }, [user]);
 
   useEffect(() => {
+    setIsEmbeddedPreview(isLovablePreviewNotificationContext());
     const syncPermission = () => {
       if (typeof Notification !== 'undefined') setPermission(Notification.permission);
     };
@@ -62,6 +65,11 @@ export function NotificationSettings() {
   };
 
   const enableBrowserPush = async () => {
+    if (isEmbeddedPreview) {
+      openNotificationPermissionTab();
+      toast.info('Browser blocks notification permission inside preview. Use the new tab and tap Enable there.');
+      return;
+    }
     if (typeof window === 'undefined' || typeof Notification === 'undefined') {
       toast.error('This browser does not support notifications');
       return;
@@ -132,22 +140,31 @@ export function NotificationSettings() {
               <p className="text-sm text-muted-foreground">
                 Status:{' '}
                 <span className={
-                  permission === 'granted'
+                  isEmbeddedPreview
+                    ? 'text-[hsl(var(--warning))] font-medium'
+                    : permission === 'granted'
                     ? 'text-[hsl(var(--success))] font-medium'
                     : permission === 'denied'
                     ? 'text-destructive font-medium'
                     : 'text-[hsl(var(--warning))] font-medium'
                 }>
-                  {permission}
+                  {isEmbeddedPreview ? 'open app tab required' : permission}
                 </span>
               </p>
+              {isEmbeddedPreview && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Browser permission prompts are blocked inside preview. Open this app in a browser tab, then tap Enable there.
+                </p>
+              )}
               {permission === 'denied' && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Notifications are blocked for this site. Click the lock icon in the address bar → Site settings → allow Notifications, then reload.
                 </p>
               )}
             </div>
-            {permission === 'granted' ? (
+            {isEmbeddedPreview ? (
+              <Button size="sm" onClick={enableBrowserPush}>Open app</Button>
+            ) : permission === 'granted' ? (
               <Button size="sm" variant="outline" onClick={sendTest}>Send test</Button>
             ) : permission === 'denied' ? (
               <Button
