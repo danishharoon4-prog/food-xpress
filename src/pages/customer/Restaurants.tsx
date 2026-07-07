@@ -397,10 +397,19 @@ export default function Restaurants() {
             </div>
           ) : (
             <div className="grid gap-8 md:gap-10 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredRestaurants.map((restaurant) => {
+              {filteredRestaurants.map((restaurant, idx) => {
                 const r = ratings[restaurant.id];
+                const isFav = favoriteIds.has(restaurant.id);
                 return (
-                  <Link key={restaurant.id} to={`/restaurant/${restaurant.id}`} className="group block">
+                  <motion.div
+                    key={restaurant.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-40px' }}
+                    transition={{ duration: 0.5, delay: (idx % 6) * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -8 }}
+                  >
+                  <Link to={`/restaurant/${restaurant.id}`} className="group block">
                     <div className="relative overflow-hidden rounded-[2rem] aspect-[1.4] mb-5 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                       {restaurant.image_url ? (
                         <img
