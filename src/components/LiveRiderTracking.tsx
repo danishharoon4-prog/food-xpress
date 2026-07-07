@@ -266,6 +266,21 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Live Map */}
+        <div className="relative w-full rounded-lg overflow-hidden border" style={{ height: 240 }}>
+          <div ref={mapDivRef} className="w-full h-full" />
+          {mapError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 text-sm text-destructive">
+              {mapError}
+            </div>
+          )}
+          {!mapError && !hasLocation && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/70 text-xs text-muted-foreground">
+              Waiting for rider location…
+            </div>
+          )}
+        </div>
+
         {hasLocation ? (
           <>
             {/* Distance and ETA */}
@@ -278,6 +293,7 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
                     <p className="text-xs text-muted-foreground">away</p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-2">
                   <Clock className="w-5 h-5 text-primary" />
                   <div>
