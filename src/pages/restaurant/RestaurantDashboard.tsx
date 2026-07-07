@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useOutletContext, Link } from 'react-router-dom';
+import { useOutletContext, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   ShoppingBag, Banknote, UtensilsCrossed, Clock, TrendingUp, Star, Store,
-  ArrowUpRight, CheckCircle2, XCircle, ChefHat,
+  ArrowUpRight, CheckCircle2, XCircle, ChefHat, BellRing, X,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -25,11 +25,13 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function RestaurantDashboard() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [itemsCount, setItemsCount] = useState(0);
   const [topItems, setTopItems] = useState<{ name: string; qty: number }[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newOrders, setNewOrders] = useState<{ id: string; order_number: string; total: number }[]>([]);
 
   useEffect(() => {
     if (!restaurant?.id) return;
@@ -65,6 +67,40 @@ export default function RestaurantDashboard() {
       setLoading(false);
     })();
   }, [restaurant?.id]);
+
+  // Realtime: new-order notification
+  useEffect(() => {
+    if (!restaurant?.id) return;
+    const ch = supabase
+      .channel(`rest-dash-orders-${restaurant.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurant.id}` },
+        (payload) => {
+          const o: any = payload.new;
+          setNewOrders((prev) => [{ id: o.id, order_number: o.order_number, total: Number(o.total || 0) }, ...prev].slice(0, 5));
+          setRecent((prev) => [{ id: o.id, order_number: o.order_number, total: o.total, status: o.status, created_at: o.created_at }, ...prev].slice(0, 6));
+          setOrders((prev) => [o, ...prev]);
+          try {
+            const audio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+            audio.play().catch(() => {});
+          } catch {}
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [restaurant?.id]);
+
+  const openNewOrder = (id: string) => {
+    setNewOrders((prev) => prev.filter((n) => n.id !== id));
+    navigate(`/restaurant/orders?highlight=${id}`);
+  };
+
+  const dismissNewOrder = (id: string) => {
+    setNewOrders((prev) => prev.filter((n) => n.id !== id));
+  };
+
+
 
   const stats = useMemo(() => {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
@@ -143,6 +179,44 @@ export default function RestaurantDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Live new-order notifications */}
+      {newOrders.length > 0 && (
+        <div className="space-y-2">
+          {newOrders.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => openNewOrder(n.id)}
+              className="w-full text-left group relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-transparent p-4 shadow-md hover:shadow-lg transition-all animate-fade-in"
+            >
+              <span className="absolute inset-0 rounded-2xl ring-2 ring-primary/40 animate-pulse pointer-events-none" />
+              <div className="relative flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 animate-[pulse_1.2s_ease-in-out_infinite]">
+                  <BellRing className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold uppercase tracking-wide text-primary">New Order</span>
+                    <Badge variant="secondary" className="text-[10px]">Tap to view</Badge>
+                  </div>
+                  <p className="font-semibold text-sm truncate">
+                    #{n.order_number} · PKR {Math.round(n.total).toLocaleString()}
+                  </p>
+                </div>
+                <span
+                  role="button"
+                  aria-label="Dismiss"
+                  onClick={(e) => { e.stopPropagation(); dismissNewOrder(n.id); }}
+                  className="p-1.5 rounded-lg hover:bg-background/60 transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+
       {/* Hero header */}
       <Card className="overflow-hidden border-0 shadow-lg">
         <div className="relative">

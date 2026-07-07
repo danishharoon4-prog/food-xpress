@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,8 +31,11 @@ const nextStatus: Record<string, OrderStatus | null> = {
 export default function RestaurantOrders() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<any[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [pickupOrder, setPickupOrder] = useState<any | null>(null);
   const [pickupSubmitting, setPickupSubmitting] = useState<'self' | 'rider' | null>(null);
 
@@ -97,6 +100,26 @@ export default function RestaurantOrders() {
     };
   }, [restaurant?.id]);
 
+  // Handle ?highlight=<orderId> — auto-expand + scroll + pulse
+  useEffect(() => {
+    const hid = searchParams.get('highlight');
+    if (!hid || orders.length === 0) return;
+    const found = orders.find((o) => o.id === hid);
+    if (!found) return;
+    setExpanded((prev) => ({ ...prev, [hid]: true }));
+    setHighlightId(hid);
+    setTimeout(() => {
+      cardRefs.current[hid]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    const t = setTimeout(() => {
+      setHighlightId(null);
+      searchParams.delete('highlight');
+      setSearchParams(searchParams, { replace: true });
+    }, 3000);
+    return () => clearTimeout(t);
+  }, [searchParams, orders, setSearchParams]);
+
+
   const advance = async (id: string, status: OrderStatus) => {
     const { error } = await supabase.from('orders').update({ status }).eq('id', id);
     if (error) return toast({ title: 'Failed', description: error.message, variant: 'destructive' });
@@ -132,8 +155,13 @@ export default function RestaurantOrders() {
         const next = nextStatus[o.status];
         const isOpen = expanded[o.id];
         return (
-          <Card key={o.id} className="overflow-hidden">
+          <Card
+            key={o.id}
+            ref={(el) => { cardRefs.current[o.id] = el; }}
+            className={`overflow-hidden transition-all ${highlightId === o.id ? 'ring-2 ring-primary shadow-lg animate-pulse' : ''}`}
+          >
             <CardContent className="p-4 space-y-3">
+
               {/* Header */}
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div>
