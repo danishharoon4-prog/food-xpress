@@ -42,6 +42,28 @@ export default function RestaurantOrders() {
   const [cancelOrder, setCancelOrder] = useState<any | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [availableRiders, setAvailableRiders] = useState<number | null>(null);
+  const [ridersLoading, setRidersLoading] = useState(false);
+
+  const loadAvailableRiders = async () => {
+    if (!restaurant?.id) return;
+    setRidersLoading(true);
+    const { data, error } = await supabase.rpc('count_available_riders_for_restaurant', {
+      _restaurant_id: restaurant.id,
+    });
+    setRidersLoading(false);
+    if (!error) setAvailableRiders(Number(data ?? 0));
+  };
+
+  useEffect(() => {
+    loadAvailableRiders();
+    if (!restaurant?.id) return;
+    const ch = supabase
+      .channel('rest-avail-riders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'riders' }, () => loadAvailableRiders())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [restaurant?.id]);
 
   const submitCancel = async () => {
     if (!cancelOrder) return;
