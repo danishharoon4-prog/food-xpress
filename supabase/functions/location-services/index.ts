@@ -15,8 +15,9 @@ serve(async (req) => {
   // proxies calls that consume Google Maps API quota, so unauthenticated
   // access would let anyone drain the app's billing.
   const authHeader = req.headers.get("Authorization");
+  console.log("auth header present:", !!authHeader, "prefix:", authHeader?.slice(0, 20));
   if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", reason: "missing_bearer" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
