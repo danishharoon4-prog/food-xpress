@@ -123,7 +123,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </PageTransition>
-            <SupportChatWidget />
+            
           </BrowserRouter>
         </TooltipProvider>
       </CartProvider>
