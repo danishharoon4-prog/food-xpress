@@ -15,6 +15,10 @@ interface Props {
   restaurantId: string | null;
   alreadyRated?: boolean;
   onRated?: () => void;
+  /** Controlled mode: when provided, hide the trigger button */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
 function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
