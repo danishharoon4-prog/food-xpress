@@ -368,6 +368,8 @@ export default function RiderSettings() {
           </form>
         </CardContent>
       </Card>
+
+      <NotificationSettings />
     </div>
   );
 }
