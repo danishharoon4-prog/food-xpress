@@ -37,8 +37,15 @@ Deno.serve(async (req) => {
     if (!user_id) return json({ error: "user_id required" }, 400);
     if (user_id === caller.id) return json({ error: "Cannot delete yourself" }, 400);
 
+    // Pre-clean rows that don't cascade from auth.users
+    await admin.from("favorite_restaurants").delete().eq("user_id", user_id);
+    await admin.from("restaurants").delete().eq("owner_id", user_id);
+
     const { error } = await admin.auth.admin.deleteUser(user_id);
-    if (error) return json({ error: error.message }, 400);
+    if (error) {
+      console.error("deleteUser failed:", JSON.stringify(error), error);
+      return json({ error: error.message || "Database error deleting user" }, 400);
+    }
 
     return json({ success: true });
   } catch (e) {
