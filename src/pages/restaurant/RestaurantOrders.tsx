@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink, Truck, Search, Loader2, XCircle } from 'lucide-react';
+import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink, Truck, Search, Loader2, XCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import type { OrderStatus } from '@/types';
 
 const statusColors: Record<string, string> = {
@@ -42,6 +42,28 @@ export default function RestaurantOrders() {
   const [cancelOrder, setCancelOrder] = useState<any | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [availableRiders, setAvailableRiders] = useState<number | null>(null);
+  const [ridersLoading, setRidersLoading] = useState(false);
+
+  const loadAvailableRiders = async () => {
+    if (!restaurant?.id) return;
+    setRidersLoading(true);
+    const { data, error } = await supabase.rpc('count_available_riders_for_restaurant', {
+      _restaurant_id: restaurant.id,
+    });
+    setRidersLoading(false);
+    if (!error) setAvailableRiders(Number(data ?? 0));
+  };
+
+  useEffect(() => {
+    loadAvailableRiders();
+    if (!restaurant?.id) return;
+    const ch = supabase
+      .channel('rest-avail-riders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'riders' }, () => loadAvailableRiders())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [restaurant?.id]);
 
   const submitCancel = async () => {
     if (!cancelOrder) return;
@@ -266,6 +288,45 @@ export default function RestaurantOrders() {
                 </div>
               )}
 
+              {o.status === 'ready_for_pickup' && !o.is_self_delivery && !o.rider && (
+                <div
+                  className={`rounded-lg p-3 text-xs flex items-start gap-2 border ${
+                    (availableRiders ?? 0) > 0
+                      ? 'bg-success/5 border-success/30 text-success'
+                      : 'bg-destructive/5 border-destructive/30 text-destructive'
+                  }`}
+                >
+                  {(availableRiders ?? 0) > 0 ? (
+                    <Search className="w-4 h-4 mt-0.5 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                  )}
+                  <div className="flex-1 space-y-0.5">
+                    <p className="font-medium">
+                      {ridersLoading
+                        ? 'Checking available riders…'
+                        : (availableRiders ?? 0) > 0
+                          ? `${availableRiders} rider${availableRiders === 1 ? '' : 's'} available in your city`
+                          : 'No riders available in your city right now'}
+                    </p>
+                    <p className="opacity-80">
+                      {(availableRiders ?? 0) > 0
+                        ? 'Waiting for a rider to accept this pickup.'
+                        : 'You may want to cancel this order or deliver it yourself.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={loadAvailableRiders}
+                    disabled={ridersLoading}
+                    className="shrink-0 opacity-70 hover:opacity-100"
+                    aria-label="Refresh rider count"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${ridersLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+              )}
+
               {/* Items toggle */}
               <button
                 type="button"
@@ -336,7 +397,7 @@ export default function RestaurantOrders() {
                     </Button>
                   )}
                   {o.status === 'preparing' && (
-                    <Button size="sm" onClick={() => setPickupOrder(o)} className="gradient-primary">
+                    <Button size="sm" onClick={() => { setPickupOrder(o); loadAvailableRiders(); }} className="gradient-primary">
                       Ready for Pickup
                     </Button>
                   )}
@@ -402,11 +463,27 @@ export default function RestaurantOrders() {
                   {pickupSubmitting === 'rider' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm">Rider Lookup</p>
+                  <p className="font-semibold text-sm flex items-center gap-2">
+                    Rider Lookup
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                        ridersLoading
+                          ? 'bg-muted text-muted-foreground'
+                          : (availableRiders ?? 0) > 0
+                            ? 'bg-success/10 text-success'
+                            : 'bg-destructive/10 text-destructive'
+                      }`}
+                    >
+                      {ridersLoading ? '…' : `${availableRiders ?? 0} online`}
+                    </span>
+                  </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Notify all online riders in your city. First to accept picks it up.
+                    {(availableRiders ?? 0) > 0
+                      ? 'Notify all online riders in your city. First to accept picks it up.'
+                      : 'No riders are online in your city right now — consider self delivery or cancelling.'}
                   </p>
                 </div>
+
               </div>
             </button>
           </div>

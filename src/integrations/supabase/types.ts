@@ -1105,6 +1105,10 @@ export type Database = {
       }
       claim_order: { Args: { _order_id: string }; Returns: boolean }
       confirm_delivery: { Args: { _order_id: string }; Returns: boolean }
+      count_available_riders_for_restaurant: {
+        Args: { _restaurant_id: string }
+        Returns: number
+      }
       create_system_notification: {
         Args: {
           p_data?: Json
