@@ -31,7 +31,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSupport from "./pages/admin/AdminSupport";
-import { SupportChatWidget } from "@/components/SupportChatWidget";
+
 
 // Rider
 import RiderLayout from "./pages/rider/RiderLayout";
@@ -123,7 +123,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </PageTransition>
-            <SupportChatWidget />
+            
           </BrowserRouter>
         </TooltipProvider>
       </CartProvider>
