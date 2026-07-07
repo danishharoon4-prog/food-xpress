@@ -26,6 +26,8 @@ export default function OrderTracking() {
   const [rider, setRider] = useState<(Rider & { profile?: Profile }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
+  const [alreadyRated, setAlreadyRated] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
