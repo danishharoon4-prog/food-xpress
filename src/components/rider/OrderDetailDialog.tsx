@@ -65,7 +65,7 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
     const [{ data: o }, { data: userRes }] = await Promise.all([
       supabase
         .from('orders')
-        .select('*, restaurant:restaurants(name, address, city), order_items(item_name, item_price, quantity, subtotal, special_instructions)')
+        .select('*, restaurant:restaurants(name, address, city, owner_id), order_items(item_name, item_price, quantity, subtotal, special_instructions)')
         .eq('id', orderId!)
         .maybeSingle(),
       supabase.auth.getUser(),
@@ -83,16 +83,19 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
       setMyRiderId(rider?.id ?? null);
     }
 
-    const { data: cust } = await supabase
-      .from('profiles')
-      .select('full_name, phone')
-      .eq('id', o.customer_id)
-      .maybeSingle();
+    const ownerId = (o as any).restaurant?.owner_id;
+    const [{ data: cust }, restOwnerRes] = await Promise.all([
+      supabase.from('profiles').select('full_name, phone').eq('id', o.customer_id).maybeSingle(),
+      ownerId
+        ? supabase.from('profiles').select('phone').eq('id', ownerId).maybeSingle()
+        : Promise.resolve({ data: null } as any),
+    ]);
 
     setOrder({
       ...(o as any),
       items: (o as any).order_items || [],
       customer: cust || null,
+      restaurantPhone: (restOwnerRes as any)?.data?.phone ?? null,
     });
     setLoading(false);
   };
