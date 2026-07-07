@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink, Truck, Search, Loader2 } from 'lucide-react';
 import type { OrderStatus } from '@/types';
 
 const statusColors: Record<string, string> = {
@@ -24,7 +25,7 @@ const statusColors: Record<string, string> = {
 const nextStatus: Record<string, OrderStatus | null> = {
   pending: 'confirmed',
   confirmed: 'preparing',
-  preparing: 'ready_for_pickup',
+  // 'preparing' → handled via pickup-choice dialog
 };
 
 export default function RestaurantOrders() {
@@ -32,6 +33,8 @@ export default function RestaurantOrders() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [pickupOrder, setPickupOrder] = useState<any | null>(null);
+  const [pickupSubmitting, setPickupSubmitting] = useState<'self' | 'rider' | null>(null);
 
   const load = async () => {
     if (!restaurant?.id) return;
@@ -98,6 +101,25 @@ export default function RestaurantOrders() {
     const { error } = await supabase.from('orders').update({ status }).eq('id', id);
     if (error) return toast({ title: 'Failed', description: error.message, variant: 'destructive' });
     toast({ title: `Marked ${status.replace(/_/g, ' ')}` });
+    load();
+  };
+
+  const chooseDelivery = async (mode: 'self' | 'rider') => {
+    if (!pickupOrder) return;
+    setPickupSubmitting(mode);
+    const { error } = await supabase.rpc('mark_ready_for_pickup', {
+      _order_id: pickupOrder.id,
+      _self_delivery: mode === 'self',
+    });
+    setPickupSubmitting(null);
+    if (error) return toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+    toast({
+      title: mode === 'self' ? 'Self delivery started' : 'Looking for a rider',
+      description: mode === 'self'
+        ? 'Delivery fee removed. Mark on the way / delivered as you go.'
+        : 'All available riders in your city have been notified.',
+    });
+    setPickupOrder(null);
     load();
   };
 
@@ -244,22 +266,94 @@ export default function RestaurantOrders() {
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="text-sm">
                   <p className="text-xs text-muted-foreground">
-                    Subtotal PKR {Number(o.subtotal).toLocaleString()} · Delivery PKR {Number(o.delivery_fee || 0).toLocaleString()}
+                    Subtotal PKR {Number(o.subtotal).toLocaleString()} · Delivery {Number(o.delivery_fee || 0) === 0 ? <span className="text-success font-medium">FREE</span> : `PKR ${Number(o.delivery_fee).toLocaleString()}`}
                   </p>
                   <p className="font-bold text-primary text-base">
                     Total PKR {Number(o.total).toLocaleString()}
                   </p>
+                  {o.is_self_delivery && (
+                    <Badge variant="outline" className="mt-1 text-[10px] border-success text-success">
+                      <Truck className="w-3 h-3 mr-1" /> Self delivery
+                    </Badge>
+                  )}
                 </div>
-                {next && (
-                  <Button size="sm" onClick={() => advance(o.id, next)} className="gradient-primary">
-                    Mark {next.replace(/_/g, ' ')}
-                  </Button>
-                )}
+                <div className="flex gap-2 flex-wrap">
+                  {next && (
+                    <Button size="sm" onClick={() => advance(o.id, next)} className="gradient-primary">
+                      Mark {next.replace(/_/g, ' ')}
+                    </Button>
+                  )}
+                  {o.status === 'preparing' && (
+                    <Button size="sm" onClick={() => setPickupOrder(o)} className="gradient-primary">
+                      Ready for Pickup
+                    </Button>
+                  )}
+                  {o.is_self_delivery && o.status === 'on_the_way' && (
+                    <Button size="sm" onClick={() => advance(o.id, 'awaiting_confirmation' as OrderStatus)} className="gradient-primary">
+                      Mark Delivered
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
         );
       })}
+
+      <Dialog open={!!pickupOrder} onOpenChange={(o) => !o && setPickupOrder(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>How will this order be delivered?</DialogTitle>
+            <DialogDescription>
+              Choose whether you'll deliver order <span className="font-semibold text-foreground">#{pickupOrder?.order_number}</span> yourself, or notify riders to pick it up.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 py-2">
+            <button
+              type="button"
+              disabled={!!pickupSubmitting}
+              onClick={() => chooseDelivery('self')}
+              className="text-left rounded-xl border-2 border-transparent hover:border-primary p-4 bg-muted/40 transition-all disabled:opacity-60"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center shrink-0">
+                  {pickupSubmitting === 'self' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Truck className="w-5 h-5" />}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">Deliver Itself</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Delivery fee will be removed (free delivery). You handle the drop-off.
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              disabled={!!pickupSubmitting}
+              onClick={() => chooseDelivery('rider')}
+              className="text-left rounded-xl border-2 border-transparent hover:border-primary p-4 bg-muted/40 transition-all disabled:opacity-60"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  {pickupSubmitting === 'rider' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">Rider Lookup</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Notify all online riders in your city. First to accept picks it up.
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPickupOrder(null)} disabled={!!pickupSubmitting}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

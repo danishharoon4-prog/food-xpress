@@ -326,6 +326,7 @@ export type Database = {
           delivery_longitude: number | null
           estimated_delivery_time: string | null
           id: string
+          is_self_delivery: boolean
           order_number: string
           restaurant_id: string | null
           rider_id: string | null
@@ -348,6 +349,7 @@ export type Database = {
           delivery_longitude?: number | null
           estimated_delivery_time?: string | null
           id?: string
+          is_self_delivery?: boolean
           order_number?: string
           restaurant_id?: string | null
           rider_id?: string | null
@@ -370,6 +372,7 @@ export type Database = {
           delivery_longitude?: number | null
           estimated_delivery_time?: string | null
           id?: string
+          is_self_delivery?: boolean
           order_number?: string
           restaurant_id?: string | null
           rider_id?: string | null
@@ -1155,6 +1158,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      mark_ready_for_pickup: {
+        Args: { _order_id: string; _self_delivery: boolean }
         Returns: boolean
       }
       place_order: {
