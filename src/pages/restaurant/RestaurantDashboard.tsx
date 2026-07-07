@@ -4,9 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 import {
   ShoppingBag, Banknote, UtensilsCrossed, Clock, TrendingUp, Star, Store,
-  ArrowUpRight, CheckCircle2, XCircle, ChefHat, BellRing, X,
+  ArrowUpRight, CheckCircle2, XCircle, ChefHat, BellRing, X, Power,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -26,12 +28,40 @@ const STATUS_COLORS: Record<string, string> = {
 export default function RestaurantDashboard() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [itemsCount, setItemsCount] = useState(0);
   const [topItems, setTopItems] = useState<{ name: string; qty: number }[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newOrders, setNewOrders] = useState<{ id: string; order_number: string; total: number }[]>([]);
+  const [togglingOpen, setTogglingOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(!!restaurant?.is_active);
+
+  useEffect(() => { setIsOpen(!!restaurant?.is_active); }, [restaurant?.is_active]);
+
+  const toggleOpen = async (next: boolean) => {
+    if (!restaurant?.id || togglingOpen) return;
+    setTogglingOpen(true);
+    setIsOpen(next); // optimistic
+    const { error } = await supabase.rpc('set_restaurant_open', {
+      _restaurant_id: restaurant.id,
+      _is_open: next,
+    });
+    setTogglingOpen(false);
+    if (error) {
+      setIsOpen(!next);
+      toast({ title: 'Failed to update', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({
+      title: next ? 'Restaurant is now Open' : 'Restaurant is now Closed',
+      description: next
+        ? 'Customers can place orders again.'
+        : 'New orders are blocked until you reopen.',
+    });
+  };
+
 
   useEffect(() => {
     if (!restaurant?.id) return;
@@ -238,13 +268,13 @@ export default function RestaurantDashboard() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl lg:text-2xl font-bold truncate">{restaurant.name}</h2>
-                {restaurant.is_active ? (
-                  <Badge className="bg-white/25 hover:bg-white/25 text-white border-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 mr-1.5 animate-pulse" /> Open
-                  </Badge>
-                ) : (
-                  <Badge className="bg-white/25 hover:bg-white/25 text-white border-0">Closed</Badge>
-                )}
+                <Badge className="bg-white/25 hover:bg-white/25 text-white border-0">
+                  {isOpen ? (
+                    <><span className="w-1.5 h-1.5 rounded-full bg-emerald-300 mr-1.5 animate-pulse" /> Open</>
+                  ) : (
+                    <><span className="w-1.5 h-1.5 rounded-full bg-rose-300 mr-1.5" /> Closed</>
+                  )}
+                </Badge>
               </div>
               <p className="text-sm opacity-90 truncate">
                 <ChefHat className="w-3.5 h-3.5 inline mr-1" />
@@ -263,8 +293,34 @@ export default function RestaurantDashboard() {
         </div>
       </Card>
 
+      {/* Open / Closed toggle */}
+      <Card className={`overflow-hidden border-0 shadow-md transition-colors ${isOpen ? 'bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent' : 'bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent'}`}>
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${isOpen ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'}`}>
+            <Power className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm">
+              {isOpen ? 'Accepting Orders' : 'Not Accepting Orders'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {isOpen
+                ? 'Customers can browse your menu and place orders.'
+                : 'Your menu is hidden from customers. No new orders will come in.'}
+            </p>
+          </div>
+          <Switch
+            checked={isOpen}
+            disabled={togglingOpen}
+            onCheckedChange={toggleOpen}
+            aria-label="Toggle restaurant open"
+          />
+        </CardContent>
+      </Card>
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+
         {cards.map((c) => (
           <Card key={c.label} className="overflow-hidden hover:shadow-md transition-shadow">
             <CardContent className="p-4">
