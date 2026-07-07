@@ -450,6 +450,7 @@ export default function RestaurantProfile() {
 
         <TabsContent value="notifications" className="mt-4">
           <NotificationSettings />
+          <SupportChatPanel defaultIssueType="restaurant" />
         </TabsContent>
       </Tabs>
 
