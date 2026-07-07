@@ -255,6 +255,71 @@ export default function AdminMenu() {
             <p className="text-muted-foreground">No menu items yet. Add your first item!</p>
           </CardContent>
         </Card>
+      ) : viewMode === 'list' ? (
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Restaurant</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">Discount</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead>Available</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {menuItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-12 h-12 rounded object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
+                          <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{(item as any).restaurant?.name || '—'}</TableCell>
+                    <TableCell className="max-w-[240px] truncate text-muted-foreground" title={item.description || ''}>
+                      {item.description || '—'}
+                    </TableCell>
+                    <TableCell className="text-right">PKR {Number(item.price).toLocaleString()}</TableCell>
+                    <TableCell className="text-right">
+                      {item.discount_price ? `PKR ${Number(item.discount_price).toLocaleString()}` : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {item.is_featured && <Badge variant="secondary">Featured</Badge>}
+                        {item.is_deal && <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Deal</Badge>}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={item.is_available ? 'bg-success/10 text-success hover:bg-success/10' : 'bg-muted text-muted-foreground hover:bg-muted'}>
+                        {item.is_available ? 'Yes' : 'No'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="inline-flex gap-1">
+                        <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {menuItems.map((item) => (
