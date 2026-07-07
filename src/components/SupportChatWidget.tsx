@@ -259,7 +259,24 @@ export function SupportChatWidget() {
           </ScrollArea>
 
           {/* Composer */}
-          <div className="p-3 border-t bg-card">
+          <div className="p-3 border-t bg-card space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="text-[11px] font-medium text-muted-foreground shrink-0">
+                Issue type
+              </label>
+              <Select value={issueType} onValueChange={(v) => setIssueType(v as IssueType)}>
+                <SelectTrigger className="h-8 text-xs flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ISSUE_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value} className="text-xs">
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex gap-2 items-end">
               <Textarea
                 ref={textareaRef}
@@ -271,7 +288,7 @@ export function SupportChatWidget() {
                     send();
                   }
                 }}
-                placeholder="Type your message..."
+                placeholder={`Describe your ${issueType} issue...`}
                 rows={1}
                 className="resize-none min-h-[40px] max-h-24"
                 disabled={sending}
@@ -286,7 +303,7 @@ export function SupportChatWidget() {
               </Button>
             </div>
             {status !== "escalated" && (
-              <p className="text-[10px] text-muted-foreground mt-2 text-center">
+              <p className="text-[10px] text-muted-foreground text-center">
                 AI responses. Ask for "human admin" to escalate.
               </p>
             )}
