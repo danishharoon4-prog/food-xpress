@@ -268,13 +268,13 @@ export default function RestaurantDashboard() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl lg:text-2xl font-bold truncate">{restaurant.name}</h2>
-                {restaurant.is_active ? (
-                  <Badge className="bg-white/25 hover:bg-white/25 text-white border-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 mr-1.5 animate-pulse" /> Open
-                  </Badge>
-                ) : (
-                  <Badge className="bg-white/25 hover:bg-white/25 text-white border-0">Closed</Badge>
-                )}
+                <Badge className="bg-white/25 hover:bg-white/25 text-white border-0">
+                  {isOpen ? (
+                    <><span className="w-1.5 h-1.5 rounded-full bg-emerald-300 mr-1.5 animate-pulse" /> Open</>
+                  ) : (
+                    <><span className="w-1.5 h-1.5 rounded-full bg-rose-300 mr-1.5" /> Closed</>
+                  )}
+                </Badge>
               </div>
               <p className="text-sm opacity-90 truncate">
                 <ChefHat className="w-3.5 h-3.5 inline mr-1" />
