@@ -153,22 +153,39 @@ export default function Restaurants() {
 
       <main className="container max-w-6xl py-10 md:py-16 space-y-14">
         {/* Hero */}
-        <section className="text-center space-y-8">
-          <div className="space-y-3 max-w-3xl mx-auto">
+        <motion.section
+          className="text-center space-y-8"
+          initial="hidden"
+          animate="show"
+          variants={fadeUp}
+        >
+          <motion.div variants={fadeUp} custom={0} className="space-y-3 max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05]">
-              Find your <span className="text-primary">favorite</span> flavors
+              Find your{' '}
+              <motion.span
+                className="inline-block text-primary"
+                animate={{ rotate: [0, -2, 2, -1, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                favorite
+              </motion.span>{' '}
+              flavors
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl font-medium">
               Delicious meals from your local favorites, delivered fast.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="max-w-3xl mx-auto">
-            <div className="rounded-3xl border border-border/60 bg-card p-2 md:p-3 shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.15)] transition-all focus-within:ring-4 focus-within:ring-primary/10">
+          <motion.div variants={fadeUp} custom={1} className="max-w-3xl mx-auto">
+            <motion.div
+              whileHover={{ y: -2, boxShadow: '0 30px 60px -20px hsl(var(--primary) / 0.25)' }}
+              transition={{ duration: 0.3 }}
+              className="rounded-3xl border border-border/60 bg-card p-2 md:p-3 shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.15)] focus-within:ring-4 focus-within:ring-primary/10"
+            >
               <GlobalSearch placeholder="Search for restaurants, cuisines, or dishes..." />
-            </div>
-          </div>
-        </section>
+            </motion.div>
+          </motion.div>
+        </motion.section>
 
         {/* Filter pills — cuisines + city select */}
         <section className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
