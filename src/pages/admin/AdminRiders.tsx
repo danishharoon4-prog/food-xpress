@@ -42,6 +42,7 @@ export default function AdminRiders() {
   const [riders, setRiders] = useState<RiderWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [cityFilter, setCityFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [docsRider, setDocsRider] = useState<RiderWithDetails | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const { toast } = useToast();
