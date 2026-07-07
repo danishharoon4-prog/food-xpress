@@ -301,12 +301,17 @@ export default function Restaurants() {
             </motion.div>
           ) : (
             <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
-              {deals.map((deal) => (
-                <Link
+              {deals.map((deal, idx) => (
+                <motion.div
                   key={deal.id}
-                  to={`/restaurant/${deal.restaurant_id}`}
-                  className="min-w-[240px] max-w-[240px] group flex-shrink-0"
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  whileHover={{ y: -6 }}
+                  className="min-w-[240px] max-w-[240px] flex-shrink-0"
                 >
+                  <Link to={`/restaurant/${deal.restaurant_id}`} className="group block">
                   <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                     {deal.image_url ? (
                       <img
