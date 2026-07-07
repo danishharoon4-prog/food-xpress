@@ -39,6 +39,7 @@ interface OrderDetail {
   created_at: string;
   customer_id: string;
   restaurant_id: string | null;
+  rider_id: string | null;
   restaurant?: { name: string; address: string | null; city: string | null } | null;
   items: Array<{ item_name: string; item_price: number; quantity: number; subtotal: number; special_instructions: string | null }>;
   customer?: { full_name: string; phone: string | null } | null;
@@ -49,6 +50,7 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
   const [loading, setLoading] = useState(false);
   const [customMinutes, setCustomMinutes] = useState('');
   const [savingEta, setSavingEta] = useState(false);
+  const [myRiderId, setMyRiderId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,13 +61,26 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
 
   const load = async () => {
     setLoading(true);
-    const { data: o } = await supabase
-      .from('orders')
-      .select('*, restaurant:restaurants(name, address, city), order_items(item_name, item_price, quantity, subtotal, special_instructions)')
-      .eq('id', orderId!)
-      .maybeSingle();
+    const [{ data: o }, { data: userRes }] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('*, restaurant:restaurants(name, address, city), order_items(item_name, item_price, quantity, subtotal, special_instructions)')
+        .eq('id', orderId!)
+        .maybeSingle(),
+      supabase.auth.getUser(),
+    ]);
 
     if (!o) { setLoading(false); return; }
+
+    const uid = userRes?.user?.id;
+    if (uid) {
+      const { data: rider } = await supabase
+        .from('riders')
+        .select('id')
+        .eq('user_id', uid)
+        .maybeSingle();
+      setMyRiderId(rider?.id ?? null);
+    }
 
     const { data: cust } = await supabase
       .from('profiles')
@@ -102,17 +117,34 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
 
   const saveEta = async (newEta: string) => {
     if (!order) return;
+    if (!order.rider_id || order.rider_id !== myRiderId) {
+      toast({
+        title: 'Not your delivery yet',
+        description: 'Accept & pick up this order before setting an arrival time.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setSavingEta(true);
     const { data, error } = await supabase.rpc('update_order_eta', { _order_id: order.id, _new_eta: newEta });
     setSavingEta(false);
     if (error || data === false) {
-      toast({ title: 'Failed', description: error?.message || 'Could not update ETA', variant: 'destructive' });
+      toast({
+        title: 'Failed',
+        description: error?.message || 'Could not update ETA. Make sure the order is still active and assigned to you.',
+        variant: 'destructive',
+      });
       return;
     }
     toast({ title: 'ETA updated', description: 'Customer and admin will see the new arrival time.' });
     setOrder({ ...order, estimated_delivery_time: newEta });
     onUpdated?.();
   };
+
+  const canEditEta = !!order
+    && !!order.rider_id
+    && order.rider_id === myRiderId
+    && !['delivered', 'cancelled', 'awaiting_confirmation'].includes(order.status);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -200,7 +232,7 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
             )}
 
             {/* ETA controls (only if order still active) */}
-            {!['delivered', 'cancelled'].includes(order.status) && (
+            {canEditEta && (
               <div className="border rounded-lg p-4 space-y-3 bg-primary/5">
                 <p className="font-medium text-sm flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Update Estimated Arrival</p>
                 <div className="flex gap-2 flex-wrap">
