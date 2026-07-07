@@ -112,6 +112,8 @@ export default function UserProfile() {
         .eq('id', user.id);
 
       if (error) throw error;
+      if (permanentCoords) setInitialCoords(permanentCoords);
+      setEditingAddress(false);
       await refreshProfile();
       toast({ title: 'Profile Updated', description: 'Your profile has been saved successfully.' });
     } catch (error: any) {
