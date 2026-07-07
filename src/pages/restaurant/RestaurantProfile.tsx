@@ -35,7 +35,7 @@ export default function RestaurantProfile() {
   const [savingPersonal, setSavingPersonal] = useState(false);
 
   const [form, setForm] = useState({
-    name: '', description: '', cuisine_type: '', address: '', image_url: '',
+    name: '', description: '', cuisine_type: '', address: '', image_url: '', logo_url: '',
     opening_time: '09:00', closing_time: '22:00', is_active: true,
     latitude: null as number | null, longitude: null as number | null,
   });
