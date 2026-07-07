@@ -293,8 +293,34 @@ export default function RestaurantDashboard() {
         </div>
       </Card>
 
+      {/* Open / Closed toggle */}
+      <Card className={`overflow-hidden border-0 shadow-md transition-colors ${isOpen ? 'bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent' : 'bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent'}`}>
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${isOpen ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'}`}>
+            <Power className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm">
+              {isOpen ? 'Accepting Orders' : 'Not Accepting Orders'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {isOpen
+                ? 'Customers can browse your menu and place orders.'
+                : 'Your menu is hidden from customers. No new orders will come in.'}
+            </p>
+          </div>
+          <Switch
+            checked={isOpen}
+            disabled={togglingOpen}
+            onCheckedChange={toggleOpen}
+            aria-label="Toggle restaurant open"
+          />
+        </CardContent>
+      </Card>
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+
         {cards.map((c) => (
           <Card key={c.label} className="overflow-hidden hover:shadow-md transition-shadow">
             <CardContent className="p-4">
