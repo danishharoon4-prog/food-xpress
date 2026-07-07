@@ -8,8 +8,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, UtensilsCrossed } from 'lucide-react';
+import { Plus, Pencil, Trash2, UtensilsCrossed, LayoutGrid, List } from 'lucide-react';
 import type { MenuItem, Restaurant } from '@/types';
 import ImageCropInput from '@/components/ImageCropInput';
 
