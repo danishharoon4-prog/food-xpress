@@ -4,16 +4,49 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { fireBrowserNotification, requestNotificationPermission } from '@/lib/browserNotify';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
+import { DEFAULT_PREFS, NotifPrefs, STATUS_TO_PREF } from '@/lib/notificationPrefs';
 
 const PROMPT_KEY = 'notif-permission-prompted';
+
+type GlobalToggles = {
+  notifications_toast_enabled: boolean;
+  notifications_push_enabled: boolean;
+  notifications_sound_enabled: boolean;
+};
 
 export function useBrowserNotifications() {
   const { user } = useAuth();
   const { toast } = useToast();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const prefsRef = useRef<NotifPrefs | null>(null);
+  const globalsRef = useRef<GlobalToggles>({
+    notifications_toast_enabled: true,
+    notifications_push_enabled: true,
+    notifications_sound_enabled: true,
+  });
 
   useEffect(() => {
     if (!user) return;
+
+    // Load current user's prefs
+    (async () => {
+      const { data } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      prefsRef.current = (data as NotifPrefs | null) ?? { user_id: user.id, ...DEFAULT_PREFS };
+    })();
+
+    // Load global platform toggles
+    (async () => {
+      const { data } = await supabase
+        .from('platform_settings')
+        .select('notifications_toast_enabled, notifications_push_enabled, notifications_sound_enabled')
+        .limit(1)
+        .maybeSingle();
+      if (data) globalsRef.current = data as GlobalToggles;
+    })();
 
     // Auto-prompt permission once per browser, then subscribe to Web Push.
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -27,7 +60,6 @@ export function useBrowserNotifications() {
         }, 1500);
       }
     } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      // Already granted — make sure this browser has a live subscription.
       ensurePushSubscription();
     }
 
@@ -47,19 +79,35 @@ export function useBrowserNotifications() {
           const title = n.title || 'Notification';
           const body = n.message || '';
           const orderId = n.data?.order_id;
+          const status = n.data?.status as string | undefined;
+
+          // Check per-event pref
+          const prefs = prefsRef.current;
+          if (prefs && status) {
+            const col = STATUS_TO_PREF[status];
+            if (col && (prefs as any)[col] === false) return;
+          }
+
+          const g = globalsRef.current;
 
           // In-app toast
-          toast({
-            title,
-            description: body,
-            variant: n.type === 'warning' || n.type === 'error' ? 'destructive' : 'default',
-          });
+          if (g.notifications_toast_enabled && (!prefs || prefs.toast_enabled)) {
+            toast({
+              title,
+              description: body,
+              variant: n.type === 'warning' || n.type === 'error' ? 'destructive' : 'default',
+            });
+          }
 
-          // Browser / mobile notification (uses SW showNotification when available)
-          fireBrowserNotification(title, body, {
-            tag: orderId ? `order-${orderId}` : undefined,
-            url: orderId ? `/order/${orderId}` : undefined,
-          });
+          // Browser / mobile notification
+          if (g.notifications_push_enabled && (!prefs || prefs.push_enabled)) {
+            const silent = !(g.notifications_sound_enabled && (!prefs || prefs.sound_enabled));
+            fireBrowserNotification(title, body, {
+              tag: orderId ? `order-${orderId}` : undefined,
+              url: orderId ? `/order/${orderId}` : undefined,
+              silent,
+            });
+          }
         }
       )
       .subscribe();

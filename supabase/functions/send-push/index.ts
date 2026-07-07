@@ -36,6 +36,48 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+    // Check user preferences (per-event + master push) and global platform toggles.
+    const status: string | undefined = data?.status;
+    const STATUS_MAP: Record<string, string> = {
+      order_placed: "event_order_placed",
+      pending: "event_order_placed",
+      confirmed: "event_confirmed",
+      preparing: "event_preparing",
+      ready_for_pickup: "event_ready_for_pickup",
+      picked_up: "event_picked_up",
+      on_the_way: "event_on_the_way",
+      awaiting_confirmation: "event_awaiting_confirmation",
+      delivered: "event_delivered",
+      cancelled: "event_cancelled",
+    };
+
+    const [prefsRes, globalRes] = await Promise.all([
+      admin.from("notification_preferences").select("*").eq("user_id", user_id).maybeSingle(),
+      admin.from("platform_settings").select("notifications_push_enabled").limit(1).maybeSingle(),
+    ]);
+
+    if (globalRes.data && (globalRes.data as any).notifications_push_enabled === false) {
+      return new Response(JSON.stringify({ sent: 0, reason: "globally_disabled" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const prefs = prefsRes.data as any;
+    if (prefs) {
+      if (prefs.push_enabled === false) {
+        return new Response(JSON.stringify({ sent: 0, reason: "user_disabled" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const col = status ? STATUS_MAP[status] : null;
+      if (col && prefs[col] === false) {
+        return new Response(JSON.stringify({ sent: 0, reason: "event_muted" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const { data: subs, error } = await admin
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth")
