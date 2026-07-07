@@ -327,6 +327,18 @@ export default function RestaurantOrders() {
                 </div>
               )}
 
+              {/* Items toggle */}
+              <button
+                type="button"
+                onClick={() => setExpanded((p) => ({ ...p, [o.id]: !isOpen }))}
+                className="flex items-center justify-between w-full text-sm font-medium pt-1"
+              >
+                <span className="flex items-center gap-2">
+                  <Package className="w-4 h-4 text-primary" />
+                  {o.order_items?.length || 0} item{(o.order_items?.length || 0) === 1 ? '' : 's'}
+                </span>
+                {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
 
               {isOpen && (
                 <ul className="text-sm space-y-1 pl-6">
