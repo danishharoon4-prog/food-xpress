@@ -1,7 +1,6 @@
-// Minimal service worker for local (foreground-triggered) notifications.
-// Required on Android Chrome/Edge/Firefox where `new Notification()` is
-// disallowed and notifications must be shown via ServiceWorkerRegistration.
-// Intentionally does NOT cache app-shell assets or intercept fetch.
+// Service worker for Web Push + local notifications.
+// - `push` event: shown even when the app tab is closed.
+// - `notificationclick`: focuses/opens the app on the relevant order URL.
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -11,7 +10,25 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Focus/open the app when a notification is clicked.
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = { title: "Notification", body: event.data ? event.data.text() : "" };
+  }
+  const title = payload.title || "Notification";
+  const opts = {
+    body: payload.body || "",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    tag: payload.tag,
+    data: { url: payload.url || "/", ...(payload.data || {}) },
+    vibrate: [120, 60, 120],
+  };
+  event.waitUntil(self.registration.showNotification(title, opts));
+});
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const targetUrl = (event.notification.data && event.notification.data.url) || "/";
