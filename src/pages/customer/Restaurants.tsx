@@ -434,20 +434,26 @@ export default function Restaurants() {
                       </div>
 
                       {/* Favorite */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-4 left-4 h-10 w-10 rounded-full bg-card/95 backdrop-blur-md hover:bg-card shadow-sm"
+                      <motion.button
                         onClick={(e) => toggleFavorite(e, restaurant.id)}
+                        whileHover={{ scale: 1.12 }}
+                        whileTap={{ scale: 0.85 }}
+                        className="absolute top-4 left-4 h-10 w-10 rounded-full bg-card/95 backdrop-blur-md hover:bg-card shadow-sm inline-flex items-center justify-center"
+                        aria-label="Toggle favorite"
                       >
-                        <Heart
-                          className={`w-[18px] h-[18px] transition-colors ${
-                            favoriteIds.has(restaurant.id)
-                              ? 'fill-destructive text-destructive'
-                              : 'text-foreground'
-                          }`}
-                        />
-                      </Button>
+                        <motion.span
+                          key={isFav ? 'on' : 'off'}
+                          initial={{ scale: 0.6 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                        >
+                          <Heart
+                            className={`w-[18px] h-[18px] transition-colors ${
+                              isFav ? 'fill-destructive text-destructive' : 'text-foreground'
+                            }`}
+                          />
+                        </motion.span>
+                      </motion.button>
 
                       {/* Bottom chips */}
                       <div className="absolute bottom-4 left-4 flex gap-2">
