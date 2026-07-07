@@ -31,6 +31,12 @@ export function LiveRiderTracking({ riderId, customerCoords, orderStatus }: Live
   const [distanceInfo, setDistanceInfo] = useState<DistanceInfo | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
+  const mapDivRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<any>(null);
+  const riderMarkerRef = useRef<any>(null);
+  const customerMarkerRef = useRef<any>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+
 
   // Fetch initial rider location
   const fetchRiderLocation = useCallback(async () => {
