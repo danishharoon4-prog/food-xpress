@@ -38,6 +38,7 @@ export default function UserProfile() {
   const [initialCoords, setInitialCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState(true);
+  const [editingAddress, setEditingAddress] = useState(false);
 
   useEffect(() => {
     if (!user) {
