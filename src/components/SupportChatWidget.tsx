@@ -4,10 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+const ISSUE_TYPES = [
+  { value: "order", label: "Order Issue" },
+  { value: "payment", label: "Payment" },
+  { value: "wallet", label: "Wallet" },
+  { value: "rider", label: "Rider" },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "other", label: "Other" },
+] as const;
+
+type IssueType = (typeof ISSUE_TYPES)[number]["value"];
 
 type Msg = {
   id: string;
@@ -24,6 +42,7 @@ export function SupportChatWidget() {
   const [sending, setSending] = useState(false);
   const [convoId, setConvoId] = useState<string | null>(null);
   const [status, setStatus] = useState<"ai" | "escalated" | "resolved">("ai");
+  const [issueType, setIssueType] = useState<IssueType>("order");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
