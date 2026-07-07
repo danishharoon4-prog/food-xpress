@@ -126,7 +126,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('signOut error', err);
+    }
+    // Clear local auth state immediately so UI reflects logout even if
+    // the network call fails or the session was already gone.
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+    setRole(null);
+    // Hard redirect ensures every provider/cache resets cleanly.
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth';
+    }
   };
 
   const refreshProfile = async () => {
