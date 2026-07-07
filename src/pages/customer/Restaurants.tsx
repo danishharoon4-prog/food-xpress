@@ -11,6 +11,16 @@ import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, Star, Heart, Utensils, Tag } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant, MenuItem } from '@/types';
+import { motion } from 'framer-motion';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] as const },
+  }),
+};
 
 type DealItem = Omit<MenuItem, 'restaurant'> & {
   restaurant?: { id: string; name: string; image_url: string | null };
@@ -143,48 +153,75 @@ export default function Restaurants() {
 
       <main className="container max-w-6xl py-10 md:py-16 space-y-14">
         {/* Hero */}
-        <section className="text-center space-y-8">
-          <div className="space-y-3 max-w-3xl mx-auto">
+        <motion.section
+          className="text-center space-y-8"
+          initial="hidden"
+          animate="show"
+          variants={fadeUp}
+        >
+          <motion.div variants={fadeUp} custom={0} className="space-y-3 max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05]">
-              Find your <span className="text-primary">favorite</span> flavors
+              Find your{' '}
+              <motion.span
+                className="inline-block text-primary"
+                animate={{ rotate: [0, -2, 2, -1, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                favorite
+              </motion.span>{' '}
+              flavors
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl font-medium">
               Delicious meals from your local favorites, delivered fast.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="max-w-3xl mx-auto">
-            <div className="rounded-3xl border border-border/60 bg-card p-2 md:p-3 shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.15)] transition-all focus-within:ring-4 focus-within:ring-primary/10">
+          <motion.div variants={fadeUp} custom={1} className="max-w-3xl mx-auto">
+            <motion.div
+              whileHover={{ y: -2, boxShadow: '0 30px 60px -20px hsl(var(--primary) / 0.25)' }}
+              transition={{ duration: 0.3 }}
+              className="rounded-3xl border border-border/60 bg-card p-2 md:p-3 shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.15)] focus-within:ring-4 focus-within:ring-primary/10"
+            >
               <GlobalSearch placeholder="Search for restaurants, cuisines, or dishes..." />
-            </div>
-          </div>
-        </section>
+            </motion.div>
+          </motion.div>
+        </motion.section>
 
         {/* Filter pills — cuisines + city select */}
-        <section className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-          <button
-            onClick={() => setCuisine('all')}
-            className={`flex-none px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${
-              cuisine === 'all'
-                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                : 'bg-card text-muted-foreground border border-border/60 hover:border-primary/30 hover:shadow-sm'
-            }`}
-          >
-            All
-          </button>
-          {cuisines.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCuisine(c)}
-              className={`flex-none px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${
-                cuisine === c
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                  : 'bg-card text-muted-foreground border border-border/60 hover:border-primary/30 hover:shadow-sm'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+        >
+          {['all', ...cuisines].map((c, idx) => {
+            const active = cuisine === c;
+            return (
+              <motion.button
+                key={c}
+                onClick={() => setCuisine(c)}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.2 + idx * 0.04 }}
+                whileHover={{ y: -2, scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                className={`relative flex-none px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-colors ${
+                  active
+                    ? 'text-primary-foreground shadow-lg shadow-primary/25'
+                    : 'bg-card text-muted-foreground border border-border/60 hover:border-primary/40'
+                }`}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="activeCuisinePill"
+                    className="absolute inset-0 rounded-2xl bg-primary"
+                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{c === 'all' ? 'All' : c}</span>
+              </motion.button>
+            );
+          })}
 
           {cities.length > 0 && (
             <>
@@ -214,7 +251,7 @@ export default function Restaurants() {
               Clear
             </Button>
           )}
-        </section>
+        </motion.section>
 
         {/* Fresh Deals Section */}
         <section className="space-y-6">
@@ -241,25 +278,40 @@ export default function Restaurants() {
               ))}
             </div>
           ) : deals.length === 0 ? (
-            <div className="relative overflow-hidden bg-card border-2 border-dashed border-border rounded-[2.5rem] py-14 px-6 text-center flex flex-col items-center justify-center gap-4 transition-colors hover:border-primary/20">
-              <div className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center rotate-12 transition-transform duration-500 hover:rotate-0">
-                <Tag className="w-10 h-10 text-primary/40" strokeWidth={1.5} />
-              </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="relative overflow-hidden bg-card border-2 border-dashed border-border rounded-[2.5rem] py-14 px-6 text-center flex flex-col items-center justify-center gap-4 transition-colors hover:border-primary/30 group"
+            >
+              <motion.div
+                animate={{ rotate: [12, 0, 12], y: [0, -6, 0] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center shadow-sm"
+              >
+                <Tag className="w-10 h-10 text-primary/50" strokeWidth={1.5} />
+              </motion.div>
               <div className="space-y-1.5">
                 <p className="text-lg font-bold">No new deals just yet</p>
                 <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
                   We're cooking up something special. Check back soon for exclusive rewards from top-rated restaurants.
                 </p>
               </div>
-            </div>
+            </motion.div>
           ) : (
             <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
-              {deals.map((deal) => (
-                <Link
+              {deals.map((deal, idx) => (
+                <motion.div
                   key={deal.id}
-                  to={`/restaurant/${deal.restaurant_id}`}
-                  className="min-w-[240px] max-w-[240px] group flex-shrink-0"
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  whileHover={{ y: -6 }}
+                  className="min-w-[240px] max-w-[240px] flex-shrink-0"
                 >
+                  <Link to={`/restaurant/${deal.restaurant_id}`} className="group block">
                   <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                     {deal.image_url ? (
                       <img
@@ -303,7 +355,8 @@ export default function Restaurants() {
                       </span>
                     </div>
                   </div>
-                </Link>
+                  </Link>
+                </motion.div>
               ))}
             </div>
           )}
@@ -344,10 +397,19 @@ export default function Restaurants() {
             </div>
           ) : (
             <div className="grid gap-8 md:gap-10 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredRestaurants.map((restaurant) => {
+              {filteredRestaurants.map((restaurant, idx) => {
                 const r = ratings[restaurant.id];
+                const isFav = favoriteIds.has(restaurant.id);
                 return (
-                  <Link key={restaurant.id} to={`/restaurant/${restaurant.id}`} className="group block">
+                  <motion.div
+                    key={restaurant.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-40px' }}
+                    transition={{ duration: 0.5, delay: (idx % 6) * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -8 }}
+                  >
+                  <Link to={`/restaurant/${restaurant.id}`} className="group block">
                     <div className="relative overflow-hidden rounded-[2rem] aspect-[1.4] mb-5 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                       {restaurant.image_url ? (
                         <img
@@ -372,20 +434,26 @@ export default function Restaurants() {
                       </div>
 
                       {/* Favorite */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-4 left-4 h-10 w-10 rounded-full bg-card/95 backdrop-blur-md hover:bg-card shadow-sm"
+                      <motion.button
                         onClick={(e) => toggleFavorite(e, restaurant.id)}
+                        whileHover={{ scale: 1.12 }}
+                        whileTap={{ scale: 0.85 }}
+                        className="absolute top-4 left-4 h-10 w-10 rounded-full bg-card/95 backdrop-blur-md hover:bg-card shadow-sm inline-flex items-center justify-center"
+                        aria-label="Toggle favorite"
                       >
-                        <Heart
-                          className={`w-[18px] h-[18px] transition-colors ${
-                            favoriteIds.has(restaurant.id)
-                              ? 'fill-destructive text-destructive'
-                              : 'text-foreground'
-                          }`}
-                        />
-                      </Button>
+                        <motion.span
+                          key={isFav ? 'on' : 'off'}
+                          initial={{ scale: 0.6 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                        >
+                          <Heart
+                            className={`w-[18px] h-[18px] transition-colors ${
+                              isFav ? 'fill-destructive text-destructive' : 'text-foreground'
+                            }`}
+                          />
+                        </motion.span>
+                      </motion.button>
 
                       {/* Bottom chips */}
                       <div className="absolute bottom-4 left-4 flex gap-2">
@@ -431,6 +499,7 @@ export default function Restaurants() {
                       )}
                     </div>
                   </Link>
+                  </motion.div>
                 );
               })}
             </div>
