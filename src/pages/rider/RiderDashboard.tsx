@@ -23,6 +23,7 @@ export default function RiderDashboard() {
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [todayDeliveries, setTodayDeliveries] = useState(0);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+  const [isEmbeddedPreview, setIsEmbeddedPreview] = useState(false);
   const { toast } = useToast();
 
   // Audio for new-order alert
@@ -30,6 +31,11 @@ export default function RiderDashboard() {
   const seenOrderIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    try {
+      setIsEmbeddedPreview(window.self !== window.top);
+    } catch {
+      setIsEmbeddedPreview(true);
+    }
     if (typeof Notification !== 'undefined') {
       setNotifPermission(Notification.permission);
     }
@@ -211,6 +217,14 @@ export default function RiderDashboard() {
   };
 
   const requestNotifPermission = async () => {
+    if (isEmbeddedPreview) {
+      window.open(window.location.href, '_blank', 'noopener,noreferrer');
+      toast({
+        title: 'Open app tab',
+        description: 'Browser blocks notification permission inside preview. Use the new tab and tap Enable there.',
+      });
+      return;
+    }
     if (typeof Notification === 'undefined') {
       toast({ title: 'Not supported', description: 'Browser notifications unavailable.', variant: 'destructive' });
       return;
@@ -352,14 +366,16 @@ export default function RiderDashboard() {
               <div>
                 <p className="font-medium text-sm">Enable browser notifications</p>
                 <p className="text-xs text-muted-foreground">
-                  {notifPermission === 'denied'
+                  {isEmbeddedPreview
+                    ? 'Open the app in a browser tab to allow notifications.'
+                    : notifPermission === 'denied'
                     ? 'Blocked. Allow notifications in your browser settings to get alerts.'
                     : 'Get alerted instantly when a new order is ready.'}
                 </p>
               </div>
             </div>
             <Button size="sm" variant={notifPermission === 'denied' ? 'outline' : 'default'} onClick={requestNotifPermission}>
-              {notifPermission === 'denied' ? 'How to allow' : 'Enable'}
+              {isEmbeddedPreview ? 'Open app' : notifPermission === 'denied' ? 'How to allow' : 'Enable'}
             </Button>
           </CardContent>
         </Card>
