@@ -62,22 +62,40 @@ export default function AdminReports() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [restaurantFilter, setRestaurantFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [refreshing, setRefreshing] = useState(false);
+  const initialLoad = useRef(true);
+
+  const fetchAll = useCallback(async () => {
+    if (initialLoad.current) setLoading(true);
+    else setRefreshing(true);
+    const [{ data: ord, error }, { data: profs }, { data: rests }] = await Promise.all([
+      supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(2000),
+      supabase.from('profiles').select('id, full_name'),
+      supabase.from('restaurants').select('id, name'),
+    ]);
+    if (error) toast.error('Failed to load orders');
+    setOrders((ord ?? []) as Order[]);
+    setCustomers(Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name])));
+    setRestaurants(Object.fromEntries((rests ?? []).map((r: any) => [r.id, r.name])));
+    setLastUpdated(new Date());
+    setLoading(false);
+    setRefreshing(false);
+    initialLoad.current = false;
+  }, []);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const [{ data: ord, error }, { data: profs }, { data: rests }] = await Promise.all([
-        supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(2000),
-        supabase.from('profiles').select('id, full_name'),
-        supabase.from('restaurants').select('id, name'),
-      ]);
-      if (error) toast.error('Failed to load orders');
-      setOrders((ord ?? []) as Order[]);
-      setCustomers(Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name])));
-      setRestaurants(Object.fromEntries((rests ?? []).map((r: any) => [r.id, r.name])));
-      setLoading(false);
-    })();
-  }, []);
+    fetchAll();
+    const channel = supabase
+      .channel('admin-reports')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurants' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchAll())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchAll]);
 
   const filtered = useMemo(() => {
     const cutoff = range === 'all' ? null : startOfDay(subDays(new Date(), Number(range))).getTime();
