@@ -137,13 +137,22 @@ export default function AdminRestaurants() {
             </p>
           )}
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => openDialog()} className="gradient-primary">
-              <Plus className="w-4 h-4 mr-2" />Add Restaurant
+        <div className="flex items-center gap-2">
+          <div className="flex items-center border rounded-md p-0.5">
+            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('list')}>
+              <List className="w-4 h-4" />
             </Button>
-          </DialogTrigger>
-          <DialogContent>
+            <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('grid')}>
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => openDialog()} className="gradient-primary">
+                <Plus className="w-4 h-4 mr-2" />Add Restaurant
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
             <DialogHeader><DialogTitle>{editingRestaurant ? 'Edit Restaurant' : 'Add Restaurant'}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div><Label htmlFor="name">Name *</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required /></div>
