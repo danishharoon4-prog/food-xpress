@@ -397,7 +397,7 @@ export default function RestaurantOrders() {
                     </Button>
                   )}
                   {o.status === 'preparing' && (
-                    <Button size="sm" onClick={() => setPickupOrder(o)} className="gradient-primary">
+                    <Button size="sm" onClick={() => { setPickupOrder(o); loadAvailableRiders(); }} className="gradient-primary">
                       Ready for Pickup
                     </Button>
                   )}
