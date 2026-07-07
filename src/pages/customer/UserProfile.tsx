@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,10 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
-import { useLocation } from '@/hooks/useLocation';
-import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2 } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
 
 interface FavoriteRestaurant {
