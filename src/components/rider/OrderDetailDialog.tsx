@@ -39,6 +39,7 @@ interface OrderDetail {
   created_at: string;
   customer_id: string;
   restaurant_id: string | null;
+  rider_id: string | null;
   restaurant?: { name: string; address: string | null; city: string | null } | null;
   items: Array<{ item_name: string; item_price: number; quantity: number; subtotal: number; special_instructions: string | null }>;
   customer?: { full_name: string; phone: string | null } | null;
