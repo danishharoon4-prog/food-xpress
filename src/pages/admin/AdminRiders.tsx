@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Bike, Star, DollarSign, Package, MapPin, FileImage, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Bike, Star, Banknote, Package, MapPin, FileImage, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { Rider } from '@/types';
 import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
 
@@ -176,7 +176,7 @@ export default function AdminRiders() {
 
                   <div className="flex items-center gap-4 pt-2 border-t">
                     <div className="flex items-center gap-1">
-                      <DollarSign className="w-4 h-4 text-success" />
+                      <Banknote className="w-4 h-4 text-success" />
                       <span className="text-success font-medium">PKR {Number(rider.wallet?.balance || 0).toLocaleString()}</span>
                     </div>
                     <span className="text-muted-foreground text-xs">

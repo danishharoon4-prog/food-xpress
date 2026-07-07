@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShoppingBag, DollarSign, UtensilsCrossed, Clock } from 'lucide-react';
+import { ShoppingBag, Banknote, UtensilsCrossed, Clock } from 'lucide-react';
 
 export default function RestaurantDashboard() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
@@ -30,7 +30,7 @@ export default function RestaurantDashboard() {
 
   const cards = [
     { label: "Today's Orders", value: stats.today, icon: ShoppingBag, color: 'text-primary bg-primary/10' },
-    { label: "Today's Revenue", value: `PKR ${stats.todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-success bg-success/10' },
+    { label: "Today's Revenue", value: `PKR ${stats.todayRevenue.toLocaleString()}`, icon: Banknote, color: 'text-success bg-success/10' },
     { label: 'Total Orders', value: stats.total, icon: Clock, color: 'text-info bg-info/10' },
     { label: 'Menu Items', value: stats.items, icon: UtensilsCrossed, color: 'text-warning bg-warning/10' },
   ];

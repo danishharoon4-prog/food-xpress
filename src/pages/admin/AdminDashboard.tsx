@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingBag, Users, Bike, DollarSign, TrendingUp, Clock } from 'lucide-react';
+import { ShoppingBag, Users, Bike, Banknote, TrendingUp, Clock } from 'lucide-react';
 
 interface DashboardStats {
   totalOrders: number;
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
     {
       title: 'Total Revenue',
       value: `PKR ${stats.totalRevenue.toLocaleString()}`,
-      icon: DollarSign,
+      icon: Banknote,
       color: 'text-success',
       bgColor: 'bg-success/10',
     },
