@@ -48,6 +48,7 @@ export default function RestaurantProfile() {
   const [changeReason, setChangeReason] = useState('');
   const [submittingChange, setSubmittingChange] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<any>(null);
+  const [viewImage, setViewImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (restaurant) {
