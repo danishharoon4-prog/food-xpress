@@ -416,6 +416,38 @@ export default function RestaurantOrders() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!cancelOrder} onOpenChange={(o) => { if (!o) { setCancelOrder(null); setCancelReason(''); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <XCircle className="w-5 h-5" /> Cancel this order?
+            </DialogTitle>
+            <DialogDescription>
+              Order <span className="font-semibold text-foreground">#{cancelOrder?.order_number}</span> will be cancelled and the customer will be notified. Any payment will be refunded.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <label className="text-xs font-medium text-muted-foreground">Reason (shown to customer)</label>
+            <Textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="e.g. Out of ingredients, kitchen closed, unable to fulfil right now…"
+              rows={3}
+              disabled={cancelSubmitting}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setCancelOrder(null); setCancelReason(''); }} disabled={cancelSubmitting}>
+              Keep Order
+            </Button>
+            <Button variant="destructive" onClick={submitCancel} disabled={cancelSubmitting}>
+              {cancelSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <XCircle className="w-4 h-4 mr-1" />}
+              Cancel Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
