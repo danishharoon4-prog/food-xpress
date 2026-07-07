@@ -18,8 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Barlow", "system-ui", "sans-serif"],
-        display: ["Bebas Neue", "Barlow", "sans-serif"],
+        sans: ["Manrope", "system-ui", "sans-serif"],
+        display: ["Sora", "Manrope", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
