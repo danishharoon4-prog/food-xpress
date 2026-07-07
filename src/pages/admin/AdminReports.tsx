@@ -14,10 +14,11 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
-  Loader2, TrendingUp, Banknote, ShoppingBag, Users, Download, Search,
+  Loader2, TrendingUp, Banknote, ShoppingBag, Users, Download, Search, RefreshCw,
 } from 'lucide-react';
 import { format, subDays, startOfDay } from 'date-fns';
 import { toast } from 'sonner';
+import { useCallback, useRef } from 'react';
 
 type Order = {
   id: string;
