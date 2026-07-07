@@ -1186,11 +1186,11 @@ export type Database = {
       }
       update_rider_payment_info: {
         Args: {
-          _bank_account_number: string
-          _bank_account_title: string
+          _account_number: string
+          _account_title: string
           _bank_name: string
-          _mobile_wallet_number: string
-          _mobile_wallet_provider: string
+          _easypaisa_number: string
+          _jazzcash_number: string
         }
         Returns: boolean
       }
