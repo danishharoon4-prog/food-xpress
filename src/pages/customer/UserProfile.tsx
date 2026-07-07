@@ -24,15 +24,18 @@ export default function UserProfile() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { detectLocation } = useLocation();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [permanentAddress, setPermanentAddress] = useState('');
   const [permanentCoords, setPermanentCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [initialCoords, setInitialCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [favorites, setFavorites] = useState<FavoriteRestaurant[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState(true);
 
