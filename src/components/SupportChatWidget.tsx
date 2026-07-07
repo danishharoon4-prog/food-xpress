@@ -150,6 +150,8 @@ export function SupportChatWidget() {
     }
   };
 
+  if (shouldHide) return null;
+
   return (
     <>
       {/* Floating toggle */}
