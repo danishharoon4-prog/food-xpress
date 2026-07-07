@@ -179,6 +179,44 @@ export default function RestaurantDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Live new-order notifications */}
+      {newOrders.length > 0 && (
+        <div className="space-y-2">
+          {newOrders.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => openNewOrder(n.id)}
+              className="w-full text-left group relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-transparent p-4 shadow-md hover:shadow-lg transition-all animate-fade-in"
+            >
+              <span className="absolute inset-0 rounded-2xl ring-2 ring-primary/40 animate-pulse pointer-events-none" />
+              <div className="relative flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 animate-[pulse_1.2s_ease-in-out_infinite]">
+                  <BellRing className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold uppercase tracking-wide text-primary">New Order</span>
+                    <Badge variant="secondary" className="text-[10px]">Tap to view</Badge>
+                  </div>
+                  <p className="font-semibold text-sm truncate">
+                    #{n.order_number} · PKR {Math.round(n.total).toLocaleString()}
+                  </p>
+                </div>
+                <span
+                  role="button"
+                  aria-label="Dismiss"
+                  onClick={(e) => { e.stopPropagation(); dismissNewOrder(n.id); }}
+                  className="p-1.5 rounded-lg hover:bg-background/60 transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+
       {/* Hero header */}
       <Card className="overflow-hidden border-0 shadow-lg">
         <div className="relative">
