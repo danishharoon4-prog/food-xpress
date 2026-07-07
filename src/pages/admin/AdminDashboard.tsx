@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
 import {
   ShoppingBag, Users, Bike, Banknote, TrendingUp, Clock, Store,
@@ -277,9 +278,65 @@ export default function AdminDashboard() {
             Last updated {timeAgo(lastUpdate.toISOString())}
           </span>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => { fetchAll(); fetchNotifications(); }}>
-          <Radio className="w-4 h-4 mr-1.5" /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => { fetchAll(); fetchNotifications(); }}>
+            <Radio className="w-4 h-4 mr-1.5" /> Refresh
+          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="relative">
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-[380px] p-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4" />
+                  <span className="font-semibold text-sm">Notifications</span>
+                  {unreadCount > 0 && (
+                    <Badge className="bg-destructive text-destructive-foreground text-xs">{unreadCount}</Badge>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={markAllRead}>Mark all read</Button>
+                )}
+              </div>
+              {notifications.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">No notifications yet.</p>
+              ) : (
+                <ScrollArea className="h-[420px]">
+                  <div className="space-y-1 p-3">
+                    {notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        className={`p-3 rounded-lg border ${!n.is_read ? 'bg-primary/5 border-primary/30' : 'bg-background'}`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className={`p-1.5 rounded ${typeColors[n.type] || 'bg-muted'} shrink-0`}>
+                            <Bell className="w-3 h-3" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-medium truncate">{n.title}</p>
+                              {!n.is_read && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(n.created_at)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       {/* Alerts */}
@@ -379,97 +436,50 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Recent Orders + Notifications */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Recent Orders</CardTitle>
-            <Button asChild size="sm" variant="ghost">
-              <Link to="/admin/orders">View all <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {recentOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No orders yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {recentOrders.map((o) => (
-                  <Link
-                    key={o.id}
-                    to="/admin/orders"
-                    className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                        <ShoppingBag className="w-4 h-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">#{o.order_number}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {(o as any).restaurant?.name || 'N/A'} · {timeAgo(o.created_at)}
-                        </p>
-                      </div>
+      {/* Recent Orders */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">Recent Orders</CardTitle>
+          <Button asChild size="sm" variant="ghost">
+            <Link to="/admin/orders">View all <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {recentOrders.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">No orders yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {recentOrders.map((o) => (
+                <Link
+                  key={o.id}
+                  to="/admin/orders"
+                  className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                      <ShoppingBag className="w-4 h-4 text-primary" />
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Badge className={`${statusColors[o.status] || 'bg-muted'} text-xs`}>
-                        {o.status.replace(/_/g, ' ')}
-                      </Badge>
-                      <span className="text-sm font-semibold text-primary">
-                        PKR {Number(o.total).toLocaleString()}
-                      </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">#{o.order_number}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {(o as any).restaurant?.name || 'N/A'} · {timeAgo(o.created_at)}
+                      </p>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Live Notifications */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Bell className="w-4 h-4" /> Notifications
-              {unreadCount > 0 && (
-                <Badge className="bg-destructive text-destructive-foreground text-xs">{unreadCount}</Badge>
-              )}
-            </CardTitle>
-            {unreadCount > 0 && (
-              <Button size="sm" variant="ghost" onClick={markAllRead}>Mark all read</Button>
-            )}
-          </CardHeader>
-          <CardContent className="p-0">
-            {notifications.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No notifications yet.</p>
-            ) : (
-              <ScrollArea className="h-[420px]">
-                <div className="space-y-1 p-3">
-                  {notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className={`p-3 rounded-lg border ${!n.is_read ? 'bg-primary/5 border-primary/30' : 'bg-background'}`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className={`p-1.5 rounded ${typeColors[n.type] || 'bg-muted'} shrink-0`}>
-                          <Bell className="w-3 h-3" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-medium truncate">{n.title}</p>
-                            {!n.is_read && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(n.created_at)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge className={`${statusColors[o.status] || 'bg-muted'} text-xs`}>
+                      {o.status.replace(/_/g, ' ')}
+                    </Badge>
+                    <span className="text-sm font-semibold text-primary">
+                      PKR {Number(o.total).toLocaleString()}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
