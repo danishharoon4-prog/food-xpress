@@ -104,6 +104,25 @@ export default function RestaurantOrders() {
     load();
   };
 
+  const chooseDelivery = async (mode: 'self' | 'rider') => {
+    if (!pickupOrder) return;
+    setPickupSubmitting(mode);
+    const { error } = await supabase.rpc('mark_ready_for_pickup', {
+      _order_id: pickupOrder.id,
+      _self_delivery: mode === 'self',
+    });
+    setPickupSubmitting(null);
+    if (error) return toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+    toast({
+      title: mode === 'self' ? 'Self delivery started' : 'Looking for a rider',
+      description: mode === 'self'
+        ? 'Delivery fee removed. Mark on the way / delivered as you go.'
+        : 'All available riders in your city have been notified.',
+    });
+    setPickupOrder(null);
+    load();
+  };
+
   return (
     <div className="space-y-3">
       {orders.length === 0 && (
