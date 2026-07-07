@@ -188,30 +188,40 @@ export default function Restaurants() {
         </motion.section>
 
         {/* Filter pills — cuisines + city select */}
-        <section className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-          <button
-            onClick={() => setCuisine('all')}
-            className={`flex-none px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${
-              cuisine === 'all'
-                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                : 'bg-card text-muted-foreground border border-border/60 hover:border-primary/30 hover:shadow-sm'
-            }`}
-          >
-            All
-          </button>
-          {cuisines.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCuisine(c)}
-              className={`flex-none px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${
-                cuisine === c
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                  : 'bg-card text-muted-foreground border border-border/60 hover:border-primary/30 hover:shadow-sm'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+        >
+          {['all', ...cuisines].map((c, idx) => {
+            const active = cuisine === c;
+            return (
+              <motion.button
+                key={c}
+                onClick={() => setCuisine(c)}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.2 + idx * 0.04 }}
+                whileHover={{ y: -2, scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                className={`relative flex-none px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-colors ${
+                  active
+                    ? 'text-primary-foreground shadow-lg shadow-primary/25'
+                    : 'bg-card text-muted-foreground border border-border/60 hover:border-primary/40'
+                }`}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="activeCuisinePill"
+                    className="absolute inset-0 rounded-2xl bg-primary"
+                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{c === 'all' ? 'All' : c}</span>
+              </motion.button>
+            );
+          })}
 
           {cities.length > 0 && (
             <>
