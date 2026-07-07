@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import type { OrderStatus } from '@/types';
 
 const statusColors: Record<string, string> = {
@@ -132,15 +132,25 @@ export default function RestaurantOrders() {
                 </div>
                 <div className="text-sm space-y-1 pl-6">
                   <p className="font-medium">{o.customer?.full_name || 'Customer'}</p>
-                  {o.customer?.phone && (
+                  {o.customer?.phone ? (
                     <a
                       href={`tel:${o.customer.phone}`}
                       className="flex items-center gap-1.5 text-xs text-primary hover:underline"
                     >
                       <Phone className="w-3 h-3" /> {o.customer.phone}
                     </a>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">No phone on file</p>
                   )}
-                  {o.status !== 'delivered' && (
+                  {o.customer?.email && (
+                    <a
+                      href={`mailto:${o.customer.email}`}
+                      className="flex items-center gap-1.5 text-xs text-primary hover:underline break-all"
+                    >
+                      <Mail className="w-3 h-3 shrink-0" /> {o.customer.email}
+                    </a>
+                  )}
+                  {o.delivery_address && (
                     <a
                       href={
                         o.delivery_latitude && o.delivery_longitude
@@ -151,7 +161,7 @@ export default function RestaurantOrders() {
                       rel="noopener noreferrer"
                       className="flex items-start gap-1.5 text-xs text-primary hover:underline"
                     >
-                      <MapPin className="w-3 h-3 mt-0.5 shrink-1" />
+                      <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
                       <span className="break-all">{o.delivery_address}</span>
                       <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
                     </a>
