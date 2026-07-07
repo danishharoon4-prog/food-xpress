@@ -728,6 +728,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           latitude: number | null
+          logo_url: string | null
           longitude: number | null
           name: string
           opening_time: string | null
@@ -747,6 +748,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           latitude?: number | null
+          logo_url?: string | null
           longitude?: number | null
           name: string
           opening_time?: string | null
@@ -766,6 +768,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           latitude?: number | null
+          logo_url?: string | null
           longitude?: number | null
           name?: string
           opening_time?: string | null
