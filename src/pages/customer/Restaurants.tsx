@@ -49,8 +49,35 @@ export default function Restaurants() {
       .select('*')
       .eq('is_active', true)
       .order('name');
-    if (data) setRestaurants(data as Restaurant[]);
+    if (data) {
+      setRestaurants(data as Restaurant[]);
+      fetchRatings(data.map((r) => r.id));
+    }
     setLoading(false);
+  };
+
+  const fetchRatings = async (restaurantIds: string[]) => {
+    if (!restaurantIds.length) return;
+    const { data } = await supabase
+      .from('ratings')
+      .select('restaurant_id, restaurant_rating, food_rating')
+      .in('restaurant_id', restaurantIds)
+      .not('restaurant_id', 'is', null);
+    if (!data) return;
+    const agg: Record<string, { sum: number; count: number }> = {};
+    data.forEach((r) => {
+      const rid = r.restaurant_id as string;
+      const score = r.restaurant_rating ?? r.food_rating;
+      if (!rid || score == null) return;
+      if (!agg[rid]) agg[rid] = { sum: 0, count: 0 };
+      agg[rid].sum += Number(score);
+      agg[rid].count += 1;
+    });
+    const map: Record<string, { avg: number; count: number }> = {};
+    Object.entries(agg).forEach(([k, v]) => {
+      map[k] = { avg: v.sum / v.count, count: v.count };
+    });
+    setRatings(map);
   };
 
   const fetchDeals = async () => {
