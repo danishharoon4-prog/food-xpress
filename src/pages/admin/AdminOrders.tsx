@@ -234,115 +234,92 @@ export default function AdminOrders() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {orders.map((order) => (
             <Card key={order.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <CardTitle className="text-lg">#{order.order_number}</CardTitle>
-                  <div className="flex items-center gap-3 flex-wrap">
+              <CardContent className="p-3">
+                {/* Header row */}
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm">#{order.order_number}</span>
+                    <Badge className={`${statusColors[order.status]} text-xs`}>
+                      {order.status.replace(/_/g, ' ')}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {(order as any).restaurant?.name || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
                     <DeliveryCountdown
                       estimatedDeliveryTime={order.estimated_delivery_time}
                       status={order.status}
                     />
-                    <Badge className={statusColors[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Restaurant</p>
-                    <p className="font-medium">{(order as any).restaurant?.name || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Total</p>
-                    <p className="font-bold text-primary">PKR {Number(order.total).toLocaleString()}</p>
-                  </div>
-                  {order.status !== 'delivered' && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Delivery Address</p>
-                      <p className="text-sm">{order.delivery_address}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Items</p>
-                    <p className="text-sm">{order.order_items?.length || 0} items</p>
+                    <span className="font-bold text-primary text-sm">
+                      PKR {Number(order.total).toLocaleString()}
+                    </span>
                   </div>
                 </div>
 
-                {/* Customer Info */}
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Customer</span>
-                  </div>
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <p className="text-sm font-medium">{order.customer?.full_name || 'N/A'}</p>
+                {/* Info row: customer / rider / address */}
+                <div className="grid gap-2 md:grid-cols-3 text-xs mb-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span className="font-medium truncate">{order.customer?.full_name || 'N/A'}</span>
                     {order.customer?.phone && (
-                      <a
-                        href={`tel:${order.customer.phone}`}
-                        className="flex items-center gap-1 text-sm text-primary hover:underline"
-                      >
-                        <Phone className="w-3.5 h-3.5" />
-                        {order.customer.phone}
+                      <a href={`tel:${order.customer.phone}`} className="text-primary hover:underline flex items-center gap-0.5 shrink-0">
+                        <Phone className="w-3 h-3" />{order.customer.phone}
                       </a>
                     )}
                   </div>
-                </div>
-
-                {/* Rider Assignment */}
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Bike className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Rider</span>
-                  </div>
-                  {order.rider_id ? (
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <p className="text-sm text-success font-medium">
-                        {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
-                      </p>
-                      {order.assigned_rider?.profile?.phone && (
-                        <a
-                          href={`tel:${order.assigned_rider.profile.phone}`}
-                          className="flex items-center gap-1 text-sm text-primary hover:underline"
-                        >
-                          <Phone className="w-3.5 h-3.5" />
-                          {order.assigned_rider.profile.phone}
-                        </a>
-                      )}
-                    </div>
-                  ) : (
-                    <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a rider to assign" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {riders.filter(r => r.is_online).length === 0 ? (
-                          <SelectItem value="_none" disabled>No online riders</SelectItem>
-                        ) : (
-                          riders.filter(r => r.is_online).map((rider) => (
-                            <SelectItem key={rider.id} value={rider.id}>
-                              {rider.profile?.full_name || 'Rider'} (Online)
-                            </SelectItem>
-                          ))
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Bike className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    {order.rider_id ? (
+                      <>
+                        <span className="font-medium text-success truncate">
+                          {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
+                        </span>
+                        {order.assigned_rider?.profile?.phone && (
+                          <a href={`tel:${order.assigned_rider.profile.phone}`} className="text-primary hover:underline flex items-center gap-0.5 shrink-0">
+                            <Phone className="w-3 h-3" />{order.assigned_rider.profile.phone}
+                          </a>
                         )}
-                        {riders.filter(r => !r.is_online).map((rider) => (
-                          <SelectItem key={rider.id} value={rider.id}>
-                            {rider.profile?.full_name || 'Rider'} (Offline)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                      </>
+                    ) : (
+                      <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
+                        <SelectTrigger className="h-7 text-xs">
+                          <SelectValue placeholder="Assign rider" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {riders.filter(r => r.is_online).length === 0 ? (
+                            <SelectItem value="_none" disabled>No online riders</SelectItem>
+                          ) : (
+                            riders.filter(r => r.is_online).map((rider) => (
+                              <SelectItem key={rider.id} value={rider.id}>
+                                {rider.profile?.full_name || 'Rider'} (Online)
+                              </SelectItem>
+                            ))
+                          )}
+                          {riders.filter(r => !r.is_online).map((rider) => (
+                            <SelectItem key={rider.id} value={rider.id}>
+                              {rider.profile?.full_name || 'Rider'} (Offline)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                  <div className="text-muted-foreground truncate" title={order.delivery_address}>
+                    {order.order_items?.length || 0} items · {order.delivery_address}
+                  </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-4 flex-wrap">
+                {/* Actions row */}
+                <div className="flex items-center gap-2 flex-wrap pt-2 border-t">
                   <Select
                     value={order.status}
                     onValueChange={(value) => updateStatus(order.id, value as OrderStatus)}
                   >
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="h-7 w-40 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -360,17 +337,17 @@ export default function AdminOrders() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                      className="h-7 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => {
                         setCancelOrderId(order.id);
                         setCancelReason('');
                       }}
                     >
-                      <X className="w-4 h-4 mr-1" /> Cancel Order
+                      <X className="w-3.5 h-3.5 mr-1" /> Cancel
                     </Button>
                   )}
                   {order.status === 'cancelled' && (order as any).cancellation_reason && (
-                    <span className="text-xs text-destructive">
+                    <span className="text-xs text-destructive truncate">
                       Reason: {(order as any).cancellation_reason}
                     </span>
                   )}
