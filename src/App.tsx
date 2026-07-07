@@ -44,6 +44,8 @@ import AdminRiders from "./pages/admin/AdminRiders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminSupport from "./pages/admin/AdminSupport";
+import { SupportChatWidget } from "@/components/SupportChatWidget";
 
 // Rider
 import RiderLayout from "./pages/rider/RiderLayout";
@@ -109,6 +111,7 @@ const App = () => (
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="riders" element={<AdminRiders />} />
                 <Route path="users" element={<AdminUsers />} />
+                <Route path="support" element={<AdminSupport />} />
                 <Route path="reports" element={<AdminReports />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
@@ -134,6 +137,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </PageTransition>
+            <SupportChatWidget />
           </BrowserRouter>
         </TooltipProvider>
       </CartProvider>

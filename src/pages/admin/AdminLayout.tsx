@@ -2,17 +2,18 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  UtensilsCrossed, 
-  Users, 
-  Bike, 
-  ShoppingBag, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  UtensilsCrossed,
+  Users,
+  Bike,
+  ShoppingBag,
+  BarChart3,
+  Settings,
   LogOut,
   Menu,
-  X
+  X,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +24,7 @@ const navItems = [
   { path: '/admin/orders', icon: ShoppingBag, label: 'Orders' },
   { path: '/admin/riders', icon: Bike, label: 'Riders' },
   { path: '/admin/users', icon: Users, label: 'Users' },
+  { path: '/admin/support', icon: MessageSquare, label: 'Support' },
   { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
