@@ -96,8 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, fullName: string, _role: AppRole = 'customer') => {
     const redirectUrl = `${window.location.origin}/`;
 
-    // SECURITY: never send role in signup metadata. The DB trigger always
-    // creates the row as 'customer'. Role changes require an admin action.
+    // SECURITY: only 'restaurant' or 'rider' can be requested at signup.
+    // 'admin' is never accepted from the client — the DB trigger enforces this.
+    const requestedRole: AppRole =
+      _role === 'restaurant' || _role === 'rider' ? _role : 'customer';
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -105,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          role: requestedRole,
         },
       },
     });
