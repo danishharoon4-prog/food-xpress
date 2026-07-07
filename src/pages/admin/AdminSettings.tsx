@@ -28,6 +28,9 @@ type Settings = {
   operating_city: string;
   opening_time: string;
   closing_time: string;
+  notifications_sound_enabled: boolean;
+  notifications_toast_enabled: boolean;
+  notifications_push_enabled: boolean;
 };
 
 export default function AdminSettings() {
@@ -90,11 +93,12 @@ export default function AdminSettings() {
       </div>
 
       <Tabs defaultValue="delivery">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full md:w-auto">
+        <TabsList className="grid grid-cols-3 md:grid-cols-5 w-full md:w-auto">
           <TabsTrigger value="delivery">Delivery</TabsTrigger>
           <TabsTrigger value="rider">Rider</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="platform">Platform</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="delivery">
@@ -203,6 +207,35 @@ export default function AdminSettings() {
                 <Label>Closing time</Label>
                 <Input type="time" value={settings.closing_time?.slice(0, 5)} onChange={(e) => update('closing_time', e.target.value)} />
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle>Global Notification Controls</CardTitle>
+              <CardDescription>
+                Turn platform-wide notification channels on/off. Individual users can further customize their own preferences from their profile.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { key: 'notifications_push_enabled', label: 'Browser push notifications', desc: 'Master switch for background/native push notifications across the app.' },
+                { key: 'notifications_toast_enabled', label: 'In-app toast popups', desc: 'Show toast popups inside the app when events happen.' },
+                { key: 'notifications_sound_enabled', label: 'Notification sound', desc: 'Play a subtle sound with in-app notifications.' },
+              ].map((m) => (
+                <div key={m.key} className="flex items-start justify-between border rounded-lg p-4 gap-4">
+                  <div>
+                    <Label className="text-base">{m.label}</Label>
+                    <p className="text-sm text-muted-foreground mt-1">{m.desc}</p>
+                  </div>
+                  <Switch
+                    checked={settings[m.key as keyof Settings] as boolean}
+                    onCheckedChange={(v) => update(m.key as keyof Settings, v as never)}
+                  />
+                </div>
+              ))}
             </CardContent>
           </Card>
         </TabsContent>
