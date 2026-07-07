@@ -61,12 +61,15 @@ export default function UserProfile() {
       setEmail(data.email || '');
       setPhone(data.phone || '');
       setCity((data as any).city || '');
+      setAvatarUrl((data as any).avatar_url || null);
       setPermanentAddress((data as any).permanent_address || '');
       if ((data as any).permanent_latitude && (data as any).permanent_longitude) {
-        setPermanentCoords({
+        const c = {
           latitude: Number((data as any).permanent_latitude),
           longitude: Number((data as any).permanent_longitude),
-        });
+        };
+        setPermanentCoords(c);
+        setInitialCoords(c);
       }
     }
   };
