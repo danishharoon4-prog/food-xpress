@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink, Truck, Search, Loader2 } from 'lucide-react';
 import type { OrderStatus } from '@/types';
 
 const statusColors: Record<string, string> = {
