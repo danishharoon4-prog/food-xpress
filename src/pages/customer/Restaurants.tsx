@@ -11,6 +11,16 @@ import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, Star, Heart, Utensils, Tag } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant, MenuItem } from '@/types';
+import { motion } from 'framer-motion';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] as const },
+  }),
+};
 
 type DealItem = Omit<MenuItem, 'restaurant'> & {
   restaurant?: { id: string; name: string; image_url: string | null };
