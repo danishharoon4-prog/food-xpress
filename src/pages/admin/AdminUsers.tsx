@@ -212,7 +212,22 @@ export default function AdminUsers() {
                             <p className="text-xs text-destructive mt-0.5">Reason: {u.banned_reason}</p>
                           )}
                         </div>
-                        <div className="flex gap-2 sm:justify-end">
+                        <div className="flex flex-wrap gap-2 sm:justify-end items-center">
+                          <Select
+                            value={u.role}
+                            onValueChange={(v) => handleRoleChange(u, v as AppRole)}
+                            disabled={isSelf}
+                          >
+                            <SelectTrigger className="h-9 w-[130px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="customer">Customer</SelectItem>
+                              <SelectItem value="rider">Rider</SelectItem>
+                              <SelectItem value="restaurant">Restaurant</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <Button
                             size="sm"
                             variant={u.is_banned ? 'default' : 'outline'}
