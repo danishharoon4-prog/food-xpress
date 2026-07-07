@@ -15,6 +15,7 @@ import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import { CancelOrderButton } from '@/components/CancelOrderButton';
 import { useToast } from '@/hooks/use-toast';
 import { Bike, MapPin, Phone, Star, CheckCircle2 } from 'lucide-react';
+import FeedbackDialog from '@/components/FeedbackDialog';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
 
 
