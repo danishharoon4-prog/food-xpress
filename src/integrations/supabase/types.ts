@@ -524,11 +524,14 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          banned_at: string | null
+          banned_reason: string | null
           city: string | null
           created_at: string
           email: string | null
           full_name: string
           id: string
+          is_banned: boolean
           permanent_address: string | null
           permanent_latitude: number | null
           permanent_longitude: number | null
@@ -537,11 +540,14 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           city?: string | null
           created_at?: string
           email?: string | null
           full_name: string
           id: string
+          is_banned?: boolean
           permanent_address?: string | null
           permanent_latitude?: number | null
           permanent_longitude?: number | null
@@ -550,11 +556,14 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           city?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
           id?: string
+          is_banned?: boolean
           permanent_address?: string | null
           permanent_latitude?: number | null
           permanent_longitude?: number | null
@@ -994,6 +1003,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_user_ban: {
+        Args: { _banned: boolean; _reason?: string; _user_id: string }
+        Returns: boolean
+      }
       apply_restaurant_location_change: {
         Args: { _approve: boolean; _notes?: string; _request_id: string }
         Returns: boolean
