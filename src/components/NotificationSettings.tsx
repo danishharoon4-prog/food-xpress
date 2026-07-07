@@ -11,6 +11,7 @@ import { Bell, Loader2, Volume2 } from 'lucide-react';
 import { DEFAULT_PREFS, EVENT_LABELS, NotifPrefs } from '@/lib/notificationPrefs';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
 import { fireBrowserNotification, requestNotificationPermission } from '@/lib/browserNotify';
+import { isLovablePreviewNotificationContext, openNotificationPermissionTab } from '@/lib/notificationPermission';
 
 export function NotificationSettings() {
   const { user } = useAuth();
@@ -36,11 +37,7 @@ export function NotificationSettings() {
   }, [user]);
 
   useEffect(() => {
-    try {
-      setIsEmbeddedPreview(window.self !== window.top);
-    } catch {
-      setIsEmbeddedPreview(true);
-    }
+    setIsEmbeddedPreview(isLovablePreviewNotificationContext());
     const syncPermission = () => {
       if (typeof Notification !== 'undefined') setPermission(Notification.permission);
     };
@@ -69,7 +66,7 @@ export function NotificationSettings() {
 
   const enableBrowserPush = async () => {
     if (isEmbeddedPreview) {
-      window.open(window.location.href, '_blank', 'noopener,noreferrer');
+      openNotificationPermissionTab();
       toast.info('Browser blocks notification permission inside preview. Use the new tab and tap Enable there.');
       return;
     }

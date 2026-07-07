@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Rider, RiderWallet } from '@/types';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
 import { requestNotificationPermission } from '@/lib/browserNotify';
+import { isLovablePreviewNotificationContext, openNotificationPermissionTab } from '@/lib/notificationPermission';
 
 export default function RiderDashboard() {
   const { user } = useAuth();
@@ -31,11 +32,7 @@ export default function RiderDashboard() {
   const seenOrderIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    try {
-      setIsEmbeddedPreview(window.self !== window.top);
-    } catch {
-      setIsEmbeddedPreview(true);
-    }
+    setIsEmbeddedPreview(isLovablePreviewNotificationContext());
     if (typeof Notification !== 'undefined') {
       setNotifPermission(Notification.permission);
     }
@@ -218,7 +215,7 @@ export default function RiderDashboard() {
 
   const requestNotifPermission = async () => {
     if (isEmbeddedPreview) {
-      window.open(window.location.href, '_blank', 'noopener,noreferrer');
+      openNotificationPermissionTab();
       toast({
         title: 'Open app tab',
         description: 'Browser blocks notification permission inside preview. Use the new tab and tap Enable there.',
