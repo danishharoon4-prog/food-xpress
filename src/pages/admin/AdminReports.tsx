@@ -14,7 +14,7 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
-  Loader2, TrendingUp, DollarSign, ShoppingBag, Users, Download, Search,
+  Loader2, TrendingUp, Banknote, ShoppingBag, Users, Download, Search,
 } from 'lucide-react';
 import { format, subDays, startOfDay } from 'date-fns';
 import { toast } from 'sonner';
@@ -208,7 +208,7 @@ export default function AdminReports() {
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard icon={ShoppingBag} label="Total Orders" value={stats.total.toString()} />
         <StatCard icon={TrendingUp} label="Delivered" value={stats.delivered.toString()} />
-        <StatCard icon={DollarSign} label="Revenue" value={`PKR ${Math.round(stats.revenue).toLocaleString()}`} />
+        <StatCard icon={Banknote} label="Revenue" value={`PKR ${Math.round(stats.revenue).toLocaleString()}`} />
         <StatCard icon={Users} label="Unique Customers" value={stats.customers.toString()} sub={`AOV PKR ${Math.round(stats.aov)}`} />
       </div>
 
