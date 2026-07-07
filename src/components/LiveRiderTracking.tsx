@@ -1,10 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from '@/hooks/useLocation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bike, MapPin, Clock, Route, Loader2, Navigation, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+
 
 interface LiveRiderTrackingProps {
   riderId: string | null;
