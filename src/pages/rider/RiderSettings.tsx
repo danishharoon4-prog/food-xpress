@@ -371,6 +371,7 @@ export default function RiderSettings() {
       </Card>
 
       <NotificationSettings />
+      <SupportChatPanel defaultIssueType="rider" />
     </div>
   );
 }
