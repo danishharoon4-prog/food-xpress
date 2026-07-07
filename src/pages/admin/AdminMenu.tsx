@@ -147,7 +147,16 @@ export default function AdminMenu() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Menu Items</h2>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center border rounded-md p-0.5">
+            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('list')}>
+              <List className="w-4 h-4" />
+            </Button>
+            <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('grid')}>
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => openDialog()} className="gradient-primary">
               <Plus className="w-4 h-4 mr-2" />
