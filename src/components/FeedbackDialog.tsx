@@ -57,15 +57,12 @@ export default function FeedbackDialog({
       return toast({ title: 'Please rate at least one', variant: 'destructive' });
     }
     setSaving(true);
-    const { error } = await supabase.from('ratings').insert({
-      order_id: orderId,
-      customer_id: user!.id,
-      rider_id: riderId,
-      restaurant_id: restaurantId,
-      food_rating: food || null,
-      rider_rating: rider || null,
-      restaurant_rating: resto || null,
-      review_text: text || null,
+    const { error } = await supabase.rpc('submit_rating', {
+      _order_id: orderId,
+      _food_rating: food || null,
+      _restaurant_rating: resto || null,
+      _rider_rating: rider || null,
+      _review_text: text || null,
     });
     setSaving(false);
     if (error) return toast({ title: 'Failed', description: error.message, variant: 'destructive' });

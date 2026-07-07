@@ -93,9 +93,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: AppRole = 'customer') => {
+  const signUp = async (email: string, password: string, fullName: string, _role: AppRole = 'customer') => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
+    // SECURITY: never send role in signup metadata. The DB trigger always
+    // creates the row as 'customer'. Role changes require an admin action.
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -103,7 +105,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
-          role: role,
         },
       },
     });
