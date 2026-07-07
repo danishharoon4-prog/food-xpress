@@ -31,8 +31,11 @@ const nextStatus: Record<string, OrderStatus | null> = {
 export default function RestaurantOrders() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<any[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [pickupOrder, setPickupOrder] = useState<any | null>(null);
   const [pickupSubmitting, setPickupSubmitting] = useState<'self' | 'rider' | null>(null);
 
