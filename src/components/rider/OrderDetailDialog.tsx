@@ -117,17 +117,34 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
 
   const saveEta = async (newEta: string) => {
     if (!order) return;
+    if (!order.rider_id || order.rider_id !== myRiderId) {
+      toast({
+        title: 'Not your delivery yet',
+        description: 'Accept & pick up this order before setting an arrival time.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setSavingEta(true);
     const { data, error } = await supabase.rpc('update_order_eta', { _order_id: order.id, _new_eta: newEta });
     setSavingEta(false);
     if (error || data === false) {
-      toast({ title: 'Failed', description: error?.message || 'Could not update ETA', variant: 'destructive' });
+      toast({
+        title: 'Failed',
+        description: error?.message || 'Could not update ETA. Make sure the order is still active and assigned to you.',
+        variant: 'destructive',
+      });
       return;
     }
     toast({ title: 'ETA updated', description: 'Customer and admin will see the new arrival time.' });
     setOrder({ ...order, estimated_delivery_time: newEta });
     onUpdated?.();
   };
+
+  const canEditEta = !!order
+    && !!order.rider_id
+    && order.rider_id === myRiderId
+    && !['delivered', 'cancelled', 'awaiting_confirmation'].includes(order.status);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
