@@ -15,6 +15,7 @@ import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import { CancelOrderButton } from '@/components/CancelOrderButton';
 import { useToast } from '@/hooks/use-toast';
 import { Bike, MapPin, Phone, Star, CheckCircle2 } from 'lucide-react';
+import FeedbackDialog from '@/components/FeedbackDialog';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
 
 
@@ -25,6 +26,8 @@ export default function OrderTracking() {
   const [rider, setRider] = useState<(Rider & { profile?: Profile }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
+  const [alreadyRated, setAlreadyRated] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -64,6 +67,19 @@ export default function OrderTracking() {
           .single();
 
         if (riderData) setRider(riderData as any);
+      }
+
+      // Check if already rated & auto-open feedback when delivered
+      if (data.status === 'delivered' && user?.id) {
+        const { data: existing } = await supabase
+          .from('ratings')
+          .select('id')
+          .eq('order_id', data.id)
+          .eq('customer_id', user.id)
+          .maybeSingle();
+        const rated = !!existing;
+        setAlreadyRated(rated);
+        if (!rated) setFeedbackOpen(true);
       }
     }
     setLoading(false);
@@ -119,7 +135,34 @@ export default function OrderTracking() {
     <div className="min-h-screen bg-background pb-8">
       <CustomerHeader />
 
+      <FeedbackDialog
+        orderId={order.id}
+        riderId={order.rider_id}
+        restaurantId={order.restaurant_id}
+        alreadyRated={alreadyRated}
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        hideTrigger
+        onRated={() => setAlreadyRated(true)}
+      />
+
       <main className="container py-8 space-y-6">
+        {isDelivered && !alreadyRated && (
+          <Card className="border-primary bg-primary/5 animate-fade-in">
+            <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Star className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold">Order delivered — how was it?</p>
+                  <p className="text-sm text-muted-foreground">Rate the rider, restaurant, and food.</p>
+                </div>
+              </div>
+              <Button onClick={() => setFeedbackOpen(true)} className="gradient-primary">Give Feedback</Button>
+            </CardContent>
+          </Card>
+        )}
         {/* Order Header */}
         <Card className={isCancelled ? 'border-destructive' : isDelivered ? 'border-success' : 'border-primary'}>
           <CardContent className="py-6">
