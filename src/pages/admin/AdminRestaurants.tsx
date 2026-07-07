@@ -163,8 +163,9 @@ export default function AdminRestaurants() {
               <ImageCropInput label="Restaurant Cover Image" value={imageUrl} onChange={setImageUrl} aspect={16/9} previewClassName="w-full h-32 object-cover rounded-md border" />
               <Button type="submit" className="w-full">{editingRestaurant ? 'Update' : 'Add'} Restaurant</Button>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <LocationChangeRequests />
