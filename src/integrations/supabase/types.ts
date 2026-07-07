@@ -1007,6 +1007,13 @@ export type Database = {
         Args: { _banned: boolean; _reason?: string; _user_id: string }
         Returns: boolean
       }
+      admin_set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       apply_restaurant_location_change: {
         Args: { _approve: boolean; _notes?: string; _request_id: string }
         Returns: boolean
