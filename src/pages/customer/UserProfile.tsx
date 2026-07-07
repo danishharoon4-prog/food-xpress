@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
 import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X, CheckCircle2, Pencil } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
+import { SupportChatPanel } from '@/components/SupportChatPanel';
 
 interface FavoriteRestaurant {
   id: string;
