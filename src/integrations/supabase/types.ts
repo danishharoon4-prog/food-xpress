@@ -319,7 +319,7 @@ export type Database = {
           cancelled_at: string | null
           cancelled_by: string | null
           created_at: string
-          customer_id: string
+          customer_id: string | null
           delivery_address: string
           delivery_fee: number | null
           delivery_latitude: number | null
@@ -341,7 +341,7 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           created_at?: string
-          customer_id: string
+          customer_id?: string | null
           delivery_address: string
           delivery_fee?: number | null
           delivery_latitude?: number | null
@@ -363,7 +363,7 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           created_at?: string
-          customer_id?: string
+          customer_id?: string | null
           delivery_address?: string
           delivery_fee?: number | null
           delivery_latitude?: number | null
@@ -608,7 +608,7 @@ export type Database = {
       ratings: {
         Row: {
           created_at: string
-          customer_id: string
+          customer_id: string | null
           food_rating: number | null
           id: string
           order_id: string
@@ -620,7 +620,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          customer_id: string
+          customer_id?: string | null
           food_rating?: number | null
           id?: string
           order_id: string
@@ -632,7 +632,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          customer_id?: string
+          customer_id?: string | null
           food_rating?: number | null
           id?: string
           order_id?: string
