@@ -278,17 +278,27 @@ export default function Restaurants() {
               ))}
             </div>
           ) : deals.length === 0 ? (
-            <div className="relative overflow-hidden bg-card border-2 border-dashed border-border rounded-[2.5rem] py-14 px-6 text-center flex flex-col items-center justify-center gap-4 transition-colors hover:border-primary/20">
-              <div className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center rotate-12 transition-transform duration-500 hover:rotate-0">
-                <Tag className="w-10 h-10 text-primary/40" strokeWidth={1.5} />
-              </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="relative overflow-hidden bg-card border-2 border-dashed border-border rounded-[2.5rem] py-14 px-6 text-center flex flex-col items-center justify-center gap-4 transition-colors hover:border-primary/30 group"
+            >
+              <motion.div
+                animate={{ rotate: [12, 0, 12], y: [0, -6, 0] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center shadow-sm"
+              >
+                <Tag className="w-10 h-10 text-primary/50" strokeWidth={1.5} />
+              </motion.div>
               <div className="space-y-1.5">
                 <p className="text-lg font-bold">No new deals just yet</p>
                 <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
                   We're cooking up something special. Check back soon for exclusive rewards from top-rated restaurants.
                 </p>
               </div>
-            </div>
+            </motion.div>
           ) : (
             <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
               {deals.map((deal) => (
