@@ -41,7 +41,10 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const message: string = (body?.message ?? "").toString().trim();
+    const category: string = (body?.category ?? "other").toString().trim().toLowerCase();
     if (!message || message.length > 4000) return json({ error: "Invalid message" }, 400);
+    const allowedCats = ["order", "payment", "wallet", "rider", "restaurant", "other"];
+    const safeCategory = allowedCats.includes(category) ? category : "other";
 
     // Get user's role for context
     const { data: roleRow } = await admin
@@ -94,7 +97,12 @@ Deno.serve(async (req) => {
       .limit(20);
 
     const messages = [
-      { role: "system", content: SUPPORT_SYSTEM_PROMPT + `\n\nCurrent user role: ${role}.` },
+      {
+        role: "system",
+        content:
+          SUPPORT_SYSTEM_PROMPT +
+          `\n\nCurrent user role: ${role}. Issue category selected by user: ${safeCategory}. Focus your reply on this category first.`,
+      },
       ...(history ?? []).map((m: any) => ({
         role: m.sender === "user" ? "user" : m.sender === "ai" ? "assistant" : "system",
         content: m.sender === "admin" ? `[Admin reply]: ${m.content}` : m.content,
