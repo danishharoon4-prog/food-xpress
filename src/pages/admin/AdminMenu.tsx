@@ -245,6 +245,7 @@ export default function AdminMenu() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {menuItems.length === 0 ? (
