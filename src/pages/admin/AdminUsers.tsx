@@ -88,6 +88,23 @@ export default function AdminUsers() {
     fetchUsers();
   };
 
+  const handleRoleChange = async (u: UserRow, newRole: AppRole) => {
+    if (newRole === u.role) return;
+    if (u.id === currentUser?.id && newRole !== 'admin') {
+      return toast.error("You can't change your own admin role");
+    }
+    const confirmMsg = newRole === 'admin'
+      ? `Make "${u.full_name}" an ADMIN? They will have full platform access.`
+      : `Change "${u.full_name}" role to ${newRole}?`;
+    if (!confirm(confirmMsg)) return;
+    const { error } = await supabase.rpc('admin_set_user_role' as never, {
+      _user_id: u.id, _role: newRole,
+    } as never);
+    if (error) return toast.error(error.message);
+    toast.success(`Role updated to ${newRole}`);
+    fetchUsers();
+  };
+
   const filtered = users
     .filter((u) => tab === 'all' || u.role === tab)
     .filter((u) => {
