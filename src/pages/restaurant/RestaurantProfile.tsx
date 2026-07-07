@@ -514,6 +514,17 @@ export default function RestaurantProfile() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!viewImage} onOpenChange={(o) => !o && setViewImage(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          <DialogHeader className="px-2 pt-2">
+            <DialogTitle className="flex items-center gap-2 text-sm"><ImageIcon className="w-4 h-4" /> Image preview</DialogTitle>
+          </DialogHeader>
+          {viewImage && (
+            <img src={viewImage} alt="Preview" className="w-full max-h-[75vh] object-contain rounded-md bg-muted" />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
