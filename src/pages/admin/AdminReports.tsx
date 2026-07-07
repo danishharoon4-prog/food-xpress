@@ -14,10 +14,11 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
-  Loader2, TrendingUp, Banknote, ShoppingBag, Users, Download, Search,
+  Loader2, TrendingUp, Banknote, ShoppingBag, Users, Download, Search, RefreshCw,
 } from 'lucide-react';
 import { format, subDays, startOfDay } from 'date-fns';
 import { toast } from 'sonner';
+import { useCallback, useRef } from 'react';
 
 type Order = {
   id: string;
@@ -61,22 +62,40 @@ export default function AdminReports() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [restaurantFilter, setRestaurantFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [refreshing, setRefreshing] = useState(false);
+  const initialLoad = useRef(true);
+
+  const fetchAll = useCallback(async () => {
+    if (initialLoad.current) setLoading(true);
+    else setRefreshing(true);
+    const [{ data: ord, error }, { data: profs }, { data: rests }] = await Promise.all([
+      supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(2000),
+      supabase.from('profiles').select('id, full_name'),
+      supabase.from('restaurants').select('id, name'),
+    ]);
+    if (error) toast.error('Failed to load orders');
+    setOrders((ord ?? []) as Order[]);
+    setCustomers(Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name])));
+    setRestaurants(Object.fromEntries((rests ?? []).map((r: any) => [r.id, r.name])));
+    setLastUpdated(new Date());
+    setLoading(false);
+    setRefreshing(false);
+    initialLoad.current = false;
+  }, []);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const [{ data: ord, error }, { data: profs }, { data: rests }] = await Promise.all([
-        supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(2000),
-        supabase.from('profiles').select('id, full_name'),
-        supabase.from('restaurants').select('id, name'),
-      ]);
-      if (error) toast.error('Failed to load orders');
-      setOrders((ord ?? []) as Order[]);
-      setCustomers(Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name])));
-      setRestaurants(Object.fromEntries((rests ?? []).map((r: any) => [r.id, r.name])));
-      setLoading(false);
-    })();
-  }, []);
+    fetchAll();
+    const channel = supabase
+      .channel('admin-reports')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurants' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchAll())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchAll]);
 
   const filtered = useMemo(() => {
     const cutoff = range === 'all' ? null : startOfDay(subDays(new Date(), Number(range))).getTime();
@@ -166,12 +185,28 @@ export default function AdminReports() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Reports</h2>
-          <p className="text-sm text-muted-foreground">Orders, revenue and performance insights.</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold">Reports</h2>
+            <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 border border-green-500/20">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Live
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Orders, revenue and performance insights · Updated {format(lastUpdated, 'HH:mm:ss')}
+          </p>
         </div>
-        <Button variant="outline" onClick={exportCSV}>
-          <Download className="w-4 h-4 mr-2" /> Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchAll} disabled={refreshing}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
+          <Button variant="outline" onClick={exportCSV}>
+            <Download className="w-4 h-4 mr-2" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
