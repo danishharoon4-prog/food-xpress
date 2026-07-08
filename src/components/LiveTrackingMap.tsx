@@ -469,6 +469,15 @@ export function LiveTrackingMap({
     }
   }, [isStale]);
 
+  // While stale, tick every 5s so the "Last known · Xs ago" label stays fresh
+  const [, forceStaleTick] = useState(0);
+  useEffect(() => {
+    if (!isStale) return;
+    const id = window.setInterval(() => forceStaleTick((n) => n + 1), 5000);
+    return () => window.clearInterval(id);
+  }, [isStale]);
+
+
 
 
   // Auto-clear the delta chips a moment after they light up
