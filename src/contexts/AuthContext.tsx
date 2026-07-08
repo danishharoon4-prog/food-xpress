@@ -29,39 +29,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (profileData) {
-        setProfile(profileData as Profile);
-      }
-
-      // Fetch role
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (roleData) {
-        setRole(roleData.role as AppRole);
-      }
+      const [{ data: profileData }, { data: roleData }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+        supabase.from('user_roles').select('role').eq('user_id', userId).maybeSingle(),
+      ]);
+      setProfile((profileData as Profile) ?? null);
+      setRole((roleData?.role as AppRole) ?? null);
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setProfile(null);
+      setRole(null);
     }
   };
 
   useEffect(() => {
-    // "Remember me" enforcement:
-    // If the last sign-in opted out of "remember me", the session should only
-    // survive within the same browser session (across tab refreshes, not
-    // across full browser restarts). sessionStorage is cleared when the
-    // browser/tab is closed — so if the sentinel is missing on load while
-    // remember=false, we treat it as a fresh browser start and sign out.
+    // "Remember me" enforcement (see note below).
     try {
       const remember = localStorage.getItem(REMEMBER_KEY);
       const alive = sessionStorage.getItem(SESSION_SENTINEL);
@@ -69,56 +51,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         supabase.auth.signOut().catch(() => {});
         localStorage.removeItem(REMEMBER_KEY);
       } else if (remember === 'false') {
-        // Keep sentinel refreshed for this browser session
         sessionStorage.setItem(SESSION_SENTINEL, '1');
       }
     } catch {
-      // ignore storage errors (private mode, etc.)
+      // ignore storage errors
     }
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    let currentUserId: string | null = null;
 
-        if (session?.user) {
-          // Defer Supabase calls with setTimeout to avoid deadlock
-          setTimeout(() => {
-            fetchUserData(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-          setRole(null);
-        }
+    const applySession = async (session: Session | null, source: 'listener' | 'initial') => {
+      const nextUserId = session?.user?.id ?? null;
 
-        if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          setRole(null);
-          try {
-            localStorage.removeItem(REMEMBER_KEY);
-            sessionStorage.removeItem(SESSION_SENTINEL);
-          } catch {}
-        }
-
-        setIsLoading(false);
+      // If user identity changed (account switch / reopen with different session),
+      // clear stale profile+role IMMEDIATELY so guards never see the wrong role.
+      if (nextUserId !== currentUserId) {
+        setProfile(null);
+        setRole(null);
       }
-    );
+      currentUserId = nextUserId;
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        fetchUserData(session.user.id);
+        // Keep isLoading=true until role is resolved so route guards
+        // (AdminLayout/RiderLayout/RestaurantLayout/Auth redirect) don't
+        // act on a null/stale role and redirect to the wrong dashboard.
+        setIsLoading(true);
+        await fetchUserData(session.user.id);
+      } else {
+        setProfile(null);
+        setRole(null);
       }
-      
       setIsLoading(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        try {
+          localStorage.removeItem(REMEMBER_KEY);
+          sessionStorage.removeItem(SESSION_SENTINEL);
+        } catch {}
+      }
+      // Defer with setTimeout to avoid Supabase deadlock inside the listener.
+      setTimeout(() => { applySession(session, 'listener'); }, 0);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      applySession(session, 'initial');
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
 
 
   const signUp = async (email: string, password: string, fullName: string, _role: AppRole = 'customer') => {
