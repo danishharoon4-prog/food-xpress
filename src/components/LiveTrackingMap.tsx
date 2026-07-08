@@ -75,6 +75,9 @@ export function LiveTrackingMap({
   const routeLineRef = useRef<any>(null);
   const pulseIntervalRef = useRef<number | null>(null);
   const googleRef = useRef<any>(null);
+  // Refs used to smoothly animate the rider marker between fixes
+  const currentRiderPosRef = useRef<Coords | null>(null);
+  const animRafRef = useRef<number | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +90,13 @@ export function LiveTrackingMap({
     distance: { text: string; value: number };
     duration: { text: string; value: number };
   } | null>(null);
+  const prevDistanceRef = useRef<number | null>(null);
+  const prevDurationRef = useRef<number | null>(null);
+  const [distanceDelta, setDistanceDelta] = useState<'down' | 'up' | null>(null);
+  const [durationDelta, setDurationDelta] = useState<'down' | 'up' | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [pingKey, setPingKey] = useState(0);
+
 
   const { calculateDistance, getDirectionsUrl } = useLocation();
 
@@ -214,7 +223,12 @@ export function LiveTrackingMap({
         window.clearInterval(pulseIntervalRef.current);
         pulseIntervalRef.current = null;
       }
+      if (animRafRef.current) {
+        cancelAnimationFrame(animRafRef.current);
+        animRafRef.current = null;
+      }
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [riderId, isSelfDelivery]);
 
@@ -232,6 +246,7 @@ export function LiveTrackingMap({
           if (typeof lat === 'number' && typeof lng === 'number') {
             setRiderCoords({ lat, lng });
             setLastUpdated(new Date());
+            setPingKey((k) => k + 1);
           }
         }
       )
@@ -241,11 +256,12 @@ export function LiveTrackingMap({
     };
   }, [riderId, trackingRider]);
 
-  // Draw / update rider marker
+  // Draw / update rider marker — with smooth interpolation between fixes
   useEffect(() => {
     const google = googleRef.current;
     const map = mapRef.current;
     if (!google || !map || !trackingRider || !riderCoords) return;
+
 
     if (!riderPulseRef.current) {
       riderPulseRef.current = new google.maps.Marker({
@@ -297,26 +313,61 @@ export function LiveTrackingMap({
           anchor: new google.maps.Point(23, 54),
         },
       });
+      currentRiderPosRef.current = riderCoords;
     } else {
-      riderMarkerRef.current.setPosition(riderCoords);
+      // Smoothly interpolate from previous position → new fix
+      const from = currentRiderPosRef.current || riderCoords;
+      const to = riderCoords;
+      const DURATION = 700; // ms — matches typical realtime fix cadence
+      const start = performance.now();
+      if (animRafRef.current) cancelAnimationFrame(animRafRef.current);
+
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / DURATION);
+        const k = easeOutCubic(t);
+        const lat = from.lat + (to.lat - from.lat) * k;
+        const lng = from.lng + (to.lng - from.lng) * k;
+        const pos = { lat, lng };
+        riderMarkerRef.current?.setPosition(pos);
+        riderPulseRef.current?.setPosition(pos);
+        // Live-update the origin end of the route so the dashed line tracks the bike
+        if (routeLineRef.current && customerCoords) {
+          routeLineRef.current.setPath([pos, customerCoords]);
+        }
+        if (autoFollowRef.current) {
+          programmaticMoveRef.current = true;
+          mapRef.current?.panTo(pos);
+        }
+        if (t < 1) {
+          animRafRef.current = requestAnimationFrame(tick);
+        } else {
+          currentRiderPosRef.current = to;
+          animRafRef.current = null;
+          window.setTimeout(() => {
+            programmaticMoveRef.current = false;
+          }, 60);
+        }
+      };
+      animRafRef.current = requestAnimationFrame(tick);
     }
 
-    if (autoFollowRef.current) {
+    // Initial fit — only fires the first time we have all three points
+    if (autoFollowRef.current && !hasInitialFitRef.current) {
       programmaticMoveRef.current = true;
-      map.panTo(riderCoords);
-      if (!hasInitialFitRef.current) {
-        const bounds = new google.maps.LatLngBounds();
-        bounds.extend(riderCoords);
-        if (customerCoords) bounds.extend(customerCoords);
-        if (restaurantCoords) bounds.extend(restaurantCoords);
-        map.fitBounds(bounds, 70);
-        hasInitialFitRef.current = true;
-      }
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend(riderCoords);
+      if (customerCoords) bounds.extend(customerCoords);
+      if (restaurantCoords) bounds.extend(restaurantCoords);
+      map.fitBounds(bounds, 70);
+      hasInitialFitRef.current = true;
       window.setTimeout(() => {
         programmaticMoveRef.current = false;
-      }, 300);
+      }, 400);
     }
   }, [riderCoords, customerCoords, restaurantCoords, trackingRider]);
+
 
   // Draw a simple straight route line from origin -> customer
   useEffect(() => {
@@ -358,15 +409,44 @@ export function LiveTrackingMap({
       }
       try {
         const info = await calculateDistance(originCoords, customerCoords);
-        if (!cancelled) setDistanceInfo(info);
+        if (cancelled) return;
+
+        // Compare vs previous fix to show a subtle "getting closer" / "delayed" cue
+        const prevD = prevDistanceRef.current;
+        const prevT = prevDurationRef.current;
+        if (prevD != null && Math.abs(info.distance.value - prevD) > 5) {
+          setDistanceDelta(info.distance.value < prevD ? 'down' : 'up');
+        }
+        if (prevT != null && Math.abs(info.duration.value - prevT) > 5) {
+          setDurationDelta(info.duration.value < prevT ? 'down' : 'up');
+        }
+        prevDistanceRef.current = info.distance.value;
+        prevDurationRef.current = info.duration.value;
+
+        setDistanceInfo(info);
       } catch (e) {
         console.error('Distance calc failed', e);
       }
+
     })();
     return () => {
       cancelled = true;
     };
   }, [originCoords, customerCoords, calculateDistance]);
+
+  // Auto-clear the delta chips a moment after they light up
+  useEffect(() => {
+    if (!distanceDelta) return;
+    const t = window.setTimeout(() => setDistanceDelta(null), 2200);
+    return () => window.clearTimeout(t);
+  }, [distanceDelta, distanceInfo?.distance?.value]);
+
+  useEffect(() => {
+    if (!durationDelta) return;
+    const t = window.setTimeout(() => setDurationDelta(null), 2200);
+    return () => window.clearTimeout(t);
+  }, [durationDelta, distanceInfo?.duration?.value]);
+
 
   const openDirections = async () => {
     if (!originCoords || !customerCoords) return;
@@ -402,7 +482,7 @@ export function LiveTrackingMap({
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/40">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
+          <span key={pingKey} className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
@@ -411,7 +491,7 @@ export function LiveTrackingMap({
           </span>
         </div>
         <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Radio className="w-3 h-3" />
+          <Radio key={`radio-${pingKey}`} className="w-3 h-3 transition-transform duration-500 animate-fade-in" />
           Realtime
         </div>
       </div>
@@ -419,22 +499,29 @@ export function LiveTrackingMap({
       {/* Context strip */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border/40 bg-background/60">
         <div
-          className={`w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0 ${
+          className={`w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0 transition-transform duration-300 ${
             trackingRider ? 'bg-[#2563eb]' : 'bg-[#f97316]'
           }`}
+          style={{ transform: pingKey ? 'scale(1)' : 'scale(1)' }}
         >
           {trackingRider ? (
-            isPickedUp ? <PackageCheck className="w-3.5 h-3.5" /> : <Bike className="w-3.5 h-3.5" />
+            isPickedUp ? <PackageCheck className="w-3.5 h-3.5" /> : <Bike key={pingKey} className="w-3.5 h-3.5 animate-fade-in" />
           ) : (
             <Store className="w-3.5 h-3.5" />
           )}
         </div>
+
         <p className="text-xs font-medium text-foreground flex-1 min-w-0 truncate">{originLabel}</p>
         {lastUpdated && trackingRider && (
-          <span className="text-[10px] text-muted-foreground shrink-0">
+          <span
+            key={`upd-${pingKey}`}
+            className="text-[10px] text-muted-foreground shrink-0 animate-fade-in flex items-center gap-1"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
+
       </div>
 
       {/* Map */}
@@ -481,29 +568,75 @@ export function LiveTrackingMap({
 
       {/* ETA / Distance stats */}
       <div className="grid grid-cols-2 gap-2 px-3 py-3 border-t border-border/40 bg-background/60">
-        <div className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2">
+        <div
+          className={`relative flex items-center gap-2.5 rounded-xl border bg-card px-3 py-2 transition-all duration-500 ${
+            distanceDelta === 'down'
+              ? 'border-emerald-500/50 shadow-[0_0_0_3px_hsl(var(--primary)/0.05)]'
+              : distanceDelta === 'up'
+                ? 'border-amber-500/50'
+                : 'border-border/60'
+          }`}
+        >
           <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <Route className="w-4 h-4" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Distance</p>
-            <p className="text-sm font-bold truncate">
+            <p
+              key={`d-${distanceInfo?.distance?.text ?? 'none'}`}
+              className="text-sm font-bold truncate animate-fade-in"
+            >
               {distanceInfo?.distance?.text || (trackingRider && !riderCoords ? '—' : 'Calculating…')}
             </p>
           </div>
+          {distanceDelta && (
+            <span
+              className={`absolute top-1.5 right-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full animate-fade-in ${
+                distanceDelta === 'down'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+              }`}
+            >
+              {distanceDelta === 'down' ? '↓ closer' : '↑ farther'}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2">
+
+        <div
+          className={`relative flex items-center gap-2.5 rounded-xl border bg-card px-3 py-2 transition-all duration-500 ${
+            durationDelta === 'down'
+              ? 'border-emerald-500/50'
+              : durationDelta === 'up'
+                ? 'border-amber-500/50'
+                : 'border-border/60'
+          }`}
+        >
           <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <Clock className="w-4 h-4" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">ETA</p>
-            <p className="text-sm font-bold truncate">
+            <p
+              key={`t-${distanceInfo?.duration?.text ?? 'none'}`}
+              className="text-sm font-bold truncate animate-fade-in"
+            >
               {distanceInfo?.duration?.text || (trackingRider && !riderCoords ? '—' : 'Calculating…')}
             </p>
           </div>
+          {durationDelta && (
+            <span
+              className={`absolute top-1.5 right-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full animate-fade-in ${
+                durationDelta === 'down'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+              }`}
+            >
+              {durationDelta === 'down' ? '↓ sooner' : '↑ delayed'}
+            </span>
+          )}
         </div>
       </div>
+
 
       {/* Action buttons */}
       <div className="flex gap-2 px-3 pb-3">
