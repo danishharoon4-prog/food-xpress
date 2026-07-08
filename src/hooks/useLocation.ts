@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
 
 interface LocationData {
   latitude: number;
@@ -18,7 +19,42 @@ export function useLocation() {
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const { toast } = useToast();
 
-  const getCurrentLocation = useCallback((): Promise<GeolocationPosition> => {
+  const getCurrentLocation = useCallback(async (): Promise<GeolocationPosition> => {
+    // Native (Capacitor) path: use plugin so Android runtime permissions work.
+    if (Capacitor.isNativePlatform()) {
+      const { Geolocation } = await import('@capacitor/geolocation');
+      try {
+        const perm = await Geolocation.checkPermissions();
+        if (perm.location !== 'granted' && perm.coarseLocation !== 'granted') {
+          const req = await Geolocation.requestPermissions({ permissions: ['location'] });
+          if (req.location !== 'granted' && req.coarseLocation !== 'granted') {
+            throw new Error('Please allow location access to use this feature');
+          }
+        }
+        const pos = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 60000,
+        });
+        // Shape as web GeolocationPosition for the rest of the app.
+        return {
+          coords: {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+            altitude: pos.coords.altitude ?? null,
+            altitudeAccuracy: pos.coords.altitudeAccuracy ?? null,
+            heading: pos.coords.heading ?? null,
+            speed: pos.coords.speed ?? null,
+          },
+          timestamp: pos.timestamp,
+        } as unknown as GeolocationPosition;
+      } catch (err: any) {
+        throw new Error(err?.message || 'Unable to get device location');
+      }
+    }
+
+    // Web browser path.
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error('Geolocation is not supported by your browser'));
@@ -50,6 +86,7 @@ export function useLocation() {
       );
     });
   }, []);
+
 
   const getAddressFromCoordinates = useCallback(async (latitude: number, longitude: number): Promise<string> => {
     const { data, error } = await supabase.functions.invoke('location-services', {
