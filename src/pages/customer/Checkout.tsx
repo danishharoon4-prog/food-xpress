@@ -295,6 +295,42 @@ export default function Checkout() {
         setPendingOrder({ id: placed.order_id, number: placed.order_number, total });
         setJcOpen(true);
         toast({ title: 'Order Created', description: `Complete payment to confirm order #${placed.order_number}.` });
+      } else if (paymentMethod === 'card') {
+        // JazzCash Hosted Checkout (MIGS) — redirect to JazzCash card page
+        toast({ title: 'Redirecting to Payment', description: 'Taking you to JazzCash secure card page…' });
+        const { data: hc, error: hcErr } = await supabase.functions.invoke('jazzcash-hosted-checkout', {
+          body: { order_id: placed.order_id, return_origin: window.location.origin },
+        });
+        if (hcErr || !hc?.endpoint || !hc?.fields) {
+          toast({
+            title: 'Payment redirect failed',
+            description: hcErr?.message || 'Could not open card payment page. Your order is saved — try paying again from My Orders.',
+            variant: 'destructive',
+          });
+          navigate(`/order/${placed.order_id}`);
+          return;
+        }
+        // Build & auto-submit a form to JazzCash
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = hc.endpoint as string;
+        form.style.display = 'none';
+        Object.entries(hc.fields as Record<string, string>).forEach(([k, v]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = k;
+          input.value = v ?? '';
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+      } else if (paymentMethod === 'easypaisa') {
+        toast({
+          title: 'EasyPaisa not available',
+          description: 'EasyPaisa payments are not enabled yet. Your order is saved — please pay with JazzCash, Card, or Cash on Delivery.',
+          variant: 'destructive',
+        });
+        navigate(`/order/${placed.order_id}`);
       } else {
         toast({ title: 'Order Placed!', description: `Order #${placed.order_number} has been placed successfully.` });
         navigate(`/order/${placed.order_id}`);
