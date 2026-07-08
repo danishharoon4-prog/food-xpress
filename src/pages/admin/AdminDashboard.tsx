@@ -102,6 +102,7 @@ export default function AdminDashboard() {
   });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [activeOrdersList, setActiveOrdersList] = useState<ActiveOrderRow[]>([]);
+  const [topRiders, setTopRiders] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
