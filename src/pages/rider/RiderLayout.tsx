@@ -17,6 +17,7 @@ import {
   X,
   Bike,
   AlertCircle,
+  Headphones,
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ const navItems = [
   { path: '/rider/orders', icon: ShoppingBag, label: 'Orders' },
   { path: '/rider/earnings', icon: Wallet, label: 'Earnings' },
   { path: '/rider/ratings', icon: Star, label: 'Ratings' },
+  { path: '/rider/support', icon: Headphones, label: 'Support' },
   { path: '/rider/settings', icon: Settings, label: 'Settings' },
 ];
 
@@ -87,7 +89,8 @@ function RiderLayoutInner() {
 
 
   // Allowed routes when not verified: only Settings
-  const allowedWhenUnverified = location.pathname === '/rider/settings';
+  const allowedWhenUnverified =
+    location.pathname === '/rider/settings' || location.pathname === '/rider/support';
 
   return (
     <div className="min-h-screen bg-background flex">
