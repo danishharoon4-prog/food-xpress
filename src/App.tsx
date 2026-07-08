@@ -60,6 +60,9 @@ import OrderTracking from "./pages/customer/OrderTracking";
 import MyOrders from "./pages/customer/MyOrders";
 import UserProfile from "./pages/customer/UserProfile";
 import PaymentCallback from "./pages/customer/PaymentCallback";
+import CustomerSupport from "./pages/customer/Support";
+import RiderSupport from "./pages/rider/RiderSupport";
+import RestaurantSupport from "./pages/restaurant/RestaurantSupport";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +95,7 @@ const App = () => (
               <Route path="/orders" element={<MyOrders />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/payment/callback" element={<PaymentCallback />} />
+              <Route path="/support" element={<CustomerSupport />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayout />}>
@@ -112,6 +116,7 @@ const App = () => (
                 <Route path="orders" element={<RiderOrders />} />
                 <Route path="earnings" element={<RiderEarnings />} />
                 <Route path="ratings" element={<RiderRatings />} />
+                <Route path="support" element={<RiderSupport />} />
                 <Route path="settings" element={<RiderSettings />} />
               </Route>
 
@@ -122,6 +127,7 @@ const App = () => (
                 <Route path="menu" element={<RestaurantMenuPage />} />
                 <Route path="wallet" element={<RestaurantWallet />} />
                 <Route path="profile" element={<RestaurantProfile />} />
+                <Route path="support" element={<RestaurantSupport />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
