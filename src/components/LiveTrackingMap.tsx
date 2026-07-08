@@ -223,7 +223,12 @@ export function LiveTrackingMap({
         window.clearInterval(pulseIntervalRef.current);
         pulseIntervalRef.current = null;
       }
+      if (animRafRef.current) {
+        cancelAnimationFrame(animRafRef.current);
+        animRafRef.current = null;
+      }
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [riderId, isSelfDelivery]);
 
