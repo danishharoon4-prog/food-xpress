@@ -18,11 +18,11 @@ import { MapPin, CreditCard, Wallet, Banknote, Loader2, Truck, Clock } from 'luc
 import { JazzCashPaymentDialog } from '@/components/JazzCashPaymentDialog';
 import type { PaymentMethod } from '@/types';
 
-const paymentMethods = [
-  { value: 'cod', label: 'Cash on Delivery', icon: Banknote, description: 'Pay when you receive' },
-  { value: 'easypaisa', label: 'EasyPaisa', icon: Wallet, description: 'Pay via EasyPaisa' },
-  { value: 'jazzcash', label: 'JazzCash', icon: Wallet, description: 'Pay via JazzCash' },
-  { value: 'card', label: 'Credit/Debit Card', icon: CreditCard, description: 'Secure card payment' },
+const ALL_PAYMENT_METHODS = [
+  { value: 'cod', label: 'Cash on Delivery', icon: Banknote, description: 'Pay when you receive', flag: 'cod_enabled' as const },
+  { value: 'easypaisa', label: 'EasyPaisa', icon: Wallet, description: 'Pay via EasyPaisa', flag: 'easypaisa_enabled' as const },
+  { value: 'jazzcash', label: 'JazzCash', icon: Wallet, description: 'Pay via JazzCash wallet', flag: 'jazzcash_enabled' as const },
+  { value: 'card', label: 'Credit/Debit Card', icon: CreditCard, description: 'Secure card payment via JazzCash', flag: 'stripe_enabled' as const },
 ] as const;
 
 export default function Checkout() {
@@ -46,6 +46,9 @@ export default function Checkout() {
   const [editingAddress, setEditingAddress] = useState(false);
   const [jcOpen, setJcOpen] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<{ id: string; number: string; total: number } | null>(null);
+  const [enabledMethods, setEnabledMethods] = useState<typeof ALL_PAYMENT_METHODS[number][]>(
+    ALL_PAYMENT_METHODS.filter((m) => m.value === 'cod'),
+  );
 
   const subtotal = getSubtotal();
   const total = subtotal + deliveryFee;
@@ -85,6 +88,31 @@ export default function Checkout() {
     };
     loadAddress();
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load which payment methods admin has enabled
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('platform_settings')
+        .select('cod_enabled, easypaisa_enabled, jazzcash_enabled, stripe_enabled')
+        .eq('singleton', true)
+        .maybeSingle();
+
+      const flags = (data ?? {
+        cod_enabled: true,
+        easypaisa_enabled: false,
+        jazzcash_enabled: true,
+        stripe_enabled: true,
+      }) as Record<string, boolean>;
+
+      const available = ALL_PAYMENT_METHODS.filter((m) => flags[m.flag] !== false);
+      setEnabledMethods(available.length ? available : [ALL_PAYMENT_METHODS[0]]);
+      // If current selection got disabled, fall back to first available
+      if (!available.some((m) => m.value === paymentMethod)) {
+        setPaymentMethod((available[0]?.value ?? 'cod') as PaymentMethod);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Don't bounce to /cart if a JazzCash dialog is open — cart was cleared after order placement
@@ -267,6 +295,42 @@ export default function Checkout() {
         setPendingOrder({ id: placed.order_id, number: placed.order_number, total });
         setJcOpen(true);
         toast({ title: 'Order Created', description: `Complete payment to confirm order #${placed.order_number}.` });
+      } else if (paymentMethod === 'card') {
+        // JazzCash Hosted Checkout (MIGS) — redirect to JazzCash card page
+        toast({ title: 'Redirecting to Payment', description: 'Taking you to JazzCash secure card page…' });
+        const { data: hc, error: hcErr } = await supabase.functions.invoke('jazzcash-hosted-checkout', {
+          body: { order_id: placed.order_id, return_origin: window.location.origin },
+        });
+        if (hcErr || !hc?.endpoint || !hc?.fields) {
+          toast({
+            title: 'Payment redirect failed',
+            description: hcErr?.message || 'Could not open card payment page. Your order is saved — try paying again from My Orders.',
+            variant: 'destructive',
+          });
+          navigate(`/order/${placed.order_id}`);
+          return;
+        }
+        // Build & auto-submit a form to JazzCash
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = hc.endpoint as string;
+        form.style.display = 'none';
+        Object.entries(hc.fields as Record<string, string>).forEach(([k, v]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = k;
+          input.value = v ?? '';
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+      } else if (paymentMethod === 'easypaisa') {
+        toast({
+          title: 'EasyPaisa not available',
+          description: 'EasyPaisa payments are not enabled yet. Your order is saved — please pay with JazzCash, Card, or Cash on Delivery.',
+          variant: 'destructive',
+        });
+        navigate(`/order/${placed.order_id}`);
       } else {
         toast({ title: 'Order Placed!', description: `Order #${placed.order_number} has been placed successfully.` });
         navigate(`/order/${placed.order_id}`);
@@ -362,7 +426,7 @@ export default function Checkout() {
               <CardContent>
                 <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {paymentMethods.map((method) => (
+                    {enabledMethods.map((method) => (
                       <Label
                         key={method.value}
                         htmlFor={method.value}

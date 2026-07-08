@@ -59,6 +59,7 @@ import Checkout from "./pages/customer/Checkout";
 import OrderTracking from "./pages/customer/OrderTracking";
 import MyOrders from "./pages/customer/MyOrders";
 import UserProfile from "./pages/customer/UserProfile";
+import PaymentCallback from "./pages/customer/PaymentCallback";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +91,7 @@ const App = () => (
               <Route path="/order/:id" element={<OrderTracking />} />
               <Route path="/orders" element={<MyOrders />} />
               <Route path="/profile" element={<UserProfile />} />
+              <Route path="/payment/callback" element={<PaymentCallback />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayout />}>
