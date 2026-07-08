@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
 import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X, CheckCircle2, Pencil } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
+import { MotionSettings } from '@/components/MotionSettings';
+
 
 interface FavoriteRestaurant {
   id: string;
@@ -425,7 +427,11 @@ export default function UserProfile() {
 
           {/* Notification Settings */}
           <NotificationSettings />
+
+          {/* Motion & animation controls */}
+          <MotionSettings />
         </div>
+
       </main>
     </div>
   );

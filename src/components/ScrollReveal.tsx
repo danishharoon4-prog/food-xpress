@@ -58,7 +58,7 @@ export function ScrollReveal() {
       mo.disconnect();
       io.disconnect();
     };
-  }, [location.pathname]);
+  }, [location.pathname, motionEnabled, reduceMotion]);
 
   return null;
 }
