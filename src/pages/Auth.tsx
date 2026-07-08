@@ -27,11 +27,13 @@ export default function Auth() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   
   // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
