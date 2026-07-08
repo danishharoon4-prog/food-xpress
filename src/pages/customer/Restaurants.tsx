@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 import CustomerHeader from '@/components/CustomerHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy } from 'lucide-react';
+import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy, Plus, Check } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant, MenuItem } from '@/types';
 import { motion } from 'framer-motion';
@@ -53,6 +54,8 @@ type DealItem = Omit<MenuItem, 'restaurant'> & {
 export default function Restaurants() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const { addItem, getRestaurantId, items: cartItems } = useCart();
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [deals, setDeals] = useState<DealItem[]>([]);
   const [topItems, setTopItems] = useState<TopItem[]>([]);
@@ -168,6 +171,69 @@ export default function Restaurants() {
       await supabase.from('favorite_restaurants').insert({ user_id: user.id, restaurant_id: restaurantId });
       setFavoriteIds((prev) => new Set(prev).add(restaurantId));
       toast({ title: 'Added to favorites ❤️' });
+    }
+  };
+
+  const quickAdd = (
+    e: React.MouseEvent,
+    payload: {
+      id: string;
+      name: string;
+      price: number;
+      discount_price: number | null;
+      image_url: string | null;
+      restaurant_id: string;
+      restaurant_name?: string;
+    }
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const currentRestaurantId = getRestaurantId();
+    const switching =
+      currentRestaurantId && currentRestaurantId !== payload.restaurant_id && cartItems.length > 0;
+
+    const menuItem: MenuItem = {
+      id: payload.id,
+      restaurant_id: payload.restaurant_id,
+      category_id: null,
+      name: payload.name,
+      description: null,
+      price: Number(payload.price),
+      discount_price: payload.discount_price != null ? Number(payload.discount_price) : null,
+      is_deal: payload.discount_price != null,
+      deal_label: null,
+      image_url: payload.image_url,
+      is_available: true,
+      is_featured: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    addItem(menuItem, 1);
+
+    // Visual "added" feedback
+    setAddedIds((prev) => new Set(prev).add(payload.id));
+    setTimeout(() => {
+      setAddedIds((prev) => {
+        const n = new Set(prev);
+        n.delete(payload.id);
+        return n;
+      });
+    }, 1400);
+
+    if (switching) {
+      toast({
+        title: 'Cart replaced',
+        description: `Started a new cart with ${payload.name}${
+          payload.restaurant_name ? ` from ${payload.restaurant_name}` : ''
+        }.`,
+      });
+    } else {
+      toast({
+        title: 'Added to cart',
+        description: `${payload.name} added to your cart.`,
+      });
     }
   };
 
@@ -349,6 +415,34 @@ export default function Restaurants() {
                           <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">
                             {item.total_sold} sold
                           </div>
+                          <motion.button
+                            type="button"
+                            onClick={(e) =>
+                              quickAdd(e, {
+                                id: item.id,
+                                name: item.name,
+                                price: item.price,
+                                discount_price: item.discount_price,
+                                image_url: item.image_url,
+                                restaurant_id: item.restaurant_id,
+                                restaurant_name: item.restaurant_name,
+                              })
+                            }
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            aria-label={`Add ${item.name} to cart`}
+                            className={`absolute bottom-3 left-3 h-9 w-9 rounded-full inline-flex items-center justify-center shadow-lg transition-colors ${
+                              addedIds.has(item.id)
+                                ? 'bg-green-500 text-white'
+                                : 'bg-white text-primary hover:bg-primary hover:text-primary-foreground'
+                            }`}
+                          >
+                            {addedIds.has(item.id) ? (
+                              <Check className="w-4 h-4" strokeWidth={3} />
+                            ) : (
+                              <Plus className="w-4 h-4" strokeWidth={3} />
+                            )}
+                          </motion.button>
                         </div>
                         <div className="px-1">
                           <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{item.name}</h3>
@@ -454,6 +548,34 @@ export default function Restaurants() {
                         {deal.deal_label}
                       </div>
                     )}
+                    <motion.button
+                      type="button"
+                      onClick={(e) =>
+                        quickAdd(e, {
+                          id: deal.id,
+                          name: deal.name,
+                          price: deal.price,
+                          discount_price: deal.discount_price,
+                          image_url: deal.image_url,
+                          restaurant_id: deal.restaurant_id,
+                          restaurant_name: deal.restaurant?.name,
+                        })
+                      }
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      aria-label={`Add ${deal.name} to cart`}
+                      className={`absolute bottom-3 right-3 h-9 w-9 rounded-full inline-flex items-center justify-center shadow-lg transition-colors ${
+                        addedIds.has(deal.id)
+                          ? 'bg-green-500 text-white'
+                          : 'bg-white text-primary hover:bg-primary hover:text-primary-foreground'
+                      }`}
+                    >
+                      {addedIds.has(deal.id) ? (
+                        <Check className="w-4 h-4" strokeWidth={3} />
+                      ) : (
+                        <Plus className="w-4 h-4" strokeWidth={3} />
+                      )}
+                    </motion.button>
                   </div>
                   <div className="px-1">
                     <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">
