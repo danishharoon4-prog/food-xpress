@@ -409,10 +409,25 @@ export function LiveTrackingMap({
       }
       try {
         const info = await calculateDistance(originCoords, customerCoords);
-        if (!cancelled) setDistanceInfo(info);
+        if (cancelled) return;
+
+        // Compare vs previous fix to show a subtle "getting closer" / "delayed" cue
+        const prevD = prevDistanceRef.current;
+        const prevT = prevDurationRef.current;
+        if (prevD != null && Math.abs(info.distance.value - prevD) > 5) {
+          setDistanceDelta(info.distance.value < prevD ? 'down' : 'up');
+        }
+        if (prevT != null && Math.abs(info.duration.value - prevT) > 5) {
+          setDurationDelta(info.duration.value < prevT ? 'down' : 'up');
+        }
+        prevDistanceRef.current = info.distance.value;
+        prevDurationRef.current = info.duration.value;
+
+        setDistanceInfo(info);
       } catch (e) {
         console.error('Distance calc failed', e);
       }
+
     })();
     return () => {
       cancelled = true;
