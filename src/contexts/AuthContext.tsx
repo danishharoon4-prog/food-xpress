@@ -56,6 +56,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // "Remember me" enforcement:
+    // If the last sign-in opted out of "remember me", the session should only
+    // survive within the same browser session (across tab refreshes, not
+    // across full browser restarts). sessionStorage is cleared when the
+    // browser/tab is closed — so if the sentinel is missing on load while
+    // remember=false, we treat it as a fresh browser start and sign out.
+    try {
+      const remember = localStorage.getItem(REMEMBER_KEY);
+      const alive = sessionStorage.getItem(SESSION_SENTINEL);
+      if (remember === 'false' && !alive) {
+        supabase.auth.signOut().catch(() => {});
+        localStorage.removeItem(REMEMBER_KEY);
+      } else if (remember === 'false') {
+        // Keep sentinel refreshed for this browser session
+        sessionStorage.setItem(SESSION_SENTINEL, '1');
+      }
+    } catch {
+      // ignore storage errors (private mode, etc.)
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -75,6 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_OUT') {
           setProfile(null);
           setRole(null);
+          try {
+            localStorage.removeItem(REMEMBER_KEY);
+            sessionStorage.removeItem(SESSION_SENTINEL);
+          } catch {}
         }
 
         setIsLoading(false);
@@ -95,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
 
   const signUp = async (email: string, password: string, fullName: string, _role: AppRole = 'customer') => {
     const redirectUrl = `${window.location.origin}/`;
