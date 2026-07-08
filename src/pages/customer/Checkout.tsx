@@ -18,11 +18,11 @@ import { MapPin, CreditCard, Wallet, Banknote, Loader2, Truck, Clock } from 'luc
 import { JazzCashPaymentDialog } from '@/components/JazzCashPaymentDialog';
 import type { PaymentMethod } from '@/types';
 
-const paymentMethods = [
-  { value: 'cod', label: 'Cash on Delivery', icon: Banknote, description: 'Pay when you receive' },
-  { value: 'easypaisa', label: 'EasyPaisa', icon: Wallet, description: 'Pay via EasyPaisa' },
-  { value: 'jazzcash', label: 'JazzCash', icon: Wallet, description: 'Pay via JazzCash' },
-  { value: 'card', label: 'Credit/Debit Card', icon: CreditCard, description: 'Secure card payment' },
+const ALL_PAYMENT_METHODS = [
+  { value: 'cod', label: 'Cash on Delivery', icon: Banknote, description: 'Pay when you receive', flag: 'cod_enabled' as const },
+  { value: 'easypaisa', label: 'EasyPaisa', icon: Wallet, description: 'Pay via EasyPaisa', flag: 'easypaisa_enabled' as const },
+  { value: 'jazzcash', label: 'JazzCash', icon: Wallet, description: 'Pay via JazzCash wallet', flag: 'jazzcash_enabled' as const },
+  { value: 'card', label: 'Credit/Debit Card', icon: CreditCard, description: 'Secure card payment via JazzCash', flag: 'stripe_enabled' as const },
 ] as const;
 
 export default function Checkout() {
@@ -46,6 +46,9 @@ export default function Checkout() {
   const [editingAddress, setEditingAddress] = useState(false);
   const [jcOpen, setJcOpen] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<{ id: string; number: string; total: number } | null>(null);
+  const [enabledMethods, setEnabledMethods] = useState<typeof ALL_PAYMENT_METHODS[number][]>(
+    ALL_PAYMENT_METHODS.filter((m) => m.value === 'cod'),
+  );
 
   const subtotal = getSubtotal();
   const total = subtotal + deliveryFee;
