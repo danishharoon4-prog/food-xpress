@@ -87,7 +87,7 @@ export default function Auth() {
     if (!validateForm(false)) return;
 
     setIsLoading(true);
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(email, password, rememberMe);
     setIsLoading(false);
 
     if (error) {
