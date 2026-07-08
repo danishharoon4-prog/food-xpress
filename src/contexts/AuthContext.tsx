@@ -151,22 +151,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   const signOut = async () => {
+    // 1) Revoke the session on the server (scope: 'global' also invalidates
+    //    any other tabs/devices for the same user).
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: 'global' });
     } catch (err) {
       console.error('signOut error', err);
     }
-    // Clear local auth state immediately so UI reflects logout even if
-    // the network call fails or the session was already gone.
+
+    // 2) Clear in-memory auth state so the UI reflects logout immediately.
     setSession(null);
     setUser(null);
     setProfile(null);
     setRole(null);
-    // Hard redirect ensures every provider/cache resets cleanly.
+
+    // 3) Purge every trace of the session from browser storage:
+    //    - Supabase auth tokens (sb-*-auth-token, supabase.auth.token)
+    //    - App-specific cache: remember-me flag, session sentinel,
+    //      cached userId / role / profile, notification prefs tied to user, etc.
+    try {
+      const purge = (storage: Storage) => {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < storage.length; i++) {
+          const key = storage.key(i);
+          if (!key) continue;
+          if (
+            key.startsWith('sb-') ||
+            key.startsWith('supabase.') ||
+            key.startsWith('fx.') ||          // app-scoped keys (auth, prefs, cache)
+            key === 'userId' ||
+            key === 'role' ||
+            key === 'profile' ||
+            key === 'user' ||
+            key === 'authToken' ||
+            key === 'access_token' ||
+            key === 'refresh_token'
+          ) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => storage.removeItem(k));
+      };
+      purge(localStorage);
+      purge(sessionStorage);
+    } catch (err) {
+      console.error('storage purge error', err);
+    }
+
+    // 4) Clear React Query / any other in-memory caches by doing a hard redirect.
     if (typeof window !== 'undefined') {
-      window.location.href = '/auth';
+      window.location.replace('/auth');
     }
   };
+
 
   const refreshProfile = async () => {
     if (user) {
