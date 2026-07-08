@@ -267,7 +267,7 @@ export default function AdminDashboard() {
     { title: 'Cancelled', value: stats.cancelledOrders, icon: XCircle, color: 'text-destructive', bgColor: 'bg-destructive/10' },
     { title: 'Online Riders', value: `${stats.onlineRiders}/${stats.totalRiders}`, icon: Bike, color: 'text-info', bgColor: 'bg-info/10' },
     { title: 'Customers', value: stats.totalCustomers, icon: Users, color: 'text-warning', bgColor: 'bg-warning/10' },
-    { title: 'Restaurants', value: stats.totalRestaurants, icon: Store, color: 'text-primary', bgColor: 'bg-primary/10' },
+    { title: 'Active Restaurants', value: `${stats.activeRestaurants}/${stats.totalRestaurants}`, icon: Store, color: 'text-primary', bgColor: 'bg-primary/10' },
     { title: 'Menu Items', value: stats.totalMenuItems, icon: UtensilsCrossed, color: 'text-primary', bgColor: 'bg-primary/10' },
   ];
 
