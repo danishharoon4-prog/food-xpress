@@ -357,6 +357,88 @@ export default function RestaurantDashboard() {
         </CardContent>
       </Card>
 
+      {/* Live Active Orders */}
+      <Card className="overflow-hidden border-0 shadow-md">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <span className="absolute inset-0 rounded-full bg-emerald-500/40 animate-ping" />
+                <span className="relative block w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              </div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="w-4 h-4 text-primary" />
+                Live Active Orders
+              </CardTitle>
+              <Badge variant="secondary" className="text-xs">{activeOrders.total}</Badge>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              PKR {Math.round(activeOrders.revenue).toLocaleString()} in progress
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            {[
+              { label: 'Pending', value: activeOrders.pending, icon: Clock, tint: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+              { label: 'Confirmed', value: activeOrders.confirmed, icon: CheckCircle2, tint: 'bg-sky-500/10 text-sky-600 dark:text-sky-400' },
+              { label: 'Preparing', value: activeOrders.preparing, icon: ChefHat, tint: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' },
+              { label: 'Ready', value: activeOrders.ready, icon: PackageCheck, tint: 'bg-violet-500/10 text-violet-600 dark:text-violet-400' },
+              { label: 'On the way', value: activeOrders.outForDelivery, icon: Bike, tint: 'bg-primary/10 text-primary' },
+              { label: 'Awaiting', value: activeOrders.awaiting, icon: Timer, tint: 'bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+            ].map((s) => (
+              <div key={s.label} className="rounded-xl border bg-card p-3 flex items-center gap-2.5 hover:shadow-sm transition-shadow">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${s.tint}`}>
+                  <s.icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">{s.label}</p>
+                  <p className="text-lg font-bold leading-tight">{s.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {activeOrders.list.length === 0 ? (
+            <div className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">
+              No active orders right now. New orders will appear here instantly.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {activeOrders.list.map((o) => (
+                <button
+                  key={o.id}
+                  onClick={() => navigate(`/restaurant/orders?highlight=${o.id}`)}
+                  className="w-full text-left rounded-xl border bg-card hover:bg-accent/40 transition-colors p-3 flex items-center gap-3"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <ShoppingBag className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-sm truncate">#{o.order_number || o.id.slice(0, 8)}</p>
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] capitalize"
+                        style={{ borderColor: STATUS_COLORS[o.status] || 'hsl(var(--border))', color: STATUS_COLORS[o.status] || undefined }}
+                      >
+                        {String(o.status).replace(/_/g, ' ')}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · PKR {Math.round(Number(o.total || 0)).toLocaleString()}
+                    </p>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
 
