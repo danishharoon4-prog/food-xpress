@@ -80,7 +80,7 @@ const App = () => (
             <ScrollReveal />
             <PageTransition>
             <Routes>
-              <Route path="/" element={<Navigate to="/restaurants" replace />} />
+              <Route path="/" element={<RoleLanding />} />
               <Route path="/home" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
