@@ -15,6 +15,7 @@ import { LocationPicker } from '@/components/LocationPicker';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { useLocation } from '@/hooks/useLocation';
 import { MapPin, CreditCard, Wallet, Banknote, Loader2, Truck, Clock } from 'lucide-react';
+import { JazzCashPaymentDialog } from '@/components/JazzCashPaymentDialog';
 import type { PaymentMethod } from '@/types';
 
 const paymentMethods = [
@@ -43,6 +44,8 @@ export default function Checkout() {
   const [calculatingFee, setCalculatingFee] = useState(false);
   const [hasSavedAddress, setHasSavedAddress] = useState(false);
   const [editingAddress, setEditingAddress] = useState(false);
+  const [jcOpen, setJcOpen] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; number: string; total: number } | null>(null);
 
   const subtotal = getSubtotal();
   const total = subtotal + deliveryFee;
@@ -258,8 +261,15 @@ export default function Checkout() {
       if (!placed?.order_id) throw new Error('Order could not be created');
 
       clearCart();
-      toast({ title: 'Order Placed!', description: `Order #${placed.order_number} has been placed successfully.` });
-      navigate(`/order/${placed.order_id}`);
+
+      if (paymentMethod === 'jazzcash') {
+        setPendingOrder({ id: placed.order_id, number: placed.order_number, total });
+        setJcOpen(true);
+        toast({ title: 'Order Created', description: `Complete payment to confirm order #${placed.order_number}.` });
+      } else {
+        toast({ title: 'Order Placed!', description: `Order #${placed.order_number} has been placed successfully.` });
+        navigate(`/order/${placed.order_id}`);
+      }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
@@ -452,6 +462,28 @@ export default function Checkout() {
           </div>
         </div>
       </main>
+
+      {pendingOrder && (
+        <JazzCashPaymentDialog
+          open={jcOpen}
+          onOpenChange={(v) => {
+            setJcOpen(v);
+            if (!v && pendingOrder) {
+              // If user closes without paying, still take them to order tracking
+              navigate(`/order/${pendingOrder.id}`);
+              setPendingOrder(null);
+            }
+          }}
+          orderId={pendingOrder.id}
+          orderNumber={pendingOrder.number}
+          amount={pendingOrder.total}
+          purpose="order"
+          onSuccess={() => {
+            navigate(`/order/${pendingOrder.id}`);
+            setPendingOrder(null);
+          }}
+        />
+      )}
     </div>
   );
 }
