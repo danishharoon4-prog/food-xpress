@@ -149,17 +149,21 @@ export function SupportChat({ role, title = "Support Chat" }: Props) {
       if (data?.escalated) {
         toast.success("Escalated to a human agent — you'll get a reply soon.");
       }
-      // Refresh conversation id if this was first message
-      if (!conversationId && user) {
-        const { data: convo } = await supabase
-          .from("support_conversations")
-          .select("id, status")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (convo) {
-          setConversationId(convo.id);
-          setStatus(convo.status as any);
-        }
+      // Fetch fresh conversation + messages (dedupes optimistic tmp bubble)
+      const { data: convo } = await supabase
+        .from("support_conversations")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (convo) {
+        setConversationId(convo.id);
+        setStatus(convo.status as any);
+        const { data: msgs } = await supabase
+          .from("support_messages")
+          .select("id, sender, content, created_at")
+          .eq("conversation_id", convo.id)
+          .order("created_at", { ascending: true });
+        setMessages((msgs as any) ?? []);
       }
     } catch (e: any) {
       toast.error(e?.message || "Could not send message");
