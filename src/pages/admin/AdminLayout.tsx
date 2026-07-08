@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { RoleGuard } from '@/components/RoleGuard';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -29,29 +30,13 @@ const navItems = [
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
-export default function AdminLayout() {
-  const { user, role, signOut, profile, isLoading } = useAuth();
+function AdminLayoutInner() {
+  const { signOut, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    if (!isLoading && (!user || role !== 'admin')) {
-      navigate('/auth?role=admin', { replace: true });
-    }
-  }, [user, role, isLoading, navigate]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!user || role !== 'admin') {
-    return null;
-  }
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -171,3 +156,12 @@ export default function AdminLayout() {
     </div>
   );
 }
+
+export default function AdminLayout() {
+  return (
+    <RoleGuard allow="admin">
+      <AdminLayoutInner />
+    </RoleGuard>
+  );
+}
+

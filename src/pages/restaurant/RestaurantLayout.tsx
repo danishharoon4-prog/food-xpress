@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { RoleGuard } from '@/components/RoleGuard';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   LayoutDashboard, ShoppingBag, UtensilsCrossed, Wallet, User, LogOut, Menu, X, Store, AlertCircle,
 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -18,18 +20,12 @@ const navItems = [
   { path: '/restaurant/profile', icon: User, label: 'Profile' },
 ];
 
-export default function RestaurantLayout() {
-  const { user, role, signOut, profile, isLoading } = useAuth();
+function RestaurantLayoutInner() {
+  const { user, signOut, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [restaurant, setRestaurant] = useState<any | null | undefined>(undefined);
-
-  useEffect(() => {
-    if (!isLoading && (!user || role !== 'restaurant')) {
-      navigate('/auth?role=restaurant', { replace: true });
-    }
-  }, [user, role, isLoading, navigate]);
 
   const loadRestaurant = async () => {
     if (!user) return;
@@ -38,7 +34,7 @@ export default function RestaurantLayout() {
   };
 
   useEffect(() => {
-    if (!user || role !== 'restaurant') return;
+    if (!user) return;
     loadRestaurant();
     const channel = supabase
       .channel('rest-self')
@@ -47,12 +43,18 @@ export default function RestaurantLayout() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, role]);
+  }, [user]);
 
-  if (isLoading || restaurant === undefined) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="animate-pulse text-muted-foreground">Loading...</div></div>;
+  if (restaurant === undefined) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading your account…</p>
+      </div>
+    );
   }
-  if (!user || role !== 'restaurant') return null;
+
+
 
   const needsSetup = !restaurant;
   const pending = restaurant?.approval_status === 'pending';
@@ -181,3 +183,12 @@ export default function RestaurantLayout() {
     </div>
   );
 }
+
+export default function RestaurantLayout() {
+  return (
+    <RoleGuard allow="restaurant">
+      <RestaurantLayoutInner />
+    </RoleGuard>
+  );
+}
+
