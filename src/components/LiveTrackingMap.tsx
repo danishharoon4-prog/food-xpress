@@ -308,26 +308,61 @@ export function LiveTrackingMap({
           anchor: new google.maps.Point(23, 54),
         },
       });
+      currentRiderPosRef.current = riderCoords;
     } else {
-      riderMarkerRef.current.setPosition(riderCoords);
+      // Smoothly interpolate from previous position → new fix
+      const from = currentRiderPosRef.current || riderCoords;
+      const to = riderCoords;
+      const DURATION = 700; // ms — matches typical realtime fix cadence
+      const start = performance.now();
+      if (animRafRef.current) cancelAnimationFrame(animRafRef.current);
+
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / DURATION);
+        const k = easeOutCubic(t);
+        const lat = from.lat + (to.lat - from.lat) * k;
+        const lng = from.lng + (to.lng - from.lng) * k;
+        const pos = { lat, lng };
+        riderMarkerRef.current?.setPosition(pos);
+        riderPulseRef.current?.setPosition(pos);
+        // Live-update the origin end of the route so the dashed line tracks the bike
+        if (routeLineRef.current && customerCoords) {
+          routeLineRef.current.setPath([pos, customerCoords]);
+        }
+        if (autoFollowRef.current) {
+          programmaticMoveRef.current = true;
+          mapRef.current?.panTo(pos);
+        }
+        if (t < 1) {
+          animRafRef.current = requestAnimationFrame(tick);
+        } else {
+          currentRiderPosRef.current = to;
+          animRafRef.current = null;
+          window.setTimeout(() => {
+            programmaticMoveRef.current = false;
+          }, 60);
+        }
+      };
+      animRafRef.current = requestAnimationFrame(tick);
     }
 
-    if (autoFollowRef.current) {
+    // Initial fit — only fires the first time we have all three points
+    if (autoFollowRef.current && !hasInitialFitRef.current) {
       programmaticMoveRef.current = true;
-      map.panTo(riderCoords);
-      if (!hasInitialFitRef.current) {
-        const bounds = new google.maps.LatLngBounds();
-        bounds.extend(riderCoords);
-        if (customerCoords) bounds.extend(customerCoords);
-        if (restaurantCoords) bounds.extend(restaurantCoords);
-        map.fitBounds(bounds, 70);
-        hasInitialFitRef.current = true;
-      }
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend(riderCoords);
+      if (customerCoords) bounds.extend(customerCoords);
+      if (restaurantCoords) bounds.extend(restaurantCoords);
+      map.fitBounds(bounds, 70);
+      hasInitialFitRef.current = true;
       window.setTimeout(() => {
         programmaticMoveRef.current = false;
-      }, 300);
+      }, 400);
     }
   }, [riderCoords, customerCoords, restaurantCoords, trackingRider]);
+
 
   // Draw a simple straight route line from origin -> customer
   useEffect(() => {
