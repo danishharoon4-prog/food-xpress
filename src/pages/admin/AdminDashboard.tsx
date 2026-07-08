@@ -395,8 +395,15 @@ export default function AdminDashboard() {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => { fetchAll(); fetchNotifications(); }}>
-            <Radio className="w-4 h-4 mr-1.5" /> Refresh
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="gap-1.5"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
           </Button>
           <Popover>
             <PopoverTrigger asChild>
