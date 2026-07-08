@@ -213,3 +213,12 @@ function RiderLayoutInner() {
     </div>
   );
 }
+
+export default function RiderLayout() {
+  return (
+    <RoleGuard allow="rider">
+      <RiderLayoutInner />
+    </RoleGuard>
+  );
+}
+
