@@ -87,7 +87,8 @@ export default function Checkout() {
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (items.length === 0) {
+    // Don't bounce to /cart if a JazzCash dialog is open — cart was cleared after order placement
+    if (items.length === 0 && !jcOpen && !pendingOrder) {
       navigate('/cart');
     }
     if (!user) {
