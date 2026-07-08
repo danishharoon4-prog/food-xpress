@@ -263,6 +263,41 @@ export default function AdminDashboard() {
     { title: 'Menu Items', value: stats.totalMenuItems, icon: UtensilsCrossed, color: 'text-primary', bgColor: 'bg-primary/10' },
   ];
 
+  const activeStatusBreakdown = useMemo(() => {
+    const b = { pending: 0, confirmed: 0, preparing: 0, ready_for_pickup: 0, picked_up: 0, on_the_way: 0, awaiting_confirmation: 0 } as Record<string, number>;
+    for (const o of activeOrdersList) b[o.status] = (b[o.status] || 0) + 1;
+    return b;
+  }, [activeOrdersList]);
+
+  const activeRevenue = useMemo(
+    () => activeOrdersList.reduce((s, o) => s + Number(o.total || 0), 0),
+    [activeOrdersList]
+  );
+
+  const activeByRestaurant = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; count: number; revenue: number; statuses: Record<string, number>; latest: string }>();
+    for (const o of activeOrdersList) {
+      const key = o.restaurant_id || 'unknown';
+      const name = o.restaurant?.name || 'Unknown';
+      const cur = map.get(key) || { id: key, name, count: 0, revenue: 0, statuses: {}, latest: o.created_at };
+      cur.count += 1;
+      cur.revenue += Number(o.total || 0);
+      cur.statuses[o.status] = (cur.statuses[o.status] || 0) + 1;
+      if (o.created_at > cur.latest) cur.latest = o.created_at;
+      map.set(key, cur);
+    }
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [activeOrdersList]);
+
+  const activeStatusCards = [
+    { key: 'pending', label: 'Pending', icon: Clock, color: 'text-warning', bg: 'bg-warning/10' },
+    { key: 'confirmed', label: 'Confirmed', icon: CheckCircle2, color: 'text-info', bg: 'bg-info/10' },
+    { key: 'preparing', label: 'Preparing', icon: ChefHat, color: 'text-info', bg: 'bg-info/10' },
+    { key: 'ready_for_pickup', label: 'Ready', icon: PackageCheck, color: 'text-primary', bg: 'bg-primary/10' },
+    { key: 'picked_up', label: 'Picked Up', icon: Bike, color: 'text-primary', bg: 'bg-primary/10' },
+    { key: 'on_the_way', label: 'On The Way', icon: Truck, color: 'text-primary', bg: 'bg-primary/10' },
+  ];
+
   if (loading) {
     return (
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
