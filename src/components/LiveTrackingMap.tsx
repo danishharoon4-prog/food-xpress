@@ -443,7 +443,21 @@ export function LiveTrackingMap({
     return () => {
       cancelled = true;
     };
-  }, [originCoords, customerCoords, calculateDistance]);
+  }, [originCoords, customerCoords, calculateDistance, trackingRider, isStale]);
+
+  // Stale-location watchdog: mark rider as stale if no fix arrives within
+  // STALE_AFTER_MS. Resets on every new lastUpdated timestamp.
+  useEffect(() => {
+    if (!trackingRider) {
+      setIsStale(false);
+      return;
+    }
+    if (!lastUpdated) return;
+    setIsStale(false);
+    const t = window.setTimeout(() => setIsStale(true), STALE_AFTER_MS);
+    return () => window.clearTimeout(t);
+  }, [lastUpdated, trackingRider]);
+
 
   // Auto-clear the delta chips a moment after they light up
   useEffect(() => {
