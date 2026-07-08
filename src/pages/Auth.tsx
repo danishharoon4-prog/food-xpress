@@ -27,6 +27,7 @@ export default function Auth() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   
   // Form fields
   const [email, setEmail] = useState('');
