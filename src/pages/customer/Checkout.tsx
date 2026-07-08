@@ -365,7 +365,7 @@ export default function Checkout() {
               <CardContent>
                 <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {paymentMethods.map((method) => (
+                    {enabledMethods.map((method) => (
                       <Label
                         key={method.value}
                         htmlFor={method.value}
