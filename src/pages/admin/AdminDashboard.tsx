@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import {
   ShoppingBag, Users, Bike, Banknote, TrendingUp, Clock, Store,
   UtensilsCrossed, AlertCircle, CheckCircle2, XCircle, ArrowRight, Package,
-  Bell, Radio, Activity, Timer, PackageCheck, Truck, ChefHat,
+  Bell, Radio, Activity, Timer, PackageCheck, Truck, ChefHat, RefreshCw,
 } from 'lucide-react';
 
 interface ActiveOrderRow {
@@ -106,6 +106,7 @@ export default function AdminDashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [tick, setTick] = useState(0); // for time-ago refresh
   const initialLoad = useRef(true);
@@ -230,6 +231,17 @@ export default function AdminDashboard() {
     await supabase.from('notifications').update({ is_read: true }).in('id', unread);
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     toast.success('All notifications marked as read');
+  };
+
+  const handleManualRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchAll(), fetchNotifications()]);
+      toast.success('Dashboard updated');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -383,8 +395,15 @@ export default function AdminDashboard() {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => { fetchAll(); fetchNotifications(); }}>
-            <Radio className="w-4 h-4 mr-1.5" /> Refresh
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="gap-1.5"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
           </Button>
           <Popover>
             <PopoverTrigger asChild>
