@@ -167,6 +167,7 @@ export default function AdminDashboard() {
       });
 
       setRecentOrders((recentRes.data || []) as unknown as RecentOrder[]);
+      setActiveOrdersList((activeRes.data || []) as unknown as ActiveOrderRow[]);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching dashboard:', error);
