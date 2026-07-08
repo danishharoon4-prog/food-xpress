@@ -72,6 +72,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <NotificationsListener />
+            <ScrollReveal />
             <PageTransition>
             <Routes>
               <Route path="/" element={<Navigate to="/restaurants" replace />} />
