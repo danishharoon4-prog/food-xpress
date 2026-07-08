@@ -10,10 +10,13 @@ interface AuthContextType {
   role: AppRole | null;
   isLoading: boolean;
   signUp: (email: string, password: string, fullName: string, role?: AppRole) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string, remember?: boolean) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
+
+const REMEMBER_KEY = 'fx.auth.remember';
+const SESSION_SENTINEL = 'fx.auth.session-alive';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
