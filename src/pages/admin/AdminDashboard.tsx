@@ -34,6 +34,7 @@ interface DashboardStats {
   pendingRiders: number;
   totalCustomers: number;
   totalRestaurants: number;
+  activeRestaurants: number;
   pendingRestaurants: number;
   totalMenuItems: number;
   pendingOrders: number;
@@ -95,7 +96,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalOrders: 0, totalRevenue: 0, todayRevenue: 0, avgOrderValue: 0,
     onlineRiders: 0, totalRiders: 0, pendingRiders: 0,
-    totalCustomers: 0, totalRestaurants: 0, pendingRestaurants: 0,
+    totalCustomers: 0, totalRestaurants: 0, activeRestaurants: 0, pendingRestaurants: 0,
     totalMenuItems: 0, pendingOrders: 0, activeOrders: 0,
     deliveredOrders: 0, cancelledOrders: 0, todayOrders: 0, todayDelivered: 0,
   });
@@ -131,7 +132,7 @@ export default function AdminDashboard() {
         supabase.from('riders').select('is_online', { count: 'exact' }),
         supabase.from('riders').select('*', { count: 'exact', head: true }).eq('is_verified', false),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('restaurants').select('approval_status', { count: 'exact' }),
+        supabase.from('restaurants').select('approval_status, is_active'),
         supabase.from('restaurants').select('*', { count: 'exact', head: true }).eq('approval_status', 'pending'),
         supabase.from('menu_items').select('*', { count: 'exact', head: true }),
       ]);
@@ -153,12 +154,19 @@ export default function AdminDashboard() {
       const ridersRows = ridersRes.data || [];
       const onlineRiders = ridersRows.filter((r: any) => r.is_online).length;
 
+      const restaurantRows = (restaurantsRes.data || []) as any[];
+      const totalRestaurants = restaurantRows.length;
+      const activeRestaurants = restaurantRows.filter(
+        (r) => r.approval_status === 'approved' && r.is_active === true
+      ).length;
+
       setStats({
         totalOrders, totalRevenue, todayRevenue, avgOrderValue,
         onlineRiders, totalRiders: ridersRes.count || 0,
         pendingRiders: pendingRidersRes.count || 0,
         totalCustomers: customersRes.count || 0,
-        totalRestaurants: restaurantsRes.count || 0,
+        totalRestaurants,
+        activeRestaurants,
         pendingRestaurants: pendingRestRes.count || 0,
         totalMenuItems: menuRes.count || 0,
         pendingOrders, activeOrders, deliveredOrders, cancelledOrders,
@@ -259,7 +267,7 @@ export default function AdminDashboard() {
     { title: 'Cancelled', value: stats.cancelledOrders, icon: XCircle, color: 'text-destructive', bgColor: 'bg-destructive/10' },
     { title: 'Online Riders', value: `${stats.onlineRiders}/${stats.totalRiders}`, icon: Bike, color: 'text-info', bgColor: 'bg-info/10' },
     { title: 'Customers', value: stats.totalCustomers, icon: Users, color: 'text-warning', bgColor: 'bg-warning/10' },
-    { title: 'Restaurants', value: stats.totalRestaurants, icon: Store, color: 'text-primary', bgColor: 'bg-primary/10' },
+    { title: 'Active Restaurants', value: `${stats.activeRestaurants}/${stats.totalRestaurants}`, icon: Store, color: 'text-primary', bgColor: 'bg-primary/10' },
     { title: 'Menu Items', value: stats.totalMenuItems, icon: UtensilsCrossed, color: 'text-primary', bgColor: 'bg-primary/10' },
   ];
 
