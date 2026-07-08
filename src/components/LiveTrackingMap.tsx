@@ -404,7 +404,8 @@ export function LiveTrackingMap({
     }
   }, [originCoords, customerCoords]);
 
-  // Distance + ETA
+  // Distance + ETA — paused while the rider fix is stale to avoid showing
+  // misleading numbers computed from a frozen position.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -412,6 +413,11 @@ export function LiveTrackingMap({
         setDistanceInfo(null);
         return;
       }
+      if (trackingRider && isStale) {
+        // Keep the last known ETA/distance visible; just don't refresh it.
+        return;
+      }
+
       try {
         const info = await calculateDistance(originCoords, customerCoords);
         if (cancelled) return;
