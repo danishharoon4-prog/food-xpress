@@ -174,6 +174,69 @@ export default function Restaurants() {
     }
   };
 
+  const quickAdd = (
+    e: React.MouseEvent,
+    payload: {
+      id: string;
+      name: string;
+      price: number;
+      discount_price: number | null;
+      image_url: string | null;
+      restaurant_id: string;
+      restaurant_name?: string;
+    }
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const currentRestaurantId = getRestaurantId();
+    const switching =
+      currentRestaurantId && currentRestaurantId !== payload.restaurant_id && cartItems.length > 0;
+
+    const menuItem: MenuItem = {
+      id: payload.id,
+      restaurant_id: payload.restaurant_id,
+      category_id: null,
+      name: payload.name,
+      description: null,
+      price: Number(payload.price),
+      discount_price: payload.discount_price != null ? Number(payload.discount_price) : null,
+      is_deal: payload.discount_price != null,
+      deal_label: null,
+      image_url: payload.image_url,
+      is_available: true,
+      is_featured: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    addItem(menuItem, 1);
+
+    // Visual "added" feedback
+    setAddedIds((prev) => new Set(prev).add(payload.id));
+    setTimeout(() => {
+      setAddedIds((prev) => {
+        const n = new Set(prev);
+        n.delete(payload.id);
+        return n;
+      });
+    }, 1400);
+
+    if (switching) {
+      toast({
+        title: 'Cart replaced',
+        description: `Started a new cart with ${payload.name}${
+          payload.restaurant_name ? ` from ${payload.restaurant_name}` : ''
+        }.`,
+      });
+    } else {
+      toast({
+        title: 'Added to cart',
+        description: `${payload.name} added to your cart.`,
+      });
+    }
+  };
+
   const cities = Array.from(
     new Set(restaurants.map((r) => r.city).filter((c): c is string => !!c))
   ).sort();
