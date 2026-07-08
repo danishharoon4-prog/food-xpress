@@ -15,17 +15,14 @@ export function PageTransition({ children }: { children: ReactNode }) {
 
   const reduce = osReduce || reduceMotion;
 
-  const variants = reduce
-    ? {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-      }
-    : {
-        initial: { opacity: 0, y: 12, filter: "blur(6px)" as any },
-        animate: { opacity: 1, y: 0, filter: "blur(0px)" as any },
-        exit: { opacity: 0, y: -8, filter: "blur(6px)" as any },
-      };
+  // NOTE: intentionally opacity-only. Using `transform` or `filter` here
+  // creates a new containing block, which breaks `position: fixed` for
+  // descendants (e.g. mobile bottom navs would scroll with the page).
+  const variants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -35,11 +32,12 @@ export function PageTransition({ children }: { children: ReactNode }) {
         animate="animate"
         exit="exit"
         variants={variants}
-        transition={{ duration: reduce ? 0.15 : 0.35, ease: [0.22, 1, 0.36, 1] }}
-        style={{ willChange: "opacity, transform" }}
+        transition={{ duration: reduce ? 0.15 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+        style={{ willChange: "opacity" }}
       >
         {children}
       </motion.div>
     </AnimatePresence>
   );
 }
+
