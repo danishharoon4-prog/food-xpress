@@ -170,6 +170,29 @@ export default function RestaurantDashboard() {
     };
   }, [orders]);
 
+  const activeOrders = useMemo(() => {
+    const active = orders.filter(o => ['pending','confirmed','preparing','ready_for_pickup','picked_up','on_the_way','awaiting_confirmation'].includes(o.status));
+    const by = (s: string | string[]) => {
+      const arr = Array.isArray(s) ? s : [s];
+      return active.filter(o => arr.includes(o.status));
+    };
+    const activeRevenue = active.reduce((s, o) => s + Number(o.total || 0), 0);
+    return {
+      total: active.length,
+      pending: by('pending').length,
+      confirmed: by('confirmed').length,
+      preparing: by('preparing').length,
+      ready: by('ready_for_pickup').length,
+      outForDelivery: by(['picked_up','on_the_way']).length,
+      awaiting: by('awaiting_confirmation').length,
+      revenue: activeRevenue,
+      list: active
+        .slice()
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5),
+    };
+  }, [orders]);
+
   const revenueTrend = useMemo(() => {
     const days: { date: string; label: string; revenue: number; orders: number }[] = [];
     for (let i = 6; i >= 0; i--) {
