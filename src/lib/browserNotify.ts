@@ -1,7 +1,9 @@
 // Fire native browser notifications alongside any in-app toast/popup.
 // On mobile browsers (Android Chrome/Edge/Firefox), `new Notification()`
 // is not allowed — we must use ServiceWorkerRegistration.showNotification().
+// On Capacitor native, use @capacitor/local-notifications instead.
 import { toast as sonnerToast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
 import { ensureNotificationsSW } from './notificationsSW';
 
 const toText = (v: unknown): string => {
@@ -11,7 +13,25 @@ const toText = (v: unknown): string => {
   return '';
 };
 
+async function ensureNativeNotifPermission(): Promise<boolean> {
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display === 'granted') return true;
+    const req = await LocalNotifications.requestPermissions();
+    return req.display === 'granted';
+  } catch {
+    return false;
+  }
+}
+
 export function requestNotificationPermission() {
+  // Native app path.
+  if (Capacitor.isNativePlatform()) {
+    return ensureNativeNotifPermission().then((ok) =>
+      (ok ? 'granted' : 'denied') as NotificationPermission,
+    );
+  }
   if (typeof window === 'undefined' || typeof Notification === 'undefined') {
     return Promise.resolve('unsupported' as NotificationPermission);
   }
@@ -31,15 +51,37 @@ export function requestNotificationPermission() {
 // Simple de-dupe so identical messages don't spawn multiple notifications.
 let lastKey = '';
 let lastTs = 0;
+let nativeNotifId = 1;
+
+async function fireNativeNotification(title: string, body: string) {
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') {
+      const req = await LocalNotifications.requestPermissions();
+      if (req.display !== 'granted') return;
+    }
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: nativeNotifId++,
+          title: title || 'Notification',
+          body: body || '',
+          schedule: { at: new Date(Date.now() + 100) },
+          smallIcon: 'ic_stat_icon_config_sample',
+        },
+      ],
+    });
+  } catch (e) {
+    console.error('Native notification failed', e);
+  }
+}
 
 export function fireBrowserNotification(
   title: unknown,
   body?: unknown,
   opts?: { tag?: string; silent?: boolean; url?: string },
 ) {
-  if (typeof window === 'undefined' || typeof Notification === 'undefined') return;
-  if (Notification.permission !== 'granted') return;
-
   const t = toText(title).trim();
   const b = toText(body).trim();
   if (!t && !b) return;
@@ -51,6 +93,17 @@ export function fireBrowserNotification(
   lastTs = now;
 
   const finalTitle = t || 'Notification';
+
+  // Native (Capacitor) — use LocalNotifications plugin.
+  if (Capacitor.isNativePlatform()) {
+    fireNativeNotification(finalTitle, b);
+    return;
+  }
+
+  // Web browser path.
+  if (typeof window === 'undefined' || typeof Notification === 'undefined') return;
+  if (Notification.permission !== 'granted') return;
+
   const notifOpts: NotificationOptions = {
     body: b || undefined,
     icon: '/icon-192.png',
@@ -73,6 +126,7 @@ export function fireBrowserNotification(
       try { new Notification(finalTitle, notifOpts); } catch { /* noop */ }
     });
 }
+
 
 let sonnerPatched = false;
 
