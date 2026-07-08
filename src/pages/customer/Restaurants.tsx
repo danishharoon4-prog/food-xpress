@@ -55,8 +55,12 @@ export default function Restaurants() {
   const { toast } = useToast();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [deals, setDeals] = useState<DealItem[]>([]);
+  const [topItems, setTopItems] = useState<TopItem[]>([]);
+  const [topRated, setTopRated] = useState<TopRatedRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [dealsLoading, setDealsLoading] = useState(true);
+  const [topItemsLoading, setTopItemsLoading] = useState(true);
+  const [topRatedLoading, setTopRatedLoading] = useState(true);
   const [city, setCity] = useState<string>('all');
   const [cuisine, setCuisine] = useState<string>('all');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
@@ -65,6 +69,8 @@ export default function Restaurants() {
   useEffect(() => {
     fetchRestaurants();
     fetchDeals();
+    fetchTopItems();
+    fetchTopRated();
   }, []);
 
   useEffect(() => {
