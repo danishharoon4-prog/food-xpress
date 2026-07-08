@@ -478,6 +478,72 @@ export default function Restaurants() {
           )}
         </section>
 
+        {/* Top Rated Restaurants */}
+        {(topRatedLoading || topRated.length > 0) && (
+          <section className="space-y-6">
+            <div className="flex items-end justify-between px-2">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                  <Trophy className="w-6 h-6 text-yellow-500" /> Top Rated
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">Highest-rated spots loved by customers</p>
+              </div>
+            </div>
+
+            {topRatedLoading ? (
+              <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="min-w-[260px] max-w-[260px] animate-pulse">
+                    <div className="h-40 bg-muted rounded-3xl" />
+                    <div className="h-4 w-32 bg-muted rounded mt-3" />
+                    <div className="h-4 w-20 bg-muted rounded mt-2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
+                {topRated.map((r, idx) => (
+                  <motion.div
+                    key={r.id}
+                    initial={{ opacity: 0, x: 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    whileHover={{ y: -6 }}
+                    className="min-w-[260px] max-w-[260px] flex-shrink-0"
+                  >
+                    <Link to={`/restaurant/${r.id}`} className="group block">
+                      <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-yellow-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl transition-all duration-500">
+                        {r.image_url ? (
+                          <img src={r.image_url} alt={r.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Utensils className="w-10 h-10 text-primary/40" />
+                          </div>
+                        )}
+                        <div className="absolute top-3 left-3 bg-yellow-500 text-black text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1">
+                          <Trophy className="w-3 h-3" /> #{idx + 1}
+                        </div>
+                        <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-xs font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          {Number(r.avg_rating).toFixed(1)}
+                          <span className="text-white/70 font-medium">({r.rating_count})</span>
+                        </div>
+                      </div>
+                      <div className="px-1">
+                        <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{r.name}</h3>
+                        <p className="text-xs text-muted-foreground truncate font-medium">
+                          {r.cuisine_type || 'Restaurant'}{r.city ? ` · ${r.city}` : ''}
+                        </p>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* Restaurants Grid */}
         <section className="space-y-6">
           <div className="flex items-end justify-between px-2">
