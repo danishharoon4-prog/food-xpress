@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,8 +11,18 @@ import { toast } from 'sonner';
 import {
   ShoppingBag, Users, Bike, Banknote, TrendingUp, Clock, Store,
   UtensilsCrossed, AlertCircle, CheckCircle2, XCircle, ArrowRight, Package,
-  Bell, Radio,
+  Bell, Radio, Activity, Timer, PackageCheck, Truck, ChefHat,
 } from 'lucide-react';
+
+interface ActiveOrderRow {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+  restaurant_id: string;
+  restaurant?: { name: string } | null;
+}
 
 interface DashboardStats {
   totalOrders: number;
@@ -90,6 +100,7 @@ export default function AdminDashboard() {
     deliveredOrders: 0, cancelledOrders: 0, todayOrders: 0, todayDelivered: 0,
   });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [activeOrdersList, setActiveOrdersList] = useState<ActiveOrderRow[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
@@ -108,11 +119,15 @@ export default function AdminDashboard() {
       const today = new Date().toISOString().split('T')[0];
 
       const [
-        ordersRes, recentRes, ridersRes, pendingRidersRes,
+        ordersRes, recentRes, activeRes, ridersRes, pendingRidersRes,
         customersRes, restaurantsRes, pendingRestRes, menuRes,
       ] = await Promise.all([
         supabase.from('orders').select('total, status, created_at'),
         supabase.from('orders').select('id, order_number, status, total, created_at, restaurant:restaurants(name)').order('created_at', { ascending: false }).limit(8),
+        supabase.from('orders')
+          .select('id, order_number, status, total, created_at, restaurant_id, restaurant:restaurants(name)')
+          .not('status', 'in', '(delivered,cancelled)')
+          .order('created_at', { ascending: false }),
         supabase.from('riders').select('is_online', { count: 'exact' }),
         supabase.from('riders').select('*', { count: 'exact', head: true }).eq('is_verified', false),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
@@ -152,6 +167,7 @@ export default function AdminDashboard() {
       });
 
       setRecentOrders((recentRes.data || []) as unknown as RecentOrder[]);
+      setActiveOrdersList((activeRes.data || []) as unknown as ActiveOrderRow[]);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching dashboard:', error);
@@ -245,6 +261,41 @@ export default function AdminDashboard() {
     { title: 'Customers', value: stats.totalCustomers, icon: Users, color: 'text-warning', bgColor: 'bg-warning/10' },
     { title: 'Restaurants', value: stats.totalRestaurants, icon: Store, color: 'text-primary', bgColor: 'bg-primary/10' },
     { title: 'Menu Items', value: stats.totalMenuItems, icon: UtensilsCrossed, color: 'text-primary', bgColor: 'bg-primary/10' },
+  ];
+
+  const activeStatusBreakdown = useMemo(() => {
+    const b = { pending: 0, confirmed: 0, preparing: 0, ready_for_pickup: 0, picked_up: 0, on_the_way: 0, awaiting_confirmation: 0 } as Record<string, number>;
+    for (const o of activeOrdersList) b[o.status] = (b[o.status] || 0) + 1;
+    return b;
+  }, [activeOrdersList]);
+
+  const activeRevenue = useMemo(
+    () => activeOrdersList.reduce((s, o) => s + Number(o.total || 0), 0),
+    [activeOrdersList]
+  );
+
+  const activeByRestaurant = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; count: number; revenue: number; statuses: Record<string, number>; latest: string }>();
+    for (const o of activeOrdersList) {
+      const key = o.restaurant_id || 'unknown';
+      const name = o.restaurant?.name || 'Unknown';
+      const cur = map.get(key) || { id: key, name, count: 0, revenue: 0, statuses: {}, latest: o.created_at };
+      cur.count += 1;
+      cur.revenue += Number(o.total || 0);
+      cur.statuses[o.status] = (cur.statuses[o.status] || 0) + 1;
+      if (o.created_at > cur.latest) cur.latest = o.created_at;
+      map.set(key, cur);
+    }
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [activeOrdersList]);
+
+  const activeStatusCards = [
+    { key: 'pending', label: 'Pending', icon: Clock, color: 'text-warning', bg: 'bg-warning/10' },
+    { key: 'confirmed', label: 'Confirmed', icon: CheckCircle2, color: 'text-info', bg: 'bg-info/10' },
+    { key: 'preparing', label: 'Preparing', icon: ChefHat, color: 'text-info', bg: 'bg-info/10' },
+    { key: 'ready_for_pickup', label: 'Ready', icon: PackageCheck, color: 'text-primary', bg: 'bg-primary/10' },
+    { key: 'picked_up', label: 'Picked Up', icon: Bike, color: 'text-primary', bg: 'bg-primary/10' },
+    { key: 'on_the_way', label: 'On The Way', icon: Truck, color: 'text-primary', bg: 'bg-primary/10' },
   ];
 
   if (loading) {
@@ -415,6 +466,94 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {/* Live Active Orders */}
+      <Card className="border-emerald-500/30">
+        <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            </span>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Activity className="w-5 h-5 text-emerald-600" />
+              Live Active Orders
+            </CardTitle>
+            <Badge variant="secondary" className="ml-1">{activeOrdersList.length}</Badge>
+            <Badge className="bg-success/10 text-success hover:bg-success/10">
+              PKR {activeRevenue.toLocaleString()} in-progress
+            </Badge>
+          </div>
+          <Button asChild size="sm" variant="ghost">
+            <Link to="/admin/orders">Manage <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status breakdown */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            {activeStatusCards.map(s => (
+              <div key={s.key} className={`p-3 rounded-lg border ${s.bg}`}>
+                <div className="flex items-center gap-2">
+                  <s.icon className={`w-4 h-4 ${s.color}`} />
+                  <span className="text-xs font-medium text-muted-foreground">{s.label}</span>
+                </div>
+                <div className={`text-xl font-bold mt-1 ${s.color}`}>{activeStatusBreakdown[s.key] || 0}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Per-restaurant breakdown */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-semibold flex items-center gap-1.5">
+                <Store className="w-4 h-4" /> By Restaurant
+              </h4>
+              <span className="text-xs text-muted-foreground">{activeByRestaurant.length} restaurant{activeByRestaurant.length !== 1 && 's'} active</span>
+            </div>
+            {activeByRestaurant.length === 0 ? (
+              <div className="border border-dashed rounded-lg p-6 text-center">
+                <Timer className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No active orders right now.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                {activeByRestaurant.map(r => (
+                  <div key={r.id} className="p-3 rounded-lg border hover:bg-accent/40 transition-colors">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                          <Store className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{r.name}</p>
+                          <p className="text-xs text-muted-foreground">Latest {timeAgo(r.latest)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant="secondary" className="text-xs">
+                          {r.count} order{r.count !== 1 && 's'}
+                        </Badge>
+                        <span className="text-sm font-semibold text-primary">
+                          PKR {r.revenue.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {Object.entries(r.statuses).map(([st, n]) => (
+                        <Badge key={st} className={`${statusColors[st] || 'bg-muted'} text-[10px] font-medium`}>
+                          {st.replace(/_/g, ' ')}: {n}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+
 
       {/* Overall stats */}
       <div>
