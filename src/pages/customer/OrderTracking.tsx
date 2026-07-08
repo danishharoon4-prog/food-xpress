@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
-import { LiveRiderTracking } from '@/components/LiveRiderTracking';
 import { LiveTrackingMap } from '@/components/LiveTrackingMap';
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
