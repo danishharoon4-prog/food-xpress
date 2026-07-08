@@ -96,7 +96,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalOrders: 0, totalRevenue: 0, todayRevenue: 0, avgOrderValue: 0,
     onlineRiders: 0, totalRiders: 0, pendingRiders: 0,
-    totalCustomers: 0, totalRestaurants: 0, pendingRestaurants: 0,
+    totalCustomers: 0, totalRestaurants: 0, activeRestaurants: 0, pendingRestaurants: 0,
     totalMenuItems: 0, pendingOrders: 0, activeOrders: 0,
     deliveredOrders: 0, cancelledOrders: 0, todayOrders: 0, todayDelivered: 0,
   });
