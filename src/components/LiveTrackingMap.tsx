@@ -96,6 +96,11 @@ export function LiveTrackingMap({
   const [durationDelta, setDurationDelta] = useState<'down' | 'up' | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [pingKey, setPingKey] = useState(0);
+  const [isStale, setIsStale] = useState(false);
+
+  // How long without a rider fix before we consider the location stale
+  const STALE_AFTER_MS = 15_000;
+
 
 
   const { calculateDistance, getDirectionsUrl } = useLocation();
@@ -399,7 +404,8 @@ export function LiveTrackingMap({
     }
   }, [originCoords, customerCoords]);
 
-  // Distance + ETA
+  // Distance + ETA — paused while the rider fix is stale to avoid showing
+  // misleading numbers computed from a frozen position.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -407,6 +413,11 @@ export function LiveTrackingMap({
         setDistanceInfo(null);
         return;
       }
+      if (trackingRider && isStale) {
+        // Keep the last known ETA/distance visible; just don't refresh it.
+        return;
+      }
+
       try {
         const info = await calculateDistance(originCoords, customerCoords);
         if (cancelled) return;
@@ -432,7 +443,42 @@ export function LiveTrackingMap({
     return () => {
       cancelled = true;
     };
-  }, [originCoords, customerCoords, calculateDistance]);
+  }, [originCoords, customerCoords, calculateDistance, trackingRider, isStale]);
+
+  // Stale-location watchdog: mark rider as stale if no fix arrives within
+  // STALE_AFTER_MS. Resets on every new lastUpdated timestamp.
+  useEffect(() => {
+    if (!trackingRider) {
+      setIsStale(false);
+      return;
+    }
+    if (!lastUpdated) return;
+    setIsStale(false);
+    const t = window.setTimeout(() => setIsStale(true), STALE_AFTER_MS);
+    return () => window.clearTimeout(t);
+  }, [lastUpdated, trackingRider]);
+
+  // Dim the rider marker + pulse when stale so the map communicates
+  // "this is the last known position, not live".
+  useEffect(() => {
+    if (!riderMarkerRef.current) return;
+    riderMarkerRef.current.setOpacity?.(isStale ? 0.55 : 1);
+    if (riderPulseRef.current) {
+      // Hide the pulsing ring entirely while stale — it implies live signal
+      riderPulseRef.current.setVisible?.(!isStale);
+    }
+  }, [isStale]);
+
+  // While stale, tick every 5s so the "Last known · Xs ago" label stays fresh
+  const [, forceStaleTick] = useState(0);
+  useEffect(() => {
+    if (!isStale) return;
+    const id = window.setInterval(() => forceStaleTick((n) => n + 1), 5000);
+    return () => window.clearInterval(id);
+  }, [isStale]);
+
+
+
 
   // Auto-clear the delta chips a moment after they light up
   useEffect(() => {
@@ -471,11 +517,23 @@ export function LiveTrackingMap({
 
   // Contextual label for the origin (what's moving toward the customer)
   const isPickedUp = orderStatus === 'picked_up';
+  const showStale = trackingRider && isStale && !!lastUpdated;
   const originLabel = trackingRider
-    ? isPickedUp
-      ? 'Rider picked up your order'
-      : 'Rider is on the way'
+    ? showStale
+      ? 'Last known rider location'
+      : isPickedUp
+        ? 'Rider picked up your order'
+        : 'Rider is on the way'
     : 'Restaurant is delivering';
+
+  // Human-friendly "X seconds/minutes ago"
+  const formatAgo = (d: Date) => {
+    const s = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m} min ago`;
+    return `${Math.floor(m / 60)}h ago`;
+  };
 
   return (
     <div className="rounded-2xl overflow-hidden border border-border/60 bg-card shadow-sm animate-fade-in">
@@ -483,18 +541,29 @@ export function LiveTrackingMap({
       <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/40">
         <div className="flex items-center gap-2">
           <span key={pingKey} className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            {!showStale && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+            )}
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 transition-colors duration-300 ${
+                showStale ? 'bg-amber-500' : 'bg-emerald-500'
+              }`}
+            />
           </span>
           <span className="text-xs font-semibold tracking-wide uppercase text-foreground">
-            Live Tracking
+            {showStale ? 'Signal Paused' : 'Live Tracking'}
           </span>
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Radio key={`radio-${pingKey}`} className="w-3 h-3 transition-transform duration-500 animate-fade-in" />
-          Realtime
+        <div
+          className={`flex items-center gap-1 text-[10px] transition-colors ${
+            showStale ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+          }`}
+        >
+          <Radio key={`radio-${pingKey}`} className="w-3 h-3 animate-fade-in" />
+          {showStale ? 'Waiting for signal' : 'Realtime'}
         </div>
       </div>
+
 
       {/* Context strip */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border/40 bg-background/60">
@@ -515,12 +584,28 @@ export function LiveTrackingMap({
         {lastUpdated && trackingRider && (
           <span
             key={`upd-${pingKey}`}
-            className="text-[10px] text-muted-foreground shrink-0 animate-fade-in flex items-center gap-1"
+            className={`text-[10px] shrink-0 animate-fade-in flex items-center gap-1 px-1.5 py-0.5 rounded-full transition-colors ${
+              showStale
+                ? 'text-amber-700 dark:text-amber-400 bg-amber-500/10'
+                : 'text-muted-foreground'
+            }`}
+            title={
+              showStale
+                ? `No GPS update since ${lastUpdated.toLocaleTimeString()}`
+                : 'Last GPS update'
+            }
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                showStale ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'
+              }`}
+            />
+            {showStale
+              ? `Last known · ${formatAgo(lastUpdated)}`
+              : lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
+
 
       </div>
 
