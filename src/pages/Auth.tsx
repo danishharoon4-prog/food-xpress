@@ -78,6 +78,12 @@ export default function Auth() {
           newErrors.fullName = e.errors[0].message;
         }
       }
+
+      if (!confirmPassword) {
+        newErrors.confirmPassword = 'Please confirm your password';
+      } else if (password && confirmPassword !== password) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      }
     }
 
     setErrors(newErrors);
