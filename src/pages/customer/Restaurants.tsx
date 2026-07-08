@@ -296,6 +296,79 @@ export default function Restaurants() {
           )}
         </motion.section>
 
+        {/* Top Selling Items */}
+        {(topItemsLoading || topItems.length > 0) && (
+          <section className="space-y-6">
+            <div className="flex items-end justify-between px-2">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                  <Flame className="w-6 h-6 text-orange-500" /> Top Selling
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">Most-ordered dishes by customers like you</p>
+              </div>
+            </div>
+
+            {topItemsLoading ? (
+              <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="min-w-[220px] max-w-[220px] animate-pulse">
+                    <div className="h-36 bg-muted rounded-3xl" />
+                    <div className="h-4 w-28 bg-muted rounded mt-3" />
+                    <div className="h-4 w-16 bg-muted rounded mt-2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
+                {topItems.map((item, idx) => {
+                  const displayPrice = item.discount_price ?? item.price;
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: 30 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: idx * 0.05 }}
+                      whileHover={{ y: -6 }}
+                      className="min-w-[220px] max-w-[220px] flex-shrink-0"
+                    >
+                      <Link to={`/restaurant/${item.restaurant_id}`} className="group block">
+                        <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-orange-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          ) : item.restaurant_image ? (
+                            <img src={item.restaurant_image} alt={item.restaurant_name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Utensils className="w-10 h-10 text-primary/40" />
+                            </div>
+                          )}
+                          <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1">
+                            <Flame className="w-3 h-3" /> #{idx + 1}
+                          </div>
+                          <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">
+                            {item.total_sold} sold
+                          </div>
+                        </div>
+                        <div className="px-1">
+                          <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{item.name}</h3>
+                          <p className="text-xs text-muted-foreground truncate mb-2 font-medium">{item.restaurant_name}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-extrabold text-primary">PKR {Number(displayPrice).toLocaleString()}</span>
+                            {item.discount_price && (
+                              <span className="text-xs text-muted-foreground line-through font-medium">PKR {Number(item.price).toLocaleString()}</span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* Fresh Deals Section */}
         <section className="space-y-6">
           <div className="flex items-end justify-between px-2">
