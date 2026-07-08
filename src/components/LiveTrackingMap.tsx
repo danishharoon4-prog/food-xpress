@@ -75,6 +75,9 @@ export function LiveTrackingMap({
   const routeLineRef = useRef<any>(null);
   const pulseIntervalRef = useRef<number | null>(null);
   const googleRef = useRef<any>(null);
+  // Refs used to smoothly animate the rider marker between fixes
+  const currentRiderPosRef = useRef<Coords | null>(null);
+  const animRafRef = useRef<number | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +90,13 @@ export function LiveTrackingMap({
     distance: { text: string; value: number };
     duration: { text: string; value: number };
   } | null>(null);
+  const prevDistanceRef = useRef<number | null>(null);
+  const prevDurationRef = useRef<number | null>(null);
+  const [distanceDelta, setDistanceDelta] = useState<'down' | 'up' | null>(null);
+  const [durationDelta, setDurationDelta] = useState<'down' | 'up' | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [pingKey, setPingKey] = useState(0);
+
 
   const { calculateDistance, getDirectionsUrl } = useLocation();
 
