@@ -177,6 +177,33 @@ export default function AdminDashboard() {
 
       setRecentOrders((recentRes.data || []) as unknown as RecentOrder[]);
       setActiveOrdersList((activeRes.data || []) as unknown as ActiveOrderRow[]);
+
+      // Top riders — by total earned
+      const { data: ridersFull } = await supabase
+        .from('riders')
+        .select('id, user_id, is_online, is_verified, total_deliveries, average_rating, vehicle_type')
+        .order('total_deliveries', { ascending: false })
+        .limit(20);
+      if (ridersFull && ridersFull.length > 0) {
+        const riderIds = ridersFull.map((r: any) => r.id);
+        const userIds = ridersFull.map((r: any) => r.user_id);
+        const [walletsRes, profilesRes] = await Promise.all([
+          supabase.from('rider_wallets').select('rider_id, balance, total_earned').in('rider_id', riderIds),
+          supabase.from('profiles').select('id, full_name, avatar_url, city, phone').in('id', userIds),
+        ]);
+        const wMap = new Map((walletsRes.data || []).map((w: any) => [w.rider_id, w]));
+        const pMap = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
+        const merged = ridersFull.map((r: any) => ({
+          ...r,
+          wallet: wMap.get(r.id) || { balance: 0, total_earned: 0 },
+          profile: pMap.get(r.user_id) || null,
+        }));
+        merged.sort((a: any, b: any) => Number(b.wallet.total_earned || 0) - Number(a.wallet.total_earned || 0));
+        setTopRiders(merged.slice(0, 10));
+      } else {
+        setTopRiders([]);
+      }
+
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching dashboard:', error);
