@@ -20,6 +20,7 @@ import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import { RoleGuard } from "@/components/RoleGuard";
 
 // Admin
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -85,16 +86,16 @@ const App = () => (
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               
-              {/* Customer Routes */}
-              <Route path="/dashboard" element={<Dashboard />} />
+              {/* Customer Routes — public browsing stays open; account routes gated by RoleGuard */}
+              <Route path="/dashboard" element={<RoleGuard allow="customer"><Dashboard /></RoleGuard>} />
               <Route path="/restaurants" element={<Restaurants />} />
               <Route path="/restaurant/:id" element={<RestaurantMenu />} />
               <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/order/:id" element={<OrderTracking />} />
-              <Route path="/orders" element={<MyOrders />} />
-              <Route path="/profile" element={<UserProfile />} />
-              <Route path="/payment/callback" element={<PaymentCallback />} />
+              <Route path="/checkout" element={<RoleGuard allow="customer"><Checkout /></RoleGuard>} />
+              <Route path="/order/:id" element={<RoleGuard allow={["customer","admin","rider"]}><OrderTracking /></RoleGuard>} />
+              <Route path="/orders" element={<RoleGuard allow="customer"><MyOrders /></RoleGuard>} />
+              <Route path="/profile" element={<RoleGuard allow={["customer","admin","rider","restaurant"]}><UserProfile /></RoleGuard>} />
+              <Route path="/payment/callback" element={<RoleGuard allow="customer"><PaymentCallback /></RoleGuard>} />
               <Route path="/support" element={<CustomerSupport />} />
 
               {/* Admin Routes */}
