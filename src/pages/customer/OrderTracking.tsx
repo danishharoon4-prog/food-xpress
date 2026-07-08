@@ -212,36 +212,6 @@ export default function OrderTracking() {
           </CardHeader>
           <CardContent className="space-y-4">
             <OrderProgressIndicator status={order.status} />
-            {order.rider_id && ['picked_up', 'on_the_way'].includes(order.status) && (
-              <div className="pt-2 border-t">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold flex items-center gap-2">
-                    <Bike className="w-4 h-4 text-primary" />
-                    Live Rider Tracking
-                  </p>
-                  <span className="flex items-center gap-1.5 text-xs text-success">
-                    <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                    Live
-                  </span>
-                </div>
-                <LiveTrackingMap
-                  riderId={order.rider_id}
-                  customerCoords={
-                    order.delivery_latitude && order.delivery_longitude
-                      ? { lat: order.delivery_latitude, lng: order.delivery_longitude }
-                      : null
-                  }
-                  restaurantCoords={
-                    (order as any).restaurant?.latitude && (order as any).restaurant?.longitude
-                      ? {
-                          lat: (order as any).restaurant.latitude,
-                          lng: (order as any).restaurant.longitude,
-                        }
-                      : null
-                  }
-                />
-              </div>
-            )}
           </CardContent>
         </Card>
 
