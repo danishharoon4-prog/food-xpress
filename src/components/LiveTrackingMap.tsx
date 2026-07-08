@@ -241,6 +241,7 @@ export function LiveTrackingMap({
           if (typeof lat === 'number' && typeof lng === 'number') {
             setRiderCoords({ lat, lng });
             setLastUpdated(new Date());
+            setPingKey((k) => k + 1);
           }
         }
       )
@@ -250,11 +251,12 @@ export function LiveTrackingMap({
     };
   }, [riderId, trackingRider]);
 
-  // Draw / update rider marker
+  // Draw / update rider marker — with smooth interpolation between fixes
   useEffect(() => {
     const google = googleRef.current;
     const map = mapRef.current;
     if (!google || !map || !trackingRider || !riderCoords) return;
+
 
     if (!riderPulseRef.current) {
       riderPulseRef.current = new google.maps.Marker({
