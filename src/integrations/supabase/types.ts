@@ -1157,6 +1157,34 @@ export type Database = {
         Args: { _owner_id: string }
         Returns: string[]
       }
+      get_top_rated_restaurants: {
+        Args: { _limit?: number }
+        Returns: {
+          avg_rating: number
+          city: string
+          cuisine_type: string
+          id: string
+          image_url: string
+          name: string
+          rating_count: number
+        }[]
+      }
+      get_top_selling_items: {
+        Args: { _limit?: number }
+        Returns: {
+          deal_label: string
+          discount_price: number
+          id: string
+          image_url: string
+          is_deal: boolean
+          name: string
+          price: number
+          restaurant_id: string
+          restaurant_image: string
+          restaurant_name: string
+          total_sold: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

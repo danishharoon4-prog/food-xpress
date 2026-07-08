@@ -8,10 +8,34 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, Star, Heart, Utensils, Tag } from 'lucide-react';
+import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant, MenuItem } from '@/types';
 import { motion } from 'framer-motion';
+
+type TopItem = {
+  id: string;
+  name: string;
+  price: number;
+  discount_price: number | null;
+  image_url: string | null;
+  is_deal: boolean;
+  deal_label: string | null;
+  restaurant_id: string;
+  restaurant_name: string;
+  restaurant_image: string | null;
+  total_sold: number;
+};
+
+type TopRatedRestaurant = {
+  id: string;
+  name: string;
+  image_url: string | null;
+  cuisine_type: string | null;
+  city: string | null;
+  avg_rating: number;
+  rating_count: number;
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -31,8 +55,12 @@ export default function Restaurants() {
   const { toast } = useToast();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [deals, setDeals] = useState<DealItem[]>([]);
+  const [topItems, setTopItems] = useState<TopItem[]>([]);
+  const [topRated, setTopRated] = useState<TopRatedRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [dealsLoading, setDealsLoading] = useState(true);
+  const [topItemsLoading, setTopItemsLoading] = useState(true);
+  const [topRatedLoading, setTopRatedLoading] = useState(true);
   const [city, setCity] = useState<string>('all');
   const [cuisine, setCuisine] = useState<string>('all');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
@@ -41,6 +69,8 @@ export default function Restaurants() {
   useEffect(() => {
     fetchRestaurants();
     fetchDeals();
+    fetchTopItems();
+    fetchTopRated();
   }, []);
 
   useEffect(() => {
@@ -99,6 +129,19 @@ export default function Restaurants() {
     if (data) setDeals(data as DealItem[]);
     setDealsLoading(false);
   };
+
+  const fetchTopItems = async () => {
+    const { data } = await supabase.rpc('get_top_selling_items', { _limit: 10 });
+    if (data) setTopItems(data as TopItem[]);
+    setTopItemsLoading(false);
+  };
+
+  const fetchTopRated = async () => {
+    const { data } = await supabase.rpc('get_top_rated_restaurants', { _limit: 8 });
+    if (data) setTopRated(data as TopRatedRestaurant[]);
+    setTopRatedLoading(false);
+  };
+
 
   const fetchFavorites = async () => {
     if (!user) return;
@@ -253,6 +296,79 @@ export default function Restaurants() {
           )}
         </motion.section>
 
+        {/* Top Selling Items */}
+        {(topItemsLoading || topItems.length > 0) && (
+          <section className="space-y-6">
+            <div className="flex items-end justify-between px-2">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                  <Flame className="w-6 h-6 text-orange-500" /> Top Selling
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">Most-ordered dishes by customers like you</p>
+              </div>
+            </div>
+
+            {topItemsLoading ? (
+              <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="min-w-[220px] max-w-[220px] animate-pulse">
+                    <div className="h-36 bg-muted rounded-3xl" />
+                    <div className="h-4 w-28 bg-muted rounded mt-3" />
+                    <div className="h-4 w-16 bg-muted rounded mt-2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
+                {topItems.map((item, idx) => {
+                  const displayPrice = item.discount_price ?? item.price;
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: 30 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: idx * 0.05 }}
+                      whileHover={{ y: -6 }}
+                      className="min-w-[220px] max-w-[220px] flex-shrink-0"
+                    >
+                      <Link to={`/restaurant/${item.restaurant_id}`} className="group block">
+                        <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-orange-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          ) : item.restaurant_image ? (
+                            <img src={item.restaurant_image} alt={item.restaurant_name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Utensils className="w-10 h-10 text-primary/40" />
+                            </div>
+                          )}
+                          <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1">
+                            <Flame className="w-3 h-3" /> #{idx + 1}
+                          </div>
+                          <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">
+                            {item.total_sold} sold
+                          </div>
+                        </div>
+                        <div className="px-1">
+                          <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{item.name}</h3>
+                          <p className="text-xs text-muted-foreground truncate mb-2 font-medium">{item.restaurant_name}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-extrabold text-primary">PKR {Number(displayPrice).toLocaleString()}</span>
+                            {item.discount_price && (
+                              <span className="text-xs text-muted-foreground line-through font-medium">PKR {Number(item.price).toLocaleString()}</span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* Fresh Deals Section */}
         <section className="space-y-6">
           <div className="flex items-end justify-between px-2">
@@ -361,6 +477,72 @@ export default function Restaurants() {
             </div>
           )}
         </section>
+
+        {/* Top Rated Restaurants */}
+        {(topRatedLoading || topRated.length > 0) && (
+          <section className="space-y-6">
+            <div className="flex items-end justify-between px-2">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                  <Trophy className="w-6 h-6 text-yellow-500" /> Top Rated
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">Highest-rated spots loved by customers</p>
+              </div>
+            </div>
+
+            {topRatedLoading ? (
+              <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="min-w-[260px] max-w-[260px] animate-pulse">
+                    <div className="h-40 bg-muted rounded-3xl" />
+                    <div className="h-4 w-32 bg-muted rounded mt-3" />
+                    <div className="h-4 w-20 bg-muted rounded mt-2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
+                {topRated.map((r, idx) => (
+                  <motion.div
+                    key={r.id}
+                    initial={{ opacity: 0, x: 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    whileHover={{ y: -6 }}
+                    className="min-w-[260px] max-w-[260px] flex-shrink-0"
+                  >
+                    <Link to={`/restaurant/${r.id}`} className="group block">
+                      <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-yellow-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl transition-all duration-500">
+                        {r.image_url ? (
+                          <img src={r.image_url} alt={r.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Utensils className="w-10 h-10 text-primary/40" />
+                          </div>
+                        )}
+                        <div className="absolute top-3 left-3 bg-yellow-500 text-black text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1">
+                          <Trophy className="w-3 h-3" /> #{idx + 1}
+                        </div>
+                        <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-xs font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          {Number(r.avg_rating).toFixed(1)}
+                          <span className="text-white/70 font-medium">({r.rating_count})</span>
+                        </div>
+                      </div>
+                      <div className="px-1">
+                        <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{r.name}</h3>
+                        <p className="text-xs text-muted-foreground truncate font-medium">
+                          {r.cuisine_type || 'Restaurant'}{r.city ? ` · ${r.city}` : ''}
+                        </p>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Restaurants Grid */}
         <section className="space-y-6">
