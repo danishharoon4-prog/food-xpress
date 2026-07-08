@@ -142,8 +142,23 @@ export function SupportChat({ role, title = "Support Chat" }: Props) {
     setInput("");
 
     try {
+      // Ensure a valid session before invoking — a stale/revoked token causes 401.
+      const { data: sessionData } = await supabase.auth.getSession();
+      let token = sessionData.session?.access_token;
+      if (!token) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        token = refreshed.session?.access_token;
+      }
+      if (!token) {
+        toast.error("Your session expired. Please sign in again.");
+        setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+        window.location.replace("/auth");
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke("support-chat", {
         body: { message: msg, category },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (error) throw error;
       if (data?.escalated) {
