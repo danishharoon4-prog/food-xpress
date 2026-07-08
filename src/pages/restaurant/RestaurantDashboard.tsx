@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   ShoppingBag, Banknote, UtensilsCrossed, Clock, TrendingUp, Star, Store,
   ArrowUpRight, CheckCircle2, XCircle, ChefHat, BellRing, X, Power,
+  Activity, Timer, PackageCheck, Bike, Truck,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
