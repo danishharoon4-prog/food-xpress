@@ -37,11 +37,12 @@ export default function Auth() {
   const [fullName, setFullName] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { signIn, signUp, user, role } = useAuth();
+  const { signIn, signUp, user, role, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
+    if (authLoading) return;
     if (user && role) {
       const redirectPath =
         role === 'admin' ? '/admin' :
@@ -49,7 +50,8 @@ export default function Auth() {
         role === 'restaurant' ? '/restaurant' : '/';
       navigate(redirectPath, { replace: true });
     }
-  }, [user, role, navigate]);
+  }, [user, role, authLoading, navigate]);
+
 
   const validateForm = (isSignup: boolean): boolean => {
     const newErrors: Record<string, string> = {};
