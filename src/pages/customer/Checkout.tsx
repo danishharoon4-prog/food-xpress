@@ -89,6 +89,31 @@ export default function Checkout() {
     loadAddress();
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Load which payment methods admin has enabled
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('platform_settings')
+        .select('cod_enabled, easypaisa_enabled, jazzcash_enabled, stripe_enabled')
+        .eq('singleton', true)
+        .maybeSingle();
+
+      const flags = (data ?? {
+        cod_enabled: true,
+        easypaisa_enabled: false,
+        jazzcash_enabled: true,
+        stripe_enabled: true,
+      }) as Record<string, boolean>;
+
+      const available = ALL_PAYMENT_METHODS.filter((m) => flags[m.flag] !== false);
+      setEnabledMethods(available.length ? available : [ALL_PAYMENT_METHODS[0]]);
+      // If current selection got disabled, fall back to first available
+      if (!available.some((m) => m.value === paymentMethod)) {
+        setPaymentMethod((available[0]?.value ?? 'cod') as PaymentMethod);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     // Don't bounce to /cart if a JazzCash dialog is open — cart was cleared after order placement
     if (items.length === 0 && !jcOpen && !pendingOrder) {
