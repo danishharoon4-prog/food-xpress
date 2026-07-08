@@ -1,10 +1,19 @@
 import { useLocation } from "react-router-dom";
 import { ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useMotionPreference } from "@/hooks/useMotionPreference";
 
 export function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const reduce = useReducedMotion();
+  const osReduce = useReducedMotion();
+  const { motionEnabled, reduceMotion } = useMotionPreference();
+
+  // Kill switch — render children with no motion wrapper at all
+  if (!motionEnabled) {
+    return <>{children}</>;
+  }
+
+  const reduce = osReduce || reduceMotion;
 
   const variants = reduce
     ? {
@@ -26,7 +35,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
         animate="animate"
         exit="exit"
         variants={variants}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: reduce ? 0.15 : 0.35, ease: [0.22, 1, 0.36, 1] }}
         style={{ willChange: "opacity, transform" }}
       >
         {children}
