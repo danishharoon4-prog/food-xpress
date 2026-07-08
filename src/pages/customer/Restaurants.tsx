@@ -415,6 +415,34 @@ export default function Restaurants() {
                           <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">
                             {item.total_sold} sold
                           </div>
+                          <motion.button
+                            type="button"
+                            onClick={(e) =>
+                              quickAdd(e, {
+                                id: item.id,
+                                name: item.name,
+                                price: item.price,
+                                discount_price: item.discount_price,
+                                image_url: item.image_url,
+                                restaurant_id: item.restaurant_id,
+                                restaurant_name: item.restaurant_name,
+                              })
+                            }
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            aria-label={`Add ${item.name} to cart`}
+                            className={`absolute bottom-3 left-3 h-9 w-9 rounded-full inline-flex items-center justify-center shadow-lg transition-colors ${
+                              addedIds.has(item.id)
+                                ? 'bg-green-500 text-white'
+                                : 'bg-white text-primary hover:bg-primary hover:text-primary-foreground'
+                            }`}
+                          >
+                            {addedIds.has(item.id) ? (
+                              <Check className="w-4 h-4" strokeWidth={3} />
+                            ) : (
+                              <Plus className="w-4 h-4" strokeWidth={3} />
+                            )}
+                          </motion.button>
                         </div>
                         <div className="px-1">
                           <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{item.name}</h3>
