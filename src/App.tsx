@@ -9,6 +9,7 @@ import { NotificationsListener } from "@/components/NotificationsListener";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { patchSonnerForBrowserNotifications } from "@/lib/browserNotify";
 import { PageTransition } from "@/components/PageTransition";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 patchSonnerForBrowserNotifications();
 
