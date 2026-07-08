@@ -462,6 +462,28 @@ export default function Checkout() {
           </div>
         </div>
       </main>
+
+      {pendingOrder && (
+        <JazzCashPaymentDialog
+          open={jcOpen}
+          onOpenChange={(v) => {
+            setJcOpen(v);
+            if (!v && pendingOrder) {
+              // If user closes without paying, still take them to order tracking
+              navigate(`/order/${pendingOrder.id}`);
+              setPendingOrder(null);
+            }
+          }}
+          orderId={pendingOrder.id}
+          orderNumber={pendingOrder.number}
+          amount={pendingOrder.total}
+          purpose="order"
+          onSuccess={() => {
+            navigate(`/order/${pendingOrder.id}`);
+            setPendingOrder(null);
+          }}
+        />
+      )}
     </div>
   );
 }
