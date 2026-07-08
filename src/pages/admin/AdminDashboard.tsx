@@ -233,6 +233,17 @@ export default function AdminDashboard() {
     toast.success('All notifications marked as read');
   };
 
+  const handleManualRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchAll(), fetchNotifications()]);
+      toast.success('Dashboard updated');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     fetchAll();
     fetchNotifications();
