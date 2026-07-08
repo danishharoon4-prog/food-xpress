@@ -307,7 +307,9 @@
   }
 }
 
-/* Respect user's motion preference — kill non-essential motion */
+/* Respect user's motion preference — kill non-essential motion.
+   Applied for OS setting, in-app "Reduced motion" toggle (.motion-reduce),
+   or the full "Animations off" toggle (.motion-off). */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
@@ -320,4 +322,31 @@
     transform: none !important;
   }
 }
+
+html.motion-reduce *,
+html.motion-reduce *::before,
+html.motion-reduce *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+html.motion-reduce [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Full kill-switch — user turned animations off entirely */
+html.motion-off *,
+html.motion-off *::before,
+html.motion-off *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+html.motion-off [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useMotionPreference } from "@/hooks/useMotionPreference";
 
 /**
  * Global scroll-reveal: watches DOM for [data-reveal] elements and
@@ -8,14 +9,23 @@ import { useLocation } from "react-router-dom";
  */
 export function ScrollReveal() {
   const location = useLocation();
+  const { motionEnabled, reduceMotion } = useMotionPreference();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (typeof IntersectionObserver === "undefined") return;
 
-    const reduce =
+    const osReduce =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    if (reduce) return;
+
+    // If user disabled motion or reduced-motion is active, just reveal everything now
+    if (!motionEnabled || reduceMotion || osReduce) {
+      document
+        .querySelectorAll<HTMLElement>("[data-reveal]:not(.is-visible)")
+        .forEach((el) => el.classList.add("is-visible"));
+      return;
+    }
+
 
     const io = new IntersectionObserver(
       (entries) => {
@@ -48,7 +58,7 @@ export function ScrollReveal() {
       mo.disconnect();
       io.disconnect();
     };
-  }, [location.pathname]);
+  }, [location.pathname, motionEnabled, reduceMotion]);
 
   return null;
 }
