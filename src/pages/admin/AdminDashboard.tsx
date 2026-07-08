@@ -34,6 +34,7 @@ interface DashboardStats {
   pendingRiders: number;
   totalCustomers: number;
   totalRestaurants: number;
+  activeRestaurants: number;
   pendingRestaurants: number;
   totalMenuItems: number;
   pendingOrders: number;
