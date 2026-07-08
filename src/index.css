@@ -350,3 +350,11 @@ html.motion-off [data-reveal] {
 }
 
 
+
+/* Disable pinch/double-tap zoom on mobile (native-app feel) */
+html {
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
