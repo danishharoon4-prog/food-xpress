@@ -513,10 +513,15 @@ export function LiveTrackingMap({
 
         <p className="text-xs font-medium text-foreground flex-1 min-w-0 truncate">{originLabel}</p>
         {lastUpdated && trackingRider && (
-          <span className="text-[10px] text-muted-foreground shrink-0">
+          <span
+            key={`upd-${pingKey}`}
+            className="text-[10px] text-muted-foreground shrink-0 animate-fade-in flex items-center gap-1"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
+
       </div>
 
       {/* Map */}
