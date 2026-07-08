@@ -117,7 +117,7 @@ function RiderLayoutInner() {
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
-              const isLocked = !isVerified && item.path !== '/rider/settings';
+              const isLocked = !isVerified && item.path !== '/rider/settings' && item.path !== '/rider/support';
               return (
                 <Link
                   key={item.path}
@@ -199,7 +199,7 @@ function RiderLayoutInner() {
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t flex">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
-            const isLocked = !isVerified && item.path !== '/rider/settings';
+            const isLocked = !isVerified && item.path !== '/rider/settings' && item.path !== '/rider/support';
             return (
               <Link key={item.path} to={item.path}
                 className={cn("flex-1 flex flex-col items-center justify-center py-2 text-[10px] gap-0.5",
