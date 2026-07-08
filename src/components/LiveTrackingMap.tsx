@@ -575,12 +575,28 @@ export function LiveTrackingMap({
         {lastUpdated && trackingRider && (
           <span
             key={`upd-${pingKey}`}
-            className="text-[10px] text-muted-foreground shrink-0 animate-fade-in flex items-center gap-1"
+            className={`text-[10px] shrink-0 animate-fade-in flex items-center gap-1 px-1.5 py-0.5 rounded-full transition-colors ${
+              showStale
+                ? 'text-amber-700 dark:text-amber-400 bg-amber-500/10'
+                : 'text-muted-foreground'
+            }`}
+            title={
+              showStale
+                ? `No GPS update since ${lastUpdated.toLocaleTimeString()}`
+                : 'Last GPS update'
+            }
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                showStale ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'
+              }`}
+            />
+            {showStale
+              ? `Last known · ${formatAgo(lastUpdated)}`
+              : lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
+
 
       </div>
 
