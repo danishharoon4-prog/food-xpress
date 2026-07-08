@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  LayoutDashboard, ShoppingBag, UtensilsCrossed, Wallet, User, LogOut, Menu, X, Store, AlertCircle,
+  LayoutDashboard, ShoppingBag, UtensilsCrossed, Wallet, User, LogOut, Menu, X, Store, AlertCircle, Headphones,
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ const navItems = [
   { path: '/restaurant/menu', icon: UtensilsCrossed, label: 'Menu' },
   { path: '/restaurant/wallet', icon: Wallet, label: 'Wallet' },
   { path: '/restaurant/profile', icon: User, label: 'Profile' },
+  { path: '/restaurant/support', icon: Headphones, label: 'Support' },
 ];
 
 function RestaurantLayoutInner() {

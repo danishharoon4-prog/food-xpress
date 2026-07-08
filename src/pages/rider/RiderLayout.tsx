@@ -17,6 +17,7 @@ import {
   X,
   Bike,
   AlertCircle,
+  Headphones,
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ const navItems = [
   { path: '/rider/orders', icon: ShoppingBag, label: 'Orders' },
   { path: '/rider/earnings', icon: Wallet, label: 'Earnings' },
   { path: '/rider/ratings', icon: Star, label: 'Ratings' },
+  { path: '/rider/support', icon: Headphones, label: 'Support' },
   { path: '/rider/settings', icon: Settings, label: 'Settings' },
 ];
 
@@ -87,7 +89,8 @@ function RiderLayoutInner() {
 
 
   // Allowed routes when not verified: only Settings
-  const allowedWhenUnverified = location.pathname === '/rider/settings';
+  const allowedWhenUnverified =
+    location.pathname === '/rider/settings' || location.pathname === '/rider/support';
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -114,7 +117,7 @@ function RiderLayoutInner() {
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
-              const isLocked = !isVerified && item.path !== '/rider/settings';
+              const isLocked = !isVerified && item.path !== '/rider/settings' && item.path !== '/rider/support';
               return (
                 <Link
                   key={item.path}
@@ -196,7 +199,7 @@ function RiderLayoutInner() {
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t flex">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
-            const isLocked = !isVerified && item.path !== '/rider/settings';
+            const isLocked = !isVerified && item.path !== '/rider/settings' && item.path !== '/rider/support';
             return (
               <Link key={item.path} to={item.path}
                 className={cn("flex-1 flex flex-col items-center justify-center py-2 text-[10px] gap-0.5",

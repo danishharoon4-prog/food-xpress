@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { UtensilsCrossed, ShoppingCart, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { UtensilsCrossed, ShoppingCart, User, LogOut, LayoutDashboard, Headphones } from 'lucide-react';
 import CustomerBottomNav from './CustomerBottomNav';
 import ThemeToggle from './ThemeToggle';
 
@@ -41,6 +41,7 @@ export default function CustomerHeader() {
                 <Link to="/dashboard"><Button variant="ghost" size="sm"><LayoutDashboard className="h-4 w-4 mr-1" />Dashboard</Button></Link>
                 <Link to="/profile"><Button variant="ghost" size="sm">Profile</Button></Link>
                 <Link to="/orders"><Button variant="ghost" size="sm">My Orders</Button></Link>
+                <Link to="/support"><Button variant="ghost" size="sm"><Headphones className="h-4 w-4 mr-1" />Support</Button></Link>
                 <Button variant="ghost" size="icon" onClick={signOut}><LogOut className="h-5 w-5" /></Button>
               </>
             ) : (
@@ -52,7 +53,10 @@ export default function CustomerHeader() {
           <div className="flex md:hidden items-center gap-1">
             <ThemeToggle />
             {user ? (
-              <Button variant="ghost" size="icon" onClick={signOut}><LogOut className="h-5 w-5" /></Button>
+              <>
+                <Link to="/support"><Button variant="ghost" size="icon"><Headphones className="h-5 w-5" /></Button></Link>
+                <Button variant="ghost" size="icon" onClick={signOut}><LogOut className="h-5 w-5" /></Button>
+              </>
             ) : (
               <Link to="/auth"><Button className="gradient-primary" size="sm">Sign In</Button></Link>
             )}
