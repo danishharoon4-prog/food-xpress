@@ -1,0 +1,18 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'app.lovable.fd539a18451b46e1813e630ffde4a82b',
+  appName: 'food-xpress',
+  webDir: 'dist',
+  server: {
+    url: 'https://fd539a18-451b-46e1-813e-630ffde4a82b.lovableproject.com?forceHideBadge=true',
+    cleartext: true,
+  },
+  plugins: {
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
+  },
+};
+
+export default config;
