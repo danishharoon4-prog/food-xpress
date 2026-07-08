@@ -96,6 +96,11 @@ export function LiveTrackingMap({
   const [durationDelta, setDurationDelta] = useState<'down' | 'up' | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [pingKey, setPingKey] = useState(0);
+  const [isStale, setIsStale] = useState(false);
+
+  // How long without a rider fix before we consider the location stale
+  const STALE_AFTER_MS = 15_000;
+
 
 
   const { calculateDistance, getDirectionsUrl } = useLocation();
