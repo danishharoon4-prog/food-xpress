@@ -242,18 +242,28 @@ export default function OrderTracking() {
           </Card>
         )}
 
-        {/* Live Rider Tracking - Shows when rider is on the way */}
-        {order.rider_id && (
-          <LiveRiderTracking
-            riderId={order.rider_id}
-            customerCoords={
-              order.delivery_latitude && order.delivery_longitude
-                ? { lat: order.delivery_latitude, lng: order.delivery_longitude }
-                : null
-            }
-            orderStatus={order.status}
-          />
-        )}
+        {/* Unified Live Tracking — rider or restaurant self-delivery */}
+        {['picked_up', 'on_the_way'].includes(order.status) &&
+          (order.rider_id || (order as any).is_self_delivery) && (
+            <LiveTrackingMap
+              riderId={order.rider_id}
+              isSelfDelivery={!order.rider_id && !!(order as any).is_self_delivery}
+              orderStatus={order.status}
+              customerCoords={
+                order.delivery_latitude && order.delivery_longitude
+                  ? { lat: order.delivery_latitude, lng: order.delivery_longitude }
+                  : null
+              }
+              restaurantCoords={
+                (order as any).restaurant?.latitude && (order as any).restaurant?.longitude
+                  ? {
+                      lat: (order as any).restaurant.latitude,
+                      lng: (order as any).restaurant.longitude,
+                    }
+                  : null
+              }
+            />
+          )}
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Rider Info */}
