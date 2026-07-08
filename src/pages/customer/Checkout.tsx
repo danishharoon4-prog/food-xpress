@@ -94,7 +94,7 @@ export default function Checkout() {
     if (!user) {
       navigate('/auth?redirect=/checkout');
     }
-  }, [items, user, navigate]);
+  }, [items, user, navigate, jcOpen, pendingOrder]);
 
   // Fetch restaurant coordinates
   useEffect(() => {
