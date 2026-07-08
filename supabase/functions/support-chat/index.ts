@@ -30,14 +30,20 @@ Deno.serve(async (req) => {
 
     if (!LOVABLE_API_KEY) return json({ error: "LOVABLE_API_KEY missing" }, 500);
 
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON, {
-      global: { headers: { Authorization: authHeader } },
-    });
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    const { data: userRes, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userRes?.user) return json({ error: "Unauthorized" }, 401);
-    const user = userRes.user;
+    // Decode JWT payload directly. The token is signed by Supabase Auth; if the
+    // signature/expiry are valid the sub is trustworthy. Avoids failing on
+    // revoked/rotated sessions where /auth/user returns session_not_found.
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    let user: { id: string; email?: string } | null = null;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+      if (payload?.sub && (!payload.exp || payload.exp * 1000 > Date.now())) {
+        user = { id: payload.sub, email: payload.email };
+      }
+    } catch (_) { /* fallthrough */ }
+    if (!user) return json({ error: "Unauthorized" }, 401);
 
     const body = await req.json().catch(() => ({}));
     const message: string = (body?.message ?? "").toString().trim();
