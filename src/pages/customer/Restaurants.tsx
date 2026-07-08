@@ -130,6 +130,19 @@ export default function Restaurants() {
     setDealsLoading(false);
   };
 
+  const fetchTopItems = async () => {
+    const { data } = await supabase.rpc('get_top_selling_items', { _limit: 10 });
+    if (data) setTopItems(data as TopItem[]);
+    setTopItemsLoading(false);
+  };
+
+  const fetchTopRated = async () => {
+    const { data } = await supabase.rpc('get_top_rated_restaurants', { _limit: 8 });
+    if (data) setTopRated(data as TopRatedRestaurant[]);
+    setTopRatedLoading(false);
+  };
+
+
   const fetchFavorites = async () => {
     if (!user) return;
     const { data } = await supabase
