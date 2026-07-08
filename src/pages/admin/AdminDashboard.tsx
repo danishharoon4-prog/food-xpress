@@ -11,8 +11,18 @@ import { toast } from 'sonner';
 import {
   ShoppingBag, Users, Bike, Banknote, TrendingUp, Clock, Store,
   UtensilsCrossed, AlertCircle, CheckCircle2, XCircle, ArrowRight, Package,
-  Bell, Radio,
+  Bell, Radio, Activity, Timer, PackageCheck, Truck, ChefHat,
 } from 'lucide-react';
+
+interface ActiveOrderRow {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+  restaurant_id: string;
+  restaurant?: { name: string } | null;
+}
 
 interface DashboardStats {
   totalOrders: number;
