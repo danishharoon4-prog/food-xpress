@@ -261,8 +261,15 @@ export default function Checkout() {
       if (!placed?.order_id) throw new Error('Order could not be created');
 
       clearCart();
-      toast({ title: 'Order Placed!', description: `Order #${placed.order_number} has been placed successfully.` });
-      navigate(`/order/${placed.order_id}`);
+
+      if (paymentMethod === 'jazzcash') {
+        setPendingOrder({ id: placed.order_id, number: placed.order_number, total });
+        setJcOpen(true);
+        toast({ title: 'Order Created', description: `Complete payment to confirm order #${placed.order_number}.` });
+      } else {
+        toast({ title: 'Order Placed!', description: `Order #${placed.order_number} has been placed successfully.` });
+        navigate(`/order/${placed.order_id}`);
+      }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
