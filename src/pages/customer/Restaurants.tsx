@@ -8,10 +8,34 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, Star, Heart, Utensils, Tag } from 'lucide-react';
+import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant, MenuItem } from '@/types';
 import { motion } from 'framer-motion';
+
+type TopItem = {
+  id: string;
+  name: string;
+  price: number;
+  discount_price: number | null;
+  image_url: string | null;
+  is_deal: boolean;
+  deal_label: string | null;
+  restaurant_id: string;
+  restaurant_name: string;
+  restaurant_image: string | null;
+  total_sold: number;
+};
+
+type TopRatedRestaurant = {
+  id: string;
+  name: string;
+  image_url: string | null;
+  cuisine_type: string | null;
+  city: string | null;
+  avg_rating: number;
+  rating_count: number;
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
