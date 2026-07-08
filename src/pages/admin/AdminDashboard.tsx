@@ -467,6 +467,94 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Live Active Orders */}
+      <Card className="border-emerald-500/30">
+        <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            </span>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Activity className="w-5 h-5 text-emerald-600" />
+              Live Active Orders
+            </CardTitle>
+            <Badge variant="secondary" className="ml-1">{activeOrdersList.length}</Badge>
+            <Badge className="bg-success/10 text-success hover:bg-success/10">
+              PKR {activeRevenue.toLocaleString()} in-progress
+            </Badge>
+          </div>
+          <Button asChild size="sm" variant="ghost">
+            <Link to="/admin/orders">Manage <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status breakdown */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            {activeStatusCards.map(s => (
+              <div key={s.key} className={`p-3 rounded-lg border ${s.bg}`}>
+                <div className="flex items-center gap-2">
+                  <s.icon className={`w-4 h-4 ${s.color}`} />
+                  <span className="text-xs font-medium text-muted-foreground">{s.label}</span>
+                </div>
+                <div className={`text-xl font-bold mt-1 ${s.color}`}>{activeStatusBreakdown[s.key] || 0}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Per-restaurant breakdown */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-semibold flex items-center gap-1.5">
+                <Store className="w-4 h-4" /> By Restaurant
+              </h4>
+              <span className="text-xs text-muted-foreground">{activeByRestaurant.length} restaurant{activeByRestaurant.length !== 1 && 's'} active</span>
+            </div>
+            {activeByRestaurant.length === 0 ? (
+              <div className="border border-dashed rounded-lg p-6 text-center">
+                <Timer className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No active orders right now.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                {activeByRestaurant.map(r => (
+                  <div key={r.id} className="p-3 rounded-lg border hover:bg-accent/40 transition-colors">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                          <Store className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{r.name}</p>
+                          <p className="text-xs text-muted-foreground">Latest {timeAgo(r.latest)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant="secondary" className="text-xs">
+                          {r.count} order{r.count !== 1 && 's'}
+                        </Badge>
+                        <span className="text-sm font-semibold text-primary">
+                          PKR {r.revenue.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {Object.entries(r.statuses).map(([st, n]) => (
+                        <Badge key={st} className={`${statusColors[st] || 'bg-muted'} text-[10px] font-medium`}>
+                          {st.replace(/_/g, ' ')}: {n}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+
+
       {/* Overall stats */}
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Overview</h3>
