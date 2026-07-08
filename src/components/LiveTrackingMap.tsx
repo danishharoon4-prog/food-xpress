@@ -434,6 +434,20 @@ export function LiveTrackingMap({
     };
   }, [originCoords, customerCoords, calculateDistance]);
 
+  // Auto-clear the delta chips a moment after they light up
+  useEffect(() => {
+    if (!distanceDelta) return;
+    const t = window.setTimeout(() => setDistanceDelta(null), 2200);
+    return () => window.clearTimeout(t);
+  }, [distanceDelta, distanceInfo?.distance?.value]);
+
+  useEffect(() => {
+    if (!durationDelta) return;
+    const t = window.setTimeout(() => setDurationDelta(null), 2200);
+    return () => window.clearTimeout(t);
+  }, [durationDelta, distanceInfo?.duration?.value]);
+
+
   const openDirections = async () => {
     if (!originCoords || !customerCoords) return;
     try {
