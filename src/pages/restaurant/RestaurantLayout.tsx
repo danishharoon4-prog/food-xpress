@@ -183,3 +183,12 @@ function RestaurantLayoutInner() {
     </div>
   );
 }
+
+export default function RestaurantLayout() {
+  return (
+    <RoleGuard allow="restaurant">
+      <RestaurantLayoutInner />
+    </RoleGuard>
+  );
+}
+
