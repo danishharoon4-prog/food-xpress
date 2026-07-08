@@ -272,10 +272,27 @@ export default function AdminDashboard() {
     // Allow order-insert toasts after mount
     const t = setTimeout(() => { initialLoad.current = false; }, 2000);
 
+    // Auto-refresh all data every 20 seconds as a safety net
+    const refreshInterval = setInterval(() => {
+      fetchAll();
+      fetchNotifications();
+    }, 20000);
+
+    // Refresh when tab becomes visible again
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAll();
+        fetchNotifications();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
     return () => {
       supabase.removeChannel(channel);
       if (notifChannel) supabase.removeChannel(notifChannel);
       clearTimeout(t);
+      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', onVisible);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
