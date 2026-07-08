@@ -5,10 +5,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 let registered = false;
 
+// FCM push requires google-services.json (Android) / GoogleService-Info.plist (iOS)
+// to be present in the native project. Without them, PushNotifications.register()
+// causes a NATIVE crash (Java-level, uncatchable in JS). Enable via env flag only
+// after Firebase is properly configured in the native project.
+const FCM_ENABLED = import.meta.env.VITE_FCM_ENABLED === 'true';
+
 export async function registerFcmForCurrentUser(userId: string): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
+  if (!FCM_ENABLED) return; // safety: no google-services.json -> would crash
   if (registered) return;
   registered = true;
+
 
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
