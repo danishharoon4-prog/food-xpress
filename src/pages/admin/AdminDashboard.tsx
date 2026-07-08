@@ -119,11 +119,15 @@ export default function AdminDashboard() {
       const today = new Date().toISOString().split('T')[0];
 
       const [
-        ordersRes, recentRes, ridersRes, pendingRidersRes,
+        ordersRes, recentRes, activeRes, ridersRes, pendingRidersRes,
         customersRes, restaurantsRes, pendingRestRes, menuRes,
       ] = await Promise.all([
         supabase.from('orders').select('total, status, created_at'),
         supabase.from('orders').select('id, order_number, status, total, created_at, restaurant:restaurants(name)').order('created_at', { ascending: false }).limit(8),
+        supabase.from('orders')
+          .select('id, order_number, status, total, created_at, restaurant_id, restaurant:restaurants(name)')
+          .not('status', 'in', '(delivered,cancelled)')
+          .order('created_at', { ascending: false }),
         supabase.from('riders').select('is_online', { count: 'exact' }),
         supabase.from('riders').select('*', { count: 'exact', head: true }).eq('is_verified', false),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
