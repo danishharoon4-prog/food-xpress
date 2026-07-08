@@ -611,6 +611,85 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Top Riders */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Bike className="w-5 h-5 text-primary" /> Top Riders
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.totalRiders} total · {stats.onlineRiders} online · ranked by earnings
+            </p>
+          </div>
+          <Button asChild size="sm" variant="ghost">
+            <Link to="/admin/riders">View all <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {topRiders.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">No riders yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {topRiders.map((r, idx) => (
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between gap-3 p-3 rounded-lg border hover:bg-accent/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary font-bold text-sm shrink-0">
+                      #{idx + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-sm font-semibold truncate">
+                          {r.profile?.full_name || 'Rider'}
+                        </p>
+                        {r.is_online && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success bg-success/10 px-1.5 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-success" /> Online
+                          </span>
+                        )}
+                        {!r.is_verified && (
+                          <span className="text-[10px] font-medium text-warning bg-warning/10 px-1.5 py-0.5 rounded-full">
+                            Unverified
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {r.profile?.city || 'N/A'}
+                        {r.profile?.phone ? ` · ${r.profile.phone}` : ''}
+                        {r.average_rating > 0 && (
+                          <> · ★ {Number(r.average_rating).toFixed(1)}</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0 text-right">
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Orders</p>
+                      <p className="text-sm font-bold">{r.total_deliveries || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Earned</p>
+                      <p className="text-sm font-bold text-success">
+                        PKR {Number(r.wallet?.total_earned || 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="hidden sm:block">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Balance</p>
+                      <p className="text-sm font-semibold text-primary">
+                        PKR {Number(r.wallet?.balance || 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Recent Orders */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
