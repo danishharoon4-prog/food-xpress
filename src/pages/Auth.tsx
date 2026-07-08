@@ -25,6 +25,8 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<AppRole>(allowedRole);
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   
   // Form fields
   const [email, setEmail] = useState('');
