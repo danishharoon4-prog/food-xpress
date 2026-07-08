@@ -156,3 +156,12 @@ function AdminLayoutInner() {
     </div>
   );
 }
+
+export default function AdminLayout() {
+  return (
+    <RoleGuard allow="admin">
+      <AdminLayoutInner />
+    </RoleGuard>
+  );
+}
+
