@@ -118,6 +118,21 @@ export default function RestaurantDashboard() {
           } catch {}
         },
       )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurant.id}` },
+        (payload) => {
+          const o: any = payload.new;
+          setOrders((prev) => {
+            const idx = prev.findIndex((p) => p.id === o.id);
+            if (idx === -1) return [o, ...prev];
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...o };
+            return next;
+          });
+          setRecent((prev) => prev.map((r) => (r.id === o.id ? { ...r, status: o.status, total: o.total } : r)));
+        },
+      )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [restaurant?.id]);
