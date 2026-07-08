@@ -1,7 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Bike, Home, Store, Radio, Locate, LocateFixed } from 'lucide-react';
+import {
+  Loader2,
+  Bike,
+  Home,
+  Store,
+  Radio,
+  Locate,
+  LocateFixed,
+  Route,
+  Clock,
+  Navigation,
+  MapPin,
+  PackageCheck,
+} from 'lucide-react';
 import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import { useLocation } from '@/hooks/useLocation';
+import { Button } from '@/components/ui/button';
 
 interface Coords {
   lat: number;
@@ -9,9 +24,14 @@ interface Coords {
 }
 
 interface Props {
-  riderId: string;
+  /** Rider id — omit / null for self-delivery mode */
+  riderId?: string | null;
   customerCoords: Coords | null;
   restaurantCoords?: Coords | null;
+  /** Current order status — used to gate what we show */
+  orderStatus?: string;
+  /** Restaurant delivering itself (no rider) */
+  isSelfDelivery?: boolean;
   height?: number;
 }
 
@@ -44,12 +64,15 @@ export function LiveTrackingMap({
   riderId,
   customerCoords,
   restaurantCoords,
-  height = 260,
+  orderStatus,
+  isSelfDelivery = false,
+  height = 280,
 }: Props) {
   const mapDivRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const riderMarkerRef = useRef<any>(null);
   const riderPulseRef = useRef<any>(null);
+  const routeLineRef = useRef<any>(null);
   const pulseIntervalRef = useRef<number | null>(null);
   const googleRef = useRef<any>(null);
 
@@ -60,11 +83,27 @@ export function LiveTrackingMap({
   const autoFollowRef = useRef(true);
   const hasInitialFitRef = useRef(false);
   const programmaticMoveRef = useRef(false);
+  const [distanceInfo, setDistanceInfo] = useState<{
+    distance: { text: string; value: number };
+    duration: { text: string; value: number };
+  } | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const { calculateDistance, getDirectionsUrl } = useLocation();
+
+  const trackingRider = !isSelfDelivery && !!riderId;
+
+  // Origin used for distance/ETA + route line
+  const originCoords: Coords | null = useMemo(() => {
+    if (trackingRider) return riderCoords;
+    return restaurantCoords || null;
+  }, [trackingRider, riderCoords, restaurantCoords]);
 
   useEffect(() => {
     autoFollowRef.current = autoFollow;
   }, [autoFollow]);
 
+  // Initialize map
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -76,7 +115,6 @@ export function LiveTrackingMap({
         const center =
           customerCoords || restaurantCoords || { lat: 34.3299, lng: 73.1985 };
 
-        // Minimal compact map style
         const compactStyle: any[] = [
           { elementType: 'geometry', stylers: [{ color: '#f7f9fc' }] },
           { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
@@ -104,7 +142,6 @@ export function LiveTrackingMap({
         });
         mapRef.current = map;
 
-        // Disable auto-follow when the user drags the map manually
         map.addListener('dragstart', () => {
           if (!programmaticMoveRef.current && autoFollowRef.current) {
             setAutoFollow(false);
@@ -137,17 +174,31 @@ export function LiveTrackingMap({
           });
         }
 
-        const { data: riderData } = await supabase
-          .from('riders')
-          .select('current_latitude, current_longitude')
-          .eq('id', riderId)
-          .single();
+        // For self-delivery, we don't wait for rider — fit both immediately
+        if (!trackingRider) {
+          const bounds = new google.maps.LatLngBounds();
+          if (customerCoords) bounds.extend(customerCoords);
+          if (restaurantCoords) bounds.extend(restaurantCoords);
+          if (customerCoords && restaurantCoords) {
+            map.fitBounds(bounds, 70);
+            hasInitialFitRef.current = true;
+          }
+        }
 
-        if (riderData?.current_latitude && riderData?.current_longitude) {
-          setRiderCoords({
-            lat: riderData.current_latitude,
-            lng: riderData.current_longitude,
-          });
+        if (trackingRider) {
+          const { data: riderData } = await supabase
+            .from('riders')
+            .select('current_latitude, current_longitude')
+            .eq('id', riderId!)
+            .single();
+
+          if (riderData?.current_latitude && riderData?.current_longitude) {
+            setRiderCoords({
+              lat: riderData.current_latitude,
+              lng: riderData.current_longitude,
+            });
+            setLastUpdated(new Date());
+          }
         }
 
         setLoading(false);
@@ -165,10 +216,11 @@ export function LiveTrackingMap({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [riderId]);
+  }, [riderId, isSelfDelivery]);
 
+  // Realtime rider position
   useEffect(() => {
-    if (!riderId) return;
+    if (!trackingRider || !riderId) return;
     const channel = supabase
       .channel(`live-map-rider-${riderId}`)
       .on(
@@ -179,6 +231,7 @@ export function LiveTrackingMap({
           const lng = (payload.new as any).current_longitude;
           if (typeof lat === 'number' && typeof lng === 'number') {
             setRiderCoords({ lat, lng });
+            setLastUpdated(new Date());
           }
         }
       )
@@ -186,14 +239,14 @@ export function LiveTrackingMap({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [riderId]);
+  }, [riderId, trackingRider]);
 
+  // Draw / update rider marker
   useEffect(() => {
     const google = googleRef.current;
     const map = mapRef.current;
-    if (!google || !map || !riderCoords) return;
+    if (!google || !map || !trackingRider || !riderCoords) return;
 
-    // Pulse ring under rider
     if (!riderPulseRef.current) {
       riderPulseRef.current = new google.maps.Marker({
         position: riderCoords,
@@ -211,7 +264,6 @@ export function LiveTrackingMap({
         },
       });
 
-      // Animate pulse
       let step = 0;
       pulseIntervalRef.current = window.setInterval(() => {
         step = (step + 1) % 30;
@@ -264,11 +316,90 @@ export function LiveTrackingMap({
         programmaticMoveRef.current = false;
       }, 300);
     }
-  }, [riderCoords, customerCoords, restaurantCoords, autoFollow]);
+  }, [riderCoords, customerCoords, restaurantCoords, trackingRider]);
+
+  // Draw a simple straight route line from origin -> customer
+  useEffect(() => {
+    const google = googleRef.current;
+    const map = mapRef.current;
+    if (!google || !map || !originCoords || !customerCoords) return;
+
+    if (routeLineRef.current) {
+      routeLineRef.current.setPath([originCoords, customerCoords]);
+    } else {
+      routeLineRef.current = new google.maps.Polyline({
+        path: [originCoords, customerCoords],
+        map,
+        strokeColor: '#2563eb',
+        strokeOpacity: 0,
+        icons: [
+          {
+            icon: {
+              path: 'M 0,-1 0,1',
+              strokeOpacity: 0.9,
+              strokeWeight: 3,
+              scale: 3,
+            },
+            offset: '0',
+            repeat: '14px',
+          },
+        ],
+      });
+    }
+  }, [originCoords, customerCoords]);
+
+  // Distance + ETA
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!originCoords || !customerCoords) {
+        setDistanceInfo(null);
+        return;
+      }
+      try {
+        const info = await calculateDistance(originCoords, customerCoords);
+        if (!cancelled) setDistanceInfo(info);
+      } catch (e) {
+        console.error('Distance calc failed', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [originCoords, customerCoords, calculateDistance]);
+
+  const openDirections = async () => {
+    if (!originCoords || !customerCoords) return;
+    try {
+      const url = await getDirectionsUrl(originCoords, customerCoords);
+      window.open(url, '_blank');
+    } catch {
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&origin=${originCoords.lat},${originCoords.lng}&destination=${customerCoords.lat},${customerCoords.lng}`,
+        '_blank'
+      );
+    }
+  };
+
+  const openOriginPin = () => {
+    if (!originCoords) return;
+    window.open(
+      `https://www.google.com/maps?q=${originCoords.lat},${originCoords.lng}`,
+      '_blank'
+    );
+  };
+
+  // Contextual label for the origin (what's moving toward the customer)
+  const isPickedUp = orderStatus === 'picked_up';
+  const originLabel = trackingRider
+    ? isPickedUp
+      ? 'Rider picked up your order'
+      : 'Rider is on the way'
+    : 'Restaurant is delivering';
 
   return (
     <div className="rounded-2xl overflow-hidden border border-border/60 bg-card shadow-sm animate-fade-in">
-      {/* Compact header */}
+      {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/40">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
@@ -285,11 +416,32 @@ export function LiveTrackingMap({
         </div>
       </div>
 
+      {/* Context strip */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border/40 bg-background/60">
+        <div
+          className={`w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0 ${
+            trackingRider ? 'bg-[#2563eb]' : 'bg-[#f97316]'
+          }`}
+        >
+          {trackingRider ? (
+            isPickedUp ? <PackageCheck className="w-3.5 h-3.5" /> : <Bike className="w-3.5 h-3.5" />
+          ) : (
+            <Store className="w-3.5 h-3.5" />
+          )}
+        </div>
+        <p className="text-xs font-medium text-foreground flex-1 min-w-0 truncate">{originLabel}</p>
+        {lastUpdated && trackingRider && (
+          <span className="text-[10px] text-muted-foreground shrink-0">
+            {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        )}
+      </div>
+
+      {/* Map */}
       <div className="relative w-full" style={{ height }}>
         <div ref={mapDivRef} className="w-full h-full" />
 
-        {/* Auto-follow toggle */}
-        {!loading && !error && (
+        {!loading && !error && trackingRider && (
           <button
             type="button"
             onClick={() => setAutoFollow((v) => !v)}
@@ -301,14 +453,11 @@ export function LiveTrackingMap({
             } disabled:opacity-50 disabled:cursor-not-allowed`}
             title={autoFollow ? 'Auto-follow rider is ON' : 'Auto-follow rider is OFF'}
           >
-            {autoFollow ? (
-              <LocateFixed className="w-3.5 h-3.5" />
-            ) : (
-              <Locate className="w-3.5 h-3.5" />
-            )}
+            {autoFollow ? <LocateFixed className="w-3.5 h-3.5" /> : <Locate className="w-3.5 h-3.5" />}
             {autoFollow ? 'Following' : 'Follow rider'}
           </button>
         )}
+
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
             <Loader2 className="w-5 h-5 animate-spin text-primary" />
@@ -319,25 +468,79 @@ export function LiveTrackingMap({
             {error}
           </div>
         )}
-        {!loading && !error && !riderCoords && (
+        {!loading && !error && trackingRider && !riderCoords && (
           <div className="absolute bottom-2 left-2 right-2 rounded-lg bg-background/95 backdrop-blur px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 shadow-md animate-fade-in">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
             </span>
-            Waiting for rider's live location...
+            Waiting for rider's live location…
           </div>
         )}
       </div>
 
-      {/* Compact legend */}
+      {/* ETA / Distance stats */}
+      <div className="grid grid-cols-2 gap-2 px-3 py-3 border-t border-border/40 bg-background/60">
+        <div className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Route className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Distance</p>
+            <p className="text-sm font-bold truncate">
+              {distanceInfo?.distance?.text || (trackingRider && !riderCoords ? '—' : 'Calculating…')}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2">
+          <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">ETA</p>
+            <p className="text-sm font-bold truncate">
+              {distanceInfo?.duration?.text || (trackingRider && !riderCoords ? '—' : 'Calculating…')}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex gap-2 px-3 pb-3">
+        {trackingRider && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={openOriginPin}
+            disabled={!riderCoords}
+            className="flex-1"
+          >
+            <MapPin className="w-4 h-4 mr-1.5" />
+            Rider Pin
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={openDirections}
+          disabled={!originCoords || !customerCoords}
+          className="flex-1"
+        >
+          <Navigation className="w-4 h-4 mr-1.5" />
+          Directions
+        </Button>
+      </div>
+
+      {/* Legend */}
       <div className="flex items-center justify-around px-3 py-2 bg-muted/30 border-t border-border/40 text-[11px]">
-        <span className="flex items-center gap-1.5 text-foreground/80">
-          <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center shadow-sm">
-            <Bike className="w-3.5 h-3.5" />
+        {trackingRider && (
+          <span className="flex items-center gap-1.5 text-foreground/80">
+            <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center shadow-sm">
+              <Bike className="w-3.5 h-3.5" />
+            </span>
+            Rider
           </span>
-          Rider
-        </span>
+        )}
         {restaurantCoords && (
           <span className="flex items-center gap-1.5 text-foreground/80">
             <span className="w-6 h-6 rounded-full bg-[#f97316] text-white flex items-center justify-center shadow-sm">
