@@ -482,7 +482,7 @@ export function LiveTrackingMap({
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/40">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
+          <span key={pingKey} className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
@@ -491,7 +491,7 @@ export function LiveTrackingMap({
           </span>
         </div>
         <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Radio className="w-3 h-3" />
+          <Radio key={`radio-${pingKey}`} className="w-3 h-3 transition-transform duration-500 animate-fade-in" />
           Realtime
         </div>
       </div>
@@ -499,16 +499,18 @@ export function LiveTrackingMap({
       {/* Context strip */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border/40 bg-background/60">
         <div
-          className={`w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0 ${
+          className={`w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0 transition-transform duration-300 ${
             trackingRider ? 'bg-[#2563eb]' : 'bg-[#f97316]'
           }`}
+          style={{ transform: pingKey ? 'scale(1)' : 'scale(1)' }}
         >
           {trackingRider ? (
-            isPickedUp ? <PackageCheck className="w-3.5 h-3.5" /> : <Bike className="w-3.5 h-3.5" />
+            isPickedUp ? <PackageCheck className="w-3.5 h-3.5" /> : <Bike key={pingKey} className="w-3.5 h-3.5 animate-fade-in" />
           ) : (
             <Store className="w-3.5 h-3.5" />
           )}
         </div>
+
         <p className="text-xs font-medium text-foreground flex-1 min-w-0 truncate">{originLabel}</p>
         {lastUpdated && trackingRider && (
           <span className="text-[10px] text-muted-foreground shrink-0">
