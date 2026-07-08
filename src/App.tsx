@@ -21,6 +21,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { RoleGuard } from "@/components/RoleGuard";
+import RoleLanding from "@/components/RoleLanding";
 
 // Admin
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -80,7 +81,7 @@ const App = () => (
             <ScrollReveal />
             <PageTransition>
             <Routes>
-              <Route path="/" element={<Navigate to="/restaurants" replace />} />
+              <Route path="/" element={<RoleLanding />} />
               <Route path="/home" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
