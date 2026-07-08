@@ -458,6 +458,18 @@ export function LiveTrackingMap({
     return () => window.clearTimeout(t);
   }, [lastUpdated, trackingRider]);
 
+  // Dim the rider marker + pulse when stale so the map communicates
+  // "this is the last known position, not live".
+  useEffect(() => {
+    if (!riderMarkerRef.current) return;
+    riderMarkerRef.current.setOpacity?.(isStale ? 0.55 : 1);
+    if (riderPulseRef.current) {
+      // Hide the pulsing ring entirely while stale — it implies live signal
+      riderPulseRef.current.setVisible?.(!isStale);
+    }
+  }, [isStale]);
+
+
 
   // Auto-clear the delta chips a moment after they light up
   useEffect(() => {
