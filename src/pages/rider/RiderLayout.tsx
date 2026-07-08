@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { RoleGuard } from '@/components/RoleGuard';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import {
   Bike,
   AlertCircle,
 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -27,22 +29,16 @@ const navItems = [
   { path: '/rider/settings', icon: Settings, label: 'Settings' },
 ];
 
-export default function RiderLayout() {
-  const { user, role, signOut, profile, isLoading } = useAuth();
+function RiderLayoutInner() {
+  const { user, signOut, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    if (!isLoading && (!user || role !== 'rider')) {
-      navigate('/auth?role=rider', { replace: true });
-    }
-  }, [user, role, isLoading, navigate]);
-
   // Check verification status
   useEffect(() => {
-    if (!user || role !== 'rider') return;
+    if (!user) return;
 
     const check = async () => {
       let { data } = await supabase
@@ -77,19 +73,18 @@ export default function RiderLayout() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user, role]);
+  }, [user]);
 
-  if (isLoading || isVerified === null) {
+  if (isVerified === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading your account…</p>
       </div>
     );
   }
 
-  if (!user || role !== 'rider') {
-    return null;
-  }
+
 
   // Allowed routes when not verified: only Settings
   const allowedWhenUnverified = location.pathname === '/rider/settings';
