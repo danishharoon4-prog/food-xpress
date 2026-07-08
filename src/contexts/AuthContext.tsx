@@ -144,14 +144,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error as Error | null };
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, remember: boolean = true) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    if (!error) {
+      try {
+        localStorage.setItem(REMEMBER_KEY, remember ? 'true' : 'false');
+        if (remember) {
+          sessionStorage.removeItem(SESSION_SENTINEL);
+        } else {
+          sessionStorage.setItem(SESSION_SENTINEL, '1');
+        }
+      } catch {}
+    }
+
     return { error: error as Error | null };
   };
+
 
   const signOut = async () => {
     try {
