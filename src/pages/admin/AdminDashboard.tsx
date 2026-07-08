@@ -100,6 +100,7 @@ export default function AdminDashboard() {
     deliveredOrders: 0, cancelledOrders: 0, todayOrders: 0, todayDelivered: 0,
   });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [activeOrdersList, setActiveOrdersList] = useState<ActiveOrderRow[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
