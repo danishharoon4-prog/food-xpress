@@ -44,6 +44,8 @@ export default function Checkout() {
   const [calculatingFee, setCalculatingFee] = useState(false);
   const [hasSavedAddress, setHasSavedAddress] = useState(false);
   const [editingAddress, setEditingAddress] = useState(false);
+  const [jcOpen, setJcOpen] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; number: string; total: number } | null>(null);
 
   const subtotal = getSubtotal();
   const total = subtotal + deliveryFee;
