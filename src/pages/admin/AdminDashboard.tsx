@@ -154,12 +154,19 @@ export default function AdminDashboard() {
       const ridersRows = ridersRes.data || [];
       const onlineRiders = ridersRows.filter((r: any) => r.is_online).length;
 
+      const restaurantRows = (restaurantsRes.data || []) as any[];
+      const totalRestaurants = restaurantRows.length;
+      const activeRestaurants = restaurantRows.filter(
+        (r) => r.approval_status === 'approved' && r.is_active === true
+      ).length;
+
       setStats({
         totalOrders, totalRevenue, todayRevenue, avgOrderValue,
         onlineRiders, totalRiders: ridersRes.count || 0,
         pendingRiders: pendingRidersRes.count || 0,
         totalCustomers: customersRes.count || 0,
-        totalRestaurants: restaurantsRes.count || 0,
+        totalRestaurants,
+        activeRestaurants,
         pendingRestaurants: pendingRestRes.count || 0,
         totalMenuItems: menuRes.count || 0,
         pendingOrders, activeOrders, deliveredOrders, cancelledOrders,
