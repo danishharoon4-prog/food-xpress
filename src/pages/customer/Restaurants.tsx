@@ -548,6 +548,34 @@ export default function Restaurants() {
                         {deal.deal_label}
                       </div>
                     )}
+                    <motion.button
+                      type="button"
+                      onClick={(e) =>
+                        quickAdd(e, {
+                          id: deal.id,
+                          name: deal.name,
+                          price: deal.price,
+                          discount_price: deal.discount_price,
+                          image_url: deal.image_url,
+                          restaurant_id: deal.restaurant_id,
+                          restaurant_name: deal.restaurant?.name,
+                        })
+                      }
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      aria-label={`Add ${deal.name} to cart`}
+                      className={`absolute bottom-3 right-3 h-9 w-9 rounded-full inline-flex items-center justify-center shadow-lg transition-colors ${
+                        addedIds.has(deal.id)
+                          ? 'bg-green-500 text-white'
+                          : 'bg-white text-primary hover:bg-primary hover:text-primary-foreground'
+                      }`}
+                    >
+                      {addedIds.has(deal.id) ? (
+                        <Check className="w-4 h-4" strokeWidth={3} />
+                      ) : (
+                        <Plus className="w-4 h-4" strokeWidth={3} />
+                      )}
+                    </motion.button>
                   </div>
                   <div className="px-1">
                     <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">
