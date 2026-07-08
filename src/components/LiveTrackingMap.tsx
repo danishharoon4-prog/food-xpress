@@ -568,29 +568,75 @@ export function LiveTrackingMap({
 
       {/* ETA / Distance stats */}
       <div className="grid grid-cols-2 gap-2 px-3 py-3 border-t border-border/40 bg-background/60">
-        <div className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2">
+        <div
+          className={`relative flex items-center gap-2.5 rounded-xl border bg-card px-3 py-2 transition-all duration-500 ${
+            distanceDelta === 'down'
+              ? 'border-emerald-500/50 shadow-[0_0_0_3px_hsl(var(--primary)/0.05)]'
+              : distanceDelta === 'up'
+                ? 'border-amber-500/50'
+                : 'border-border/60'
+          }`}
+        >
           <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <Route className="w-4 h-4" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Distance</p>
-            <p className="text-sm font-bold truncate">
+            <p
+              key={`d-${distanceInfo?.distance?.text ?? 'none'}`}
+              className="text-sm font-bold truncate animate-fade-in"
+            >
               {distanceInfo?.distance?.text || (trackingRider && !riderCoords ? '—' : 'Calculating…')}
             </p>
           </div>
+          {distanceDelta && (
+            <span
+              className={`absolute top-1.5 right-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full animate-fade-in ${
+                distanceDelta === 'down'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+              }`}
+            >
+              {distanceDelta === 'down' ? '↓ closer' : '↑ farther'}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2">
+
+        <div
+          className={`relative flex items-center gap-2.5 rounded-xl border bg-card px-3 py-2 transition-all duration-500 ${
+            durationDelta === 'down'
+              ? 'border-emerald-500/50'
+              : durationDelta === 'up'
+                ? 'border-amber-500/50'
+                : 'border-border/60'
+          }`}
+        >
           <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <Clock className="w-4 h-4" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">ETA</p>
-            <p className="text-sm font-bold truncate">
+            <p
+              key={`t-${distanceInfo?.duration?.text ?? 'none'}`}
+              className="text-sm font-bold truncate animate-fade-in"
+            >
               {distanceInfo?.duration?.text || (trackingRider && !riderCoords ? '—' : 'Calculating…')}
             </p>
           </div>
+          {durationDelta && (
+            <span
+              className={`absolute top-1.5 right-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full animate-fade-in ${
+                durationDelta === 'down'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+              }`}
+            >
+              {durationDelta === 'down' ? '↓ sooner' : '↑ delayed'}
+            </span>
+          )}
         </div>
       </div>
+
 
       {/* Action buttons */}
       <div className="flex gap-2 px-3 pb-3">
