@@ -27,6 +27,7 @@ export default function Auth() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   
   // Form fields
   const [email, setEmail] = useState('');
@@ -86,7 +87,7 @@ export default function Auth() {
     if (!validateForm(false)) return;
 
     setIsLoading(true);
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(email, password, rememberMe);
     setIsLoading(false);
 
     if (error) {
@@ -203,6 +204,18 @@ export default function Auth() {
                     <p className="text-sm text-destructive">{errors.password}</p>
                   )}
                 </div>
+
+                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={isLoading}
+                    className="w-4 h-4 rounded border-input accent-primary cursor-pointer"
+                  />
+                  <span>Remember me</span>
+                </label>
+
 
                 <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
                   {isLoading ? (
