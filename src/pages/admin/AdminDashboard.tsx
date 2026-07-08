@@ -132,7 +132,7 @@ export default function AdminDashboard() {
         supabase.from('riders').select('is_online', { count: 'exact' }),
         supabase.from('riders').select('*', { count: 'exact', head: true }).eq('is_verified', false),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('restaurants').select('approval_status', { count: 'exact' }),
+        supabase.from('restaurants').select('approval_status, is_active'),
         supabase.from('restaurants').select('*', { count: 'exact', head: true }).eq('approval_status', 'pending'),
         supabase.from('menu_items').select('*', { count: 'exact', head: true }),
       ]);
