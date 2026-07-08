@@ -508,11 +508,23 @@ export function LiveTrackingMap({
 
   // Contextual label for the origin (what's moving toward the customer)
   const isPickedUp = orderStatus === 'picked_up';
+  const showStale = trackingRider && isStale && !!lastUpdated;
   const originLabel = trackingRider
-    ? isPickedUp
-      ? 'Rider picked up your order'
-      : 'Rider is on the way'
+    ? showStale
+      ? 'Last known rider location'
+      : isPickedUp
+        ? 'Rider picked up your order'
+        : 'Rider is on the way'
     : 'Restaurant is delivering';
+
+  // Human-friendly "X seconds/minutes ago"
+  const formatAgo = (d: Date) => {
+    const s = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m} min ago`;
+    return `${Math.floor(m / 60)}h ago`;
+  };
 
   return (
     <div className="rounded-2xl overflow-hidden border border-border/60 bg-card shadow-sm animate-fade-in">
@@ -520,18 +532,29 @@ export function LiveTrackingMap({
       <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/40">
         <div className="flex items-center gap-2">
           <span key={pingKey} className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            {!showStale && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+            )}
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 transition-colors duration-300 ${
+                showStale ? 'bg-amber-500' : 'bg-emerald-500'
+              }`}
+            />
           </span>
           <span className="text-xs font-semibold tracking-wide uppercase text-foreground">
-            Live Tracking
+            {showStale ? 'Signal Paused' : 'Live Tracking'}
           </span>
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Radio key={`radio-${pingKey}`} className="w-3 h-3 transition-transform duration-500 animate-fade-in" />
-          Realtime
+        <div
+          className={`flex items-center gap-1 text-[10px] transition-colors ${
+            showStale ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+          }`}
+        >
+          <Radio key={`radio-${pingKey}`} className="w-3 h-3 animate-fade-in" />
+          {showStale ? 'Waiting for signal' : 'Realtime'}
         </div>
       </div>
+
 
       {/* Context strip */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border/40 bg-background/60">
