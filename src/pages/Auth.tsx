@@ -205,6 +205,18 @@ export default function Auth() {
                   )}
                 </div>
 
+                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={isLoading}
+                    className="w-4 h-4 rounded border-input accent-primary cursor-pointer"
+                  />
+                  <span>Remember me</span>
+                </label>
+
+
                 <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
                   {isLoading ? (
                     <>
