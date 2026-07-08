@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
         transaction_id: txnRef,
       }),
       {
-        status: success ? 200 : 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
     );
