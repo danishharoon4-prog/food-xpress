@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { patchSonnerForBrowserNotifications } from "@/lib/browserNotify";
 import { PageTransition } from "@/components/PageTransition";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { SplashOverlay } from "@/components/SplashOverlay";
 
 patchSonnerForBrowserNotifications();
 
@@ -74,6 +75,7 @@ const App = () => (
     <AuthProvider>
       <CartProvider>
         <TooltipProvider>
+          <SplashOverlay />
           <Toaster />
           <Sonner />
           <BrowserRouter>

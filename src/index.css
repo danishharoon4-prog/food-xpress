@@ -366,3 +366,33 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
+
+/* ===== Custom Sonner toast styling — brand gradient cards ===== */
+.fx-toast[data-sonner-toast] {
+  background: linear-gradient(135deg, #FF8A00 0%, #FF6F00 55%, #E53935 100%) !important;
+  color: #fff !important;
+  border: 0 !important;
+}
+.fx-toast[data-sonner-toast][data-type="success"] {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%) !important;
+}
+.fx-toast[data-sonner-toast][data-type="error"] {
+  background: linear-gradient(135deg, #ff5f6d 0%, #e53935 55%, #b91c1c 100%) !important;
+}
+.fx-toast[data-sonner-toast][data-type="warning"] {
+  background: linear-gradient(135deg, #ffb347 0%, #ff8a00 60%, #f57c00 100%) !important;
+  color: #1a1a1a !important;
+}
+.fx-toast[data-sonner-toast][data-type="warning"] [data-title],
+.fx-toast[data-sonner-toast][data-type="warning"] [data-description] {
+  color: #1a1a1a !important;
+}
+.fx-toast[data-sonner-toast][data-type="info"] {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 60%, #1d4ed8 100%) !important;
+}
+.fx-toast[data-sonner-toast] [data-icon] { color: #fff !important; }
+.fx-toast[data-sonner-toast] [data-close-button] {
+  background: rgba(255,255,255,0.18) !important;
+  color: #fff !important;
+  border: 0 !important;
+}
