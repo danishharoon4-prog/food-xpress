@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Bell, Loader2, Volume2 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { DEFAULT_PREFS, EVENT_LABELS, NotifPrefs } from '@/lib/notificationPrefs';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
 import { fireBrowserNotification, requestNotificationPermission } from '@/lib/browserNotify';
 import { isLovablePreviewNotificationContext, openNotificationPermissionTab } from '@/lib/notificationPermission';
+
+const IS_NATIVE = Capacitor.isNativePlatform();
 
 export function NotificationSettings() {
   const { user } = useAuth();
@@ -65,13 +68,28 @@ export function NotificationSettings() {
   };
 
   const enableBrowserPush = async () => {
+    // Native Android/iOS: skip browser checks and use Capacitor LocalNotifications.
+    if (IS_NATIVE) {
+      try {
+        const p = await requestNotificationPermission();
+        setPermission(p);
+        if (p === 'granted') {
+          toast.success('Notifications enabled');
+        } else {
+          toast.error('Please allow notifications in your phone settings.');
+        }
+      } catch (e: any) {
+        toast.error(e?.message || 'Could not enable notifications');
+      }
+      return;
+    }
     if (isEmbeddedPreview) {
       openNotificationPermissionTab();
       toast.info('Browser blocks notification permission inside preview. Use the new tab and tap Enable there.');
       return;
     }
     if (typeof window === 'undefined' || typeof Notification === 'undefined') {
-      toast.error('This browser does not support notifications');
+      toast.error('Your browser blocks notifications. Try opening this app in Chrome or install the Android app.');
       return;
     }
     if (Notification.permission === 'denied') {
@@ -100,7 +118,7 @@ export function NotificationSettings() {
   };
 
   const sendTest = async () => {
-    if (Notification.permission !== 'granted') {
+    if (!IS_NATIVE && typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
       toast.error('Enable notifications first');
       return;
     }
