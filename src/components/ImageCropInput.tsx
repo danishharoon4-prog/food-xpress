@@ -85,6 +85,25 @@ export default function ImageCropInput({
     reader.readAsDataURL(file);
   };
 
+  const pickFromDevice = async () => {
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        const { pickImageNative } = await import('@/lib/uploadImage');
+        const blob = await pickImageNative();
+        if (!blob) return;
+        const file = new File([blob], `pic-${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+        onFile(file);
+        return;
+      }
+    } catch (e: any) {
+      toast({ title: 'Camera error', description: e?.message || 'Could not open camera', variant: 'destructive' });
+      return;
+    }
+    fileRef.current?.click();
+  };
+
+
   const onCropComplete = useCallback((_: Area, pixels: Area) => setArea(pixels), []);
 
   const applyCrop = async () => {
@@ -118,7 +137,7 @@ export default function ImageCropInput({
           className="hidden"
           onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])}
         />
-        <Button type="button" variant="outline" size="icon" onClick={() => fileRef.current?.click()} title="Upload file">
+        <Button type="button" variant="outline" size="icon" onClick={pickFromDevice} title="Upload / Camera">
           <Upload className="w-4 h-4" />
         </Button>
         <Button type="button" variant="outline" size="icon" onClick={() => openCropper(value)} title="Crop & adjust" disabled={!value}>

@@ -110,19 +110,16 @@ export default function RiderDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rider?.is_online, rider?.is_verified]);
 
-  // Live GPS tracking — push rider coords to DB while online
+  // Live GPS tracking — push rider coords to DB while online.
+  // Uses Capacitor Geolocation on native (Android) so runtime permissions work
+  // properly, falls back to browser watchPosition on web.
   useEffect(() => {
     if (!rider?.id || !rider.is_online) return;
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      toast({
-        title: 'GPS not supported',
-        description: 'Your browser does not support location tracking.',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     let lastPushed = 0;
+    let cleanup: (() => void) | null = null;
+    let cancelled = false;
+
     const pushLocation = async (lat: number, lng: number) => {
       const { error } = await supabase
         .from('riders')
@@ -131,45 +128,71 @@ export default function RiderDashboard() {
       if (error) console.error('Failed to update rider location:', error);
     };
 
-    const onSuccess = (pos: GeolocationPosition) => {
-      const now = Date.now();
-      // Throttle: at most every 8s
-      if (now - lastPushed < 8000) return;
-      lastPushed = now;
-      pushLocation(pos.coords.latitude, pos.coords.longitude);
-    };
-    const onError = (err: GeolocationPositionError) => {
-      console.error('Geolocation error:', err);
-      if (err.code === err.PERMISSION_DENIED) {
-        toast({
-          title: 'Location permission denied',
-          description: 'Please enable location access so customers can track you.',
-          variant: 'destructive',
-        });
+    (async () => {
+      try {
+        const { Capacitor } = await import('@capacitor/core');
+        if (Capacitor.isNativePlatform()) {
+          const { Geolocation } = await import('@capacitor/geolocation');
+          const perm = await Geolocation.checkPermissions();
+          if (perm.location !== 'granted' && perm.coarseLocation !== 'granted') {
+            const req = await Geolocation.requestPermissions({ permissions: ['location'] });
+            if (req.location !== 'granted' && req.coarseLocation !== 'granted') {
+              toast({
+                title: 'Location permission needed',
+                description: 'Open Settings → Apps → Food Xpress → Permissions and allow Location.',
+                variant: 'destructive',
+              });
+              return;
+            }
+          }
+          const first = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
+          lastPushed = Date.now();
+          pushLocation(first.coords.latitude, first.coords.longitude);
+          const watchId = await Geolocation.watchPosition(
+            { enableHighAccuracy: true, timeout: 20000 },
+            (pos) => {
+              if (!pos) return;
+              const now = Date.now();
+              if (now - lastPushed < 8000) return;
+              lastPushed = now;
+              pushLocation(pos.coords.latitude, pos.coords.longitude);
+            }
+          );
+          if (cancelled) Geolocation.clearWatch({ id: watchId });
+          else cleanup = () => Geolocation.clearWatch({ id: watchId });
+          return;
+        }
+
+        // Web fallback
+        if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+          (pos) => { lastPushed = Date.now(); pushLocation(pos.coords.latitude, pos.coords.longitude); },
+          () => {},
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+        const watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const now = Date.now();
+            if (now - lastPushed < 8000) return;
+            lastPushed = now;
+            pushLocation(pos.coords.latitude, pos.coords.longitude);
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
+        );
+        cleanup = () => navigator.geolocation.clearWatch(watchId);
+      } catch (e) {
+        console.error('GPS watch failed', e);
       }
-    };
-
-    // Initial one-shot to push location immediately
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        lastPushed = Date.now();
-        pushLocation(pos.coords.latitude, pos.coords.longitude);
-      },
-      onError,
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-
-    const watchId = navigator.geolocation.watchPosition(onSuccess, onError, {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 5000,
-    });
+    })();
 
     return () => {
-      navigator.geolocation.clearWatch(watchId);
+      cancelled = true;
+      if (cleanup) cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rider?.id, rider?.is_online]);
+
 
   const refreshAvailable = async (newlyArrivedId?: string) => {
     const { data } = await supabase
