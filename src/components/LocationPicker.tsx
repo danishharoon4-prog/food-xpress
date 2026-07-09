@@ -5,6 +5,33 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Loader2, LocateFixed } from 'lucide-react';
 import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import { Capacitor } from '@capacitor/core';
+
+async function getDeviceLocation(): Promise<{ lat: number; lng: number }> {
+  if (Capacitor.isNativePlatform()) {
+    const { Geolocation } = await import('@capacitor/geolocation');
+    const perm = await Geolocation.checkPermissions();
+    if (perm.location !== 'granted' && perm.coarseLocation !== 'granted') {
+      const req = await Geolocation.requestPermissions({ permissions: ['location'] });
+      if (req.location !== 'granted' && req.coarseLocation !== 'granted') {
+        throw new Error('Location permission denied. Open Settings → Apps → Food Xpress → Permissions and allow Location.');
+      }
+    }
+    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
+    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  }
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('Geolocation not supported by this browser'));
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      (err) => reject(new Error(err.code === err.PERMISSION_DENIED
+        ? 'Please allow location access in your browser settings.'
+        : 'Could not detect your location.')),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
+
 
 interface LocationPickerProps {
   value: string;
@@ -54,30 +81,22 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
     reverseGeocode(lat, lng);
   }, [reverseGeocode]);
 
-  const locateMe = useCallback(() => {
-    if (!navigator.geolocation) {
-      toast({ title: 'GPS not available', description: 'Your browser does not support geolocation.', variant: 'destructive' });
-      return;
-    }
+  const locateMe = useCallback(async () => {
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocating(false);
-        setPin(pos.coords.latitude, pos.coords.longitude, true);
-      },
-      (err) => {
-        setLocating(false);
-        toast({
-          title: 'Location error',
-          description: err.code === err.PERMISSION_DENIED
-            ? 'Please allow location access in your browser.'
-            : 'Could not detect your location. Try again.',
-          variant: 'destructive',
-        });
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+    try {
+      const { lat, lng } = await getDeviceLocation();
+      setPin(lat, lng, true);
+    } catch (err: any) {
+      toast({
+        title: 'Location error',
+        description: err?.message || 'Could not detect your location. Try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLocating(false);
+    }
   }, [setPin, toast]);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -86,20 +105,18 @@ export function LocationPicker({ value, onChange, placeholder = "Your address wi
         const google = await loadGoogleMaps();
         if (cancelled || !mapDivRef.current) return;
 
-        // Use saved coords if provided; otherwise try GPS silently, else default center
+        // Use saved coords if provided; otherwise try device GPS silently, else default center
         let initialCenter: { lat: number; lng: number };
         if (initialCoords) {
           initialCenter = { lat: initialCoords.latitude, lng: initialCoords.longitude };
         } else {
-          initialCenter = await new Promise<{ lat: number; lng: number }>((resolve) => {
-            if (!navigator.geolocation) return resolve(DEFAULT_CENTER);
-            navigator.geolocation.getCurrentPosition(
-              (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-              () => resolve(DEFAULT_CENTER),
-              { timeout: 5000, enableHighAccuracy: true }
-            );
-          });
+          try {
+            initialCenter = await getDeviceLocation();
+          } catch {
+            initialCenter = DEFAULT_CENTER;
+          }
         }
+
 
         const map = new google.maps.Map(mapDivRef.current, {
           center: initialCenter,
