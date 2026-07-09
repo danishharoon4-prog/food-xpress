@@ -17,10 +17,16 @@ export function useBackgroundRiderTracking(riderId: string | null, enabled: bool
     let lastPushed = 0;
     let cancelled = false;
 
+    // Hide the specifier from Vite's static analyzer — the plugin has no web
+    // entry and is only available inside the Capacitor Android runtime.
+    const pkg = '@capacitor-community/background-geolocation';
+    const loadBg = () =>
+      (new Function('p', 'return import(p)') as (p: string) => Promise<any>)(pkg);
+
     (async () => {
       try {
-        const mod = await import('@capacitor-community/background-geolocation');
-        const BackgroundGeolocation: any = (mod as any).BackgroundGeolocation ?? (mod as any).default;
+        const mod = await loadBg();
+        const BackgroundGeolocation: any = mod.BackgroundGeolocation ?? mod.default;
         const id = await BackgroundGeolocation.addWatcher(
           {
             backgroundMessage: 'Sharing your live location for active deliveries',
@@ -29,9 +35,8 @@ export function useBackgroundRiderTracking(riderId: string | null, enabled: bool
             stale: false,
             distanceFilter: 25,
           },
-          async (location, error) => {
-            if (error) return;
-            if (!location) return;
+          async (location: any, error: any) => {
+            if (error || !location) return;
             const now = Date.now();
             if (now - lastPushed < 15000) return;
             lastPushed = now;
@@ -57,11 +62,12 @@ export function useBackgroundRiderTracking(riderId: string | null, enabled: bool
     return () => {
       cancelled = true;
       if (watcherId) {
-        import('@capacitor-community/background-geolocation').then((mod) => {
-          const bg: any = (mod as any).BackgroundGeolocation ?? (mod as any).default;
+        loadBg().then((mod: any) => {
+          const bg = mod.BackgroundGeolocation ?? mod.default;
           bg.removeWatcher({ id: watcherId! });
-        });
+        }).catch(() => {});
       }
     };
+
   }, [riderId, enabled]);
 }
