@@ -19,7 +19,8 @@ export function useBackgroundRiderTracking(riderId: string | null, enabled: bool
 
     (async () => {
       try {
-        const { BackgroundGeolocation } = await import('@capacitor-community/background-geolocation');
+        const mod = await import('@capacitor-community/background-geolocation');
+        const BackgroundGeolocation: any = (mod as any).BackgroundGeolocation ?? (mod as any).default;
         const id = await BackgroundGeolocation.addWatcher(
           {
             backgroundMessage: 'Sharing your live location for active deliveries',
@@ -56,9 +57,10 @@ export function useBackgroundRiderTracking(riderId: string | null, enabled: bool
     return () => {
       cancelled = true;
       if (watcherId) {
-        import('@capacitor-community/background-geolocation').then(({ BackgroundGeolocation }) =>
-          BackgroundGeolocation.removeWatcher({ id: watcherId! })
-        );
+        import('@capacitor-community/background-geolocation').then((mod) => {
+          const bg: any = (mod as any).BackgroundGeolocation ?? (mod as any).default;
+          bg.removeWatcher({ id: watcherId! });
+        });
       }
     };
   }, [riderId, enabled]);
