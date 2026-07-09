@@ -158,17 +158,27 @@ export default function RiderSettings() {
 
   const handleUpload = async (file: File, field: DocField) => {
     if (!user || !rider) return;
-    // No hard size limit — image files are auto-compressed before upload.
-      return;
-    }
     setUploading(field);
 
-    const ext = file.name.split('.').pop() || 'jpg';
+    // Auto-compress images so users never hit a size limit.
+    let toUpload: Blob = file;
+    let contentType = file.type || 'application/octet-stream';
+    let ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    if (file.type.startsWith('image/')) {
+      try {
+        const { compressImage } = await import('@/lib/compressImage');
+        toUpload = await compressImage(file, { maxSize: 1600, quality: 0.85 });
+        contentType = 'image/jpeg';
+        ext = 'jpg';
+      } catch {
+        toUpload = file;
+      }
+    }
     const path = `${user.id}/${field}-${Date.now()}.${ext}`;
 
     const { error: uploadErr } = await supabase.storage
       .from('rider-documents')
-      .upload(path, file, { upsert: true, contentType: file.type });
+      .upload(path, toUpload, { upsert: true, contentType });
 
     if (uploadErr) {
       toast({ title: 'Upload failed', description: uploadErr.message, variant: 'destructive' });
