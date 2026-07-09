@@ -52,6 +52,30 @@ export function requestNotificationPermission() {
 let lastKey = '';
 let lastTs = 0;
 let nativeNotifId = 1;
+let channelEnsured = false;
+
+const HIGH_CHANNEL_ID = 'food-express-high';
+
+async function ensureHighImportanceChannel() {
+  if (channelEnsured) return;
+  channelEnsured = true;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    await LocalNotifications.createChannel({
+      id: HIGH_CHANNEL_ID,
+      name: 'Food Express Alerts',
+      description: 'Order updates and important alerts',
+      importance: 5, // IMPORTANCE_HIGH -> heads-up
+      visibility: 1,
+      sound: 'default',
+      lights: true,
+      lightColor: '#FF6F00',
+      vibration: true,
+    });
+  } catch {
+    channelEnsured = false;
+  }
+}
 
 async function fireNativeNotification(title: string, body: string) {
   try {
@@ -61,6 +85,7 @@ async function fireNativeNotification(title: string, body: string) {
       const req = await LocalNotifications.requestPermissions();
       if (req.display !== 'granted') return;
     }
+    await ensureHighImportanceChannel();
     await LocalNotifications.schedule({
       notifications: [
         {
@@ -68,7 +93,8 @@ async function fireNativeNotification(title: string, body: string) {
           title: title || 'Notification',
           body: body || '',
           schedule: { at: new Date(Date.now() + 100) },
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_stat_notification',
+          channelId: HIGH_CHANNEL_ID,
         },
       ],
     });
