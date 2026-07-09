@@ -158,8 +158,7 @@ export default function RiderSettings() {
 
   const handleUpload = async (file: File, field: DocField) => {
     if (!user || !rider) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: 'File too large', description: 'Max 5MB', variant: 'destructive' });
+    // No hard size limit — image files are auto-compressed before upload.
       return;
     }
     setUploading(field);
