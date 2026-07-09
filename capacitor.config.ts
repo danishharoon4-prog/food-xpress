@@ -7,9 +7,13 @@ const config: CapacitorConfig = {
   backgroundColor: '#FFFFFF',
   android: {
     allowMixedContent: false,
-    captureInput: true,
+    // captureInput must be false — when true, Android WebView intercepts
+    // key events before the soft keyboard delivers text to <input> fields,
+    // which blocks typing on the login/signup forms.
+    captureInput: false,
     webContentsDebuggingEnabled: false,
   },
+  plugins: undefined as never,
   plugins: {
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
