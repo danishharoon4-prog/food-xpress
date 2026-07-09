@@ -19,7 +19,7 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      launchShowDuration: 800,
+      launchShowDuration: 600,
       launchAutoHide: true,
       backgroundColor: '#FF6F00',
       androidSplashResourceName: 'splash',
