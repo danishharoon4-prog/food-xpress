@@ -241,7 +241,9 @@ export default function RiderDashboard() {
   };
 
   const requestNotifPermission = async () => {
-    if (isEmbeddedPreview) {
+    const { Capacitor } = await import('@capacitor/core');
+    const isNative = Capacitor.isNativePlatform();
+    if (!isNative && isEmbeddedPreview) {
       openNotificationPermissionTab();
       toast({
         title: 'Open app tab',
@@ -249,11 +251,11 @@ export default function RiderDashboard() {
       });
       return;
     }
-    if (typeof Notification === 'undefined') {
-      toast({ title: 'Not supported', description: 'Browser notifications unavailable.', variant: 'destructive' });
+    if (!isNative && typeof Notification === 'undefined') {
+      toast({ title: 'Not supported', description: 'Your browser blocks notifications. Try Chrome or install the Android app.', variant: 'destructive' });
       return;
     }
-    if (Notification.permission === 'denied') {
+    if (!isNative && Notification.permission === 'denied') {
       toast({
         title: 'Notifications blocked',
         description: 'Open browser site settings, allow Notifications for this app, then come back and try again.',
@@ -265,10 +267,10 @@ export default function RiderDashboard() {
     const perm = await requestNotificationPermission();
     setNotifPermission(perm);
     if (perm === 'granted') {
-      await ensurePushSubscription();
+      if (!isNative) await ensurePushSubscription();
       toast({ title: 'Notifications enabled', description: "You'll be alerted on new orders." });
     } else {
-      toast({ title: 'Not enabled', description: 'Please allow notifications when your browser asks.', variant: 'destructive' });
+      toast({ title: 'Not enabled', description: 'Please allow notifications when your phone asks.', variant: 'destructive' });
     }
   };
 
