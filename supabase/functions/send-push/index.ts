@@ -126,9 +126,21 @@ async function sendFcm(
             body: JSON.stringify({
               message: {
                 token: t.token,
-                notification: { title: payload.title, body: payload.body },
+                notification: {
+                  title: payload.title,
+                  body: payload.body,
+                  image: "https://food-xpress.lovable.app/__l5e/assets-v1/98cff877-3e57-45a6-ae8e-040ad7a6599b/notification-icon.png",
+                },
                 data: payload.data,
-                android: { priority: "HIGH", notification: { sound: "default" } },
+                android: {
+                  priority: "HIGH",
+                  notification: {
+                    sound: "default",
+                    icon: "ic_stat_notification",
+                    color: "#FF6F00",
+                    image: "https://food-xpress.lovable.app/__l5e/assets-v1/98cff877-3e57-45a6-ae8e-040ad7a6599b/notification-icon.png",
+                  },
+                },
               },
             }),
           },

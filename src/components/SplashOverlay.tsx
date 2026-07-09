@@ -13,7 +13,7 @@ export function SplashOverlay() {
   useEffect(() => {
     if (!visible) return;
     sessionStorage.setItem('splash_shown', '1');
-    const t = setTimeout(() => setVisible(false), 1800);
+    const t = setTimeout(() => setVisible(false), 3500);
     return () => clearTimeout(t);
   }, [visible]);
 
@@ -44,7 +44,7 @@ export function SplashOverlay() {
           100% { width: 140px; opacity: 1; }
         }
         @keyframes splashOut {
-          0%, 80% { opacity: 1; }
+          0%, 88% { opacity: 1; }
           100% { opacity: 0; visibility: hidden; }
         }
         .splash-word {
@@ -53,7 +53,7 @@ export function SplashOverlay() {
         }
         .splash-word-2 { animation-delay: 0.25s; }
         .splash-bar { animation: splashBar 0.9s ease-out 0.4s both; }
-        .animate-splash-out { animation: splashOut 1.8s ease-in-out forwards; }
+        .animate-splash-out { animation: splashOut 3.5s ease-in-out forwards; }
       `}</style>
     </div>
   );
