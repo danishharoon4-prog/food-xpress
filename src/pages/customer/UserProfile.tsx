@@ -150,17 +150,15 @@ export default function UserProfile() {
       toast({ title: 'Invalid file', description: 'Please choose an image.', variant: 'destructive' });
       return;
     }
-    if (file.size > 3 * 1024 * 1024) {
-      toast({ title: 'Too large', description: 'Image must be under 3 MB.', variant: 'destructive' });
-      return;
-    }
     setUploadingAvatar(true);
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      // Auto-compress + center-crop to a square avatar. No size limit for the user.
+      const { compressImage } = await import('@/lib/compressImage');
+      const blob = await compressImage(file, { maxSize: 512, quality: 0.85, square: true });
+      const path = `${user.id}/avatar-${Date.now()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from('avatars')
-        .upload(path, file, { upsert: true, cacheControl: '3600' });
+        .upload(path, blob, { upsert: true, cacheControl: '3600', contentType: 'image/jpeg' });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
       const publicUrl = pub.publicUrl;
