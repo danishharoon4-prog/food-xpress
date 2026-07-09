@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
     captureInput: false,
     webContentsDebuggingEnabled: false,
   },
-  plugins: undefined as never,
+  
   plugins: {
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
