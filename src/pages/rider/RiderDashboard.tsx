@@ -12,6 +12,7 @@ import type { Rider, RiderWallet } from '@/types';
 import { ensurePushSubscription } from '@/lib/pushSubscription';
 import { requestNotificationPermission } from '@/lib/browserNotify';
 import { isLovablePreviewNotificationContext, openNotificationPermissionTab } from '@/lib/notificationPermission';
+import { useBackgroundRiderTracking } from '@/hooks/useBackgroundRiderTracking';
 
 export default function RiderDashboard() {
   const { user } = useAuth();
@@ -26,6 +27,9 @@ export default function RiderDashboard() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
   const [isEmbeddedPreview, setIsEmbeddedPreview] = useState(false);
   const { toast } = useToast();
+
+  // Native Android: background GPS foreground-service while online.
+  useBackgroundRiderTracking(rider?.id ?? null, !!rider?.is_online);
 
   // Audio for new-order alert
   const audioRef = useRef<HTMLAudioElement | null>(null);
