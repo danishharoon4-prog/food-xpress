@@ -13,7 +13,7 @@ export function SplashOverlay() {
   useEffect(() => {
     if (!visible) return;
     sessionStorage.setItem('splash_shown', '1');
-    const t = setTimeout(() => setVisible(false), 1800);
+    const t = setTimeout(() => setVisible(false), 3500);
     return () => clearTimeout(t);
   }, [visible]);
 
