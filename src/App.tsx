@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { patchSonnerForBrowserNotifications } from "@/lib/browserNotify";
 import { PageTransition } from "@/components/PageTransition";
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { SplashOverlay } from "@/components/SplashOverlay";
+
 import { SwipeHintOverlay } from "@/components/SwipeHintOverlay";
 import LocationGate from "@/components/LocationGate";
 
@@ -79,7 +79,7 @@ const App = () => (
     <AuthProvider>
       <CartProvider>
         <TooltipProvider>
-          <SplashOverlay />
+          
           <SwipeHintOverlay />
           <Toaster />
 
