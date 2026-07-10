@@ -14,6 +14,8 @@ interface Props {
   onChanged?: (newValue: string | null) => void;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  /** Optional image to show when the user has not uploaded a photo yet. */
+  fallbackSrc?: string;
 }
 
 export default function AvatarUploader({
