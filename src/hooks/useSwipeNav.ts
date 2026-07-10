@@ -21,18 +21,24 @@ export function useSwipeNav(paths: string[]) {
     // Edge zone width (px) — swipes starting here use a reduced threshold
     const EDGE_ZONE = 28;
     const EDGE_THRESHOLD = 24; // very small: edge-swipe fires even from middle-ish release
+    const MIN_THRESHOLD = 60;  // absolute floor — no navigation below this dx
+    const MIN_DURATION_MS = 120; // ignore ultra-quick taps/jitter
+    const MAX_DURATION_MS = 800;
+    const SCROLL_LOCK_DY = 10; // if vertical drift exceeds this before horizontal intent, cancel
 
     let startX = 0;
     let startY = 0;
     let startT = 0;
     let tracking = false;
+    let locked = false; // vertical-scroll lock: swipe cancelled for this gesture
+    let intentDecided = false; // once horizontal or vertical intent is set, don't flip
+    let horizontalIntent = false;
     let fromLeftEdge = false;
     let fromRightEdge = false;
 
     const onStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
       const target = e.target as HTMLElement | null;
-      // Ignore swipes originating on interactive/scrollable widgets
       if (target?.closest('input, textarea, select, [role="slider"], [data-no-swipe], .no-swipe')) {
         tracking = false;
         return;
@@ -41,6 +47,9 @@ export function useSwipeNav(paths: string[]) {
       startY = e.touches[0].clientY;
       startT = Date.now();
       tracking = true;
+      locked = false;
+      intentDecided = false;
+      horizontalIntent = false;
       const w = window.innerWidth;
       fromLeftEdge = startX <= EDGE_ZONE;
       fromRightEdge = startX >= w - EDGE_ZONE;
@@ -61,36 +70,61 @@ export function useSwipeNav(paths: string[]) {
     };
 
     const onMove = (e: TouchEvent) => {
-      if (!tracking || e.touches.length !== 1) return;
+      if (!tracking || locked || e.touches.length !== 1) return;
       const t = e.touches[0];
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
-      if (Math.abs(dy) > Math.abs(dx) * 0.8 && !fromLeftEdge && !fromRightEdge) {
-        emitHint(null, 0, null);
-        return;
+      const adx = Math.abs(dx);
+      const ady = Math.abs(dy);
+
+      // Decide gesture intent as soon as movement is meaningful.
+      if (!intentDecided) {
+        // Vertical scroll detected before user showed clear horizontal intent → cancel for this gesture.
+        if (ady >= SCROLL_LOCK_DY && ady > adx) {
+          locked = true;
+          emitHint(null, 0, null);
+          return;
+        }
+        // Require dominant horizontal movement (≥ 12px and > vertical) before we consider it a swipe.
+        if (adx >= 12 && adx > ady * 1.2) {
+          intentDecided = true;
+          horizontalIntent = true;
+        } else {
+          return; // still ambiguous — don't show hint yet
+        }
       }
+      if (!horizontalIntent) return;
+
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
-      const threshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
-      const dir: 'left' | 'right' | null = dx < -8 ? 'left' : dx > 8 ? 'right' : null;
-      if (!dir) { emitHint(null, 0, null); return; }
+      const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
+      const threshold = Math.max(rawThreshold, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
+      const dir: 'left' | 'right' = dx < 0 ? 'left' : 'right';
       const label = getLabel(dir === 'left' ? 1 : -1);
       if (!label) { emitHint(null, 0, null); return; }
-      const progress = Math.min(1, Math.abs(dx) / threshold);
+      const progress = Math.min(1, adx / threshold);
       emitHint(dir, progress, label);
     };
 
     const onEnd = (e: TouchEvent) => {
-      if (!tracking) { emitHint(null, 0, null); return; }
+      const wasTracking = tracking;
+      const wasLocked = locked;
+      const wasHorizontal = horizontalIntent;
       tracking = false;
+      locked = false;
+      intentDecided = false;
+      horizontalIntent = false;
       emitHint(null, 0, null);
+      if (!wasTracking || wasLocked || !wasHorizontal) return;
+
       const t = e.changedTouches[0];
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
       const dt = Date.now() - startT;
-      if (dt > 800) return;
+      if (dt < MIN_DURATION_MS || dt > MAX_DURATION_MS) return;
 
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
-      const threshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
+      const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
+      const threshold = Math.max(rawThreshold, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
       const verticalRatio = edgeSwipe ? 1.2 : 0.6;
 
       if (Math.abs(dx) < threshold) return;
@@ -114,4 +148,5 @@ export function useSwipeNav(paths: string[]) {
     };
   }, [paths, location.pathname, navigate, prefs.swipeEnabled, prefs.swipeThreshold]);
 }
+
 
