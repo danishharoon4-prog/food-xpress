@@ -62,8 +62,9 @@ interface RiderWithProfile {
 
 interface OrderWithRelations extends Order {
   customer?: { full_name: string; phone: string | null } | null;
-  assigned_rider?: { id: string; profile?: { full_name: string; phone: string | null } | null } | null;
+  assigned_rider?: { id: string; user_id?: string | null; profile?: { full_name: string; phone: string | null } | null } | null;
   cancelled_by_user?: { full_name: string; role: string } | null;
+  restaurant?: { name: string; logo_url?: string | null } | null;
 }
 
 export default function AdminOrders() {
