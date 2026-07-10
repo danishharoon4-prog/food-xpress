@@ -45,7 +45,7 @@ export function useSwipeNav(paths: string[]) {
       const dy = t.clientY - startY;
       const dt = Date.now() - startT;
       if (dt > 600) return;
-      if (Math.abs(dx) < 70) return;
+      if (Math.abs(dx) < prefs.swipeThreshold) return;
       if (Math.abs(dy) > Math.abs(dx) * 0.6) return; // mostly horizontal
 
       const idx = paths.indexOf(location.pathname);
