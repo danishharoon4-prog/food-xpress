@@ -46,9 +46,43 @@ export function useSwipeNav(paths: string[]) {
       fromRightEdge = startX >= w - EDGE_ZONE;
     };
 
+    const emitHint = (dir: 'left' | 'right' | null, progress: number, label: string | null) => {
+      window.dispatchEvent(new CustomEvent('swipe-nav-hint', {
+        detail: { dir, progress, label },
+      }));
+    };
+
+    const getLabel = (offset: number) => {
+      const idx = paths.indexOf(location.pathname);
+      if (idx === -1) return null;
+      const target = idx + offset;
+      if (target < 0 || target >= paths.length) return null;
+      return paths[target];
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!tracking || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (Math.abs(dy) > Math.abs(dx) * 0.8 && !fromLeftEdge && !fromRightEdge) {
+        emitHint(null, 0, null);
+        return;
+      }
+      const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
+      const threshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
+      const dir: 'left' | 'right' | null = dx < -8 ? 'left' : dx > 8 ? 'right' : null;
+      if (!dir) { emitHint(null, 0, null); return; }
+      const label = getLabel(dir === 'left' ? 1 : -1);
+      if (!label) { emitHint(null, 0, null); return; }
+      const progress = Math.min(1, Math.abs(dx) / threshold);
+      emitHint(dir, progress, label);
+    };
+
     const onEnd = (e: TouchEvent) => {
-      if (!tracking) return;
+      if (!tracking) { emitHint(null, 0, null); return; }
       tracking = false;
+      emitHint(null, 0, null);
       const t = e.changedTouches[0];
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
@@ -57,7 +91,7 @@ export function useSwipeNav(paths: string[]) {
 
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
       const threshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
-      const verticalRatio = edgeSwipe ? 1.2 : 0.6; // edge swipes tolerate more vertical drift
+      const verticalRatio = edgeSwipe ? 1.2 : 0.6;
 
       if (Math.abs(dx) < threshold) return;
       if (Math.abs(dy) > Math.abs(dx) * verticalRatio) return;
@@ -68,12 +102,16 @@ export function useSwipeNav(paths: string[]) {
       else if (dx > 0 && idx > 0) navigate(paths[idx - 1]);
     };
 
-
     window.addEventListener('touchstart', onStart, { passive: true });
+    window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onEnd, { passive: true });
+    window.addEventListener('touchcancel', onEnd, { passive: true });
     return () => {
       window.removeEventListener('touchstart', onStart);
+      window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('touchcancel', onEnd);
     };
   }, [paths, location.pathname, navigate, prefs.swipeEnabled, prefs.swipeThreshold]);
 }
+
