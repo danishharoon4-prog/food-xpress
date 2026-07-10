@@ -140,6 +140,8 @@ export default function Dashboard() {
     .join('')
     .toUpperCase() || 'U';
 
+  const avatarSignedUrl = useAvatarSignedUrl(profile?.avatar_url);
+
   return (
     <div className="min-h-screen bg-background">
       <CustomerHeader />
