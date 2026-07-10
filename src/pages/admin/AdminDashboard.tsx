@@ -382,7 +382,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6" data-tick={tick}>
-      <DashboardWelcome roleLabel="Admin" subtitle="Here's what's happening across the platform today." />
+      <DashboardWelcome roleLabel="Admin" subtitle="Here's what's happening across the platform today." defaultAvatar={defaultAdminAvatar} />
       {/* Live status header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
