@@ -8,6 +8,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation();
   const osReduce = useReducedMotion();
   const { motionEnabled, reduceMotion } = useMotionPreference();
+  const { prefs } = useNavPrefs();
 
   // Kill switch — render children with no motion wrapper at all
   if (!motionEnabled) {
