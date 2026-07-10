@@ -392,7 +392,11 @@ export default function UserProfile() {
 
           {/* Motion & animation controls */}
           <MotionSettings />
+
+          {/* Swipe navigation controls */}
+          <NavigationSettings />
         </div>
+
 
       </main>
     </div>
