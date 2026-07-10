@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavPrefs } from './useNavPrefs';
 
 /**
  * Enables horizontal swipe navigation between the given ordered paths.
