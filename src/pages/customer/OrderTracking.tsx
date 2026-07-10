@@ -278,7 +278,7 @@ export default function OrderTracking() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4">
-                  <RiderAvatar userId={(rider as any).user_id} name={rider.profile?.full_name} />
+                  <RiderAvatar userId={(rider as any).user_id} name={rider.profile?.full_name} className="w-14 h-14 border-2 border-primary/20" />
                   <div className="flex-1">
                     <p className="font-semibold">{rider.profile?.full_name || 'Rider'}</p>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
