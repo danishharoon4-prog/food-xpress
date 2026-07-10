@@ -16,6 +16,7 @@ import { LocationPicker } from '@/components/LocationPicker';
 import ImageCropInput from '@/components/ImageCropInput';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { NotificationSettings } from '@/components/NotificationSettings';
+import AvatarUploader from '@/components/AvatarUploader';
 
 const REQUIRED_FIELDS: Array<{ key: string; label: string }> = [
   { key: 'name', label: 'Restaurant name' },
@@ -270,6 +271,15 @@ export default function RestaurantProfile() {
           <Card>
             <CardHeader><CardTitle>Owner Information</CardTitle></CardHeader>
             <CardContent className="space-y-4">
+              {user && (
+                <div className="pb-4 border-b">
+                  <AvatarUploader
+                    userId={user.id}
+                    fullName={personal.full_name}
+                    email={personal.email}
+                  />
+                </div>
+              )}
               <div><Label>{req('Full Name')}</Label><Input value={personal.full_name} onChange={(e) => setPersonal({ ...personal, full_name: e.target.value })} /></div>
               <div><Label>{req('Phone')}</Label><Input value={personal.phone} onChange={(e) => setPersonal({ ...personal, phone: e.target.value })} placeholder="03xx-xxxxxxx" /></div>
               <div><Label>Email</Label><Input value={personal.email} disabled /></div>
