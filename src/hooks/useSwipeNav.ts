@@ -16,7 +16,8 @@ export function useSwipeNav(paths: string[]) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!prefs.swipeEnabled) return;
-    if (!('ontouchstart' in window)) return;
+    const hasTouch = 'ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0;
+    if (!hasTouch) return;
 
     // Edge zone width (px) — swipes starting here use a reduced threshold
     const EDGE_ZONE = 28;
