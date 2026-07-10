@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Loader2, X } from 'lucide-react';
 import { getAvatarSignedUrl } from '@/lib/avatarUrl';
+import AvatarCropDialog from '@/components/AvatarCropDialog';
 
 interface Props {
   userId: string;
@@ -35,6 +36,8 @@ export default function AvatarUploader({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState<string>('');
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
 
   const sizeCls = size === 'sm' ? 'w-16 h-16' : size === 'md' ? 'w-20 h-20' : 'w-24 h-24';
 
@@ -57,64 +60,50 @@ export default function AvatarUploader({
   const initials = (fullName || email || 'U')
     .split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 
-  const upload = async (file: File) => {
+  const pickFile = (file: File) => {
     const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    const MAX_BYTES = 8 * 1024 * 1024; // 8 MB raw upload cap
+    const MAX_BYTES = 8 * 1024 * 1024;
     const prettyMB = (n: number) => (n / (1024 * 1024)).toFixed(1);
 
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Not an image file',
-        description: `"${file.name}" is not an image. Please choose a photo.`,
-        variant: 'destructive',
-      });
+      toast({ title: 'Not an image file', description: `"${file.name}" is not an image. Please choose a photo.`, variant: 'destructive' });
       return;
     }
     if (!ALLOWED.includes(file.type)) {
-      toast({
-        title: 'Unsupported image format',
-        description: `${file.type || 'This format'} is not supported. Use JPG, PNG, WEBP, or GIF.`,
-        variant: 'destructive',
-      });
+      toast({ title: 'Unsupported image format', description: `${file.type || 'This format'} is not supported. Use JPG, PNG, WEBP, or GIF.`, variant: 'destructive' });
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast({
-        title: 'File too large',
-        description: `Your image is ${prettyMB(file.size)} MB. Maximum allowed is ${prettyMB(MAX_BYTES)} MB.`,
-        variant: 'destructive',
-      });
+      toast({ title: 'File too large', description: `Your image is ${prettyMB(file.size)} MB. Maximum allowed is ${prettyMB(MAX_BYTES)} MB.`, variant: 'destructive' });
       return;
     }
     if (file.size === 0) {
-      toast({
-        title: 'Empty file',
-        description: 'The selected file is empty or unreadable.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Empty file', description: 'The selected file is empty or unreadable.', variant: 'destructive' });
       return;
     }
+    setPendingFile(file);
+    setCropOpen(true);
+  };
 
+  const upload = async (source: Blob) => {
     setUploading(true);
     setProgress(5);
     setStage('Preparing…');
     try {
-      let blob: Blob = file;
+      let blob: Blob = source;
       let contentType = 'image/jpeg';
       setStage('Compressing image…');
       setProgress(20);
       let compressionFailed = false;
       try {
         const { compressImage } = await import('@/lib/compressImage');
-        blob = await compressImage(file, { maxSize: 512, quality: 0.85, square: true });
+        const asFile = source instanceof File ? source : new File([source], 'avatar.jpg', { type: 'image/jpeg' });
+        blob = await compressImage(asFile, { maxSize: 512, quality: 0.85, square: true });
       } catch (err: any) {
         compressionFailed = true;
-        blob = file;
-        contentType = file.type;
-        toast({
-          title: 'Compression failed',
-          description: 'Could not compress the image — uploading the original file instead.',
-        });
+        blob = source;
+        contentType = (source as any).type || 'image/jpeg';
+        toast({ title: 'Compression failed', description: 'Could not compress the image — uploading the original file instead.' });
       }
       setProgress(45);
       setStage('Uploading to server…');
@@ -215,7 +204,7 @@ export default function AvatarUploader({
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) upload(f);
+              if (f) pickFile(f);
               e.target.value = '';
             }}
           />
@@ -236,6 +225,12 @@ export default function AvatarUploader({
           </div>
         )}
       </div>
+      <AvatarCropDialog
+        open={cropOpen}
+        file={pendingFile}
+        onCancel={() => { setCropOpen(false); setPendingFile(null); }}
+        onConfirm={(blob) => { setCropOpen(false); setPendingFile(null); upload(blob); }}
+      />
     </div>
   );
 }
