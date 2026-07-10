@@ -378,15 +378,22 @@ export default function Auth() {
               </form>
             </TabsContent>
           </Tabs>
+
+          <div className="mt-6 pt-4 border-t">
+            <p className="text-center text-xs text-muted-foreground leading-relaxed">
+              By continuing you agree to our{' '}
+              <Link to="/terms" className="font-medium text-primary hover:underline">
+                Terms &amp; Conditions
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="font-medium text-primary hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          </div>
         </CardContent>
       </Card>
-      <p className="mt-4 text-center text-xs text-muted-foreground">
-        By continuing you agree to our{' '}
-        <Link to="/terms" className="underline hover:text-foreground">Terms &amp; Conditions</Link>{' '}
-        and{' '}
-        <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
-      </p>
     </div>
-
   );
 }
