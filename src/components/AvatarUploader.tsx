@@ -225,6 +225,12 @@ export default function AvatarUploader({
           </div>
         )}
       </div>
+      <AvatarCropDialog
+        open={cropOpen}
+        file={pendingFile}
+        onCancel={() => { setCropOpen(false); setPendingFile(null); }}
+        onConfirm={(blob) => { setCropOpen(false); setPendingFile(null); upload(blob); }}
+      />
     </div>
   );
 }
