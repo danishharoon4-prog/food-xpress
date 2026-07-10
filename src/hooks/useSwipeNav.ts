@@ -16,15 +16,16 @@ export function useSwipeNav(paths: string[]) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!prefs.swipeEnabled) return;
-    if (!('ontouchstart' in window)) return;
+    const hasTouch = 'ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0;
+    if (!hasTouch) return;
 
     // Edge zone width (px) — swipes starting here use a reduced threshold
     const EDGE_ZONE = 28;
-    const EDGE_THRESHOLD = 24; // very small: edge-swipe fires even from middle-ish release
-    const MIN_THRESHOLD = 60;  // absolute floor — no navigation below this dx
-    const MIN_DURATION_MS = 120; // ignore ultra-quick taps/jitter
-    const MAX_DURATION_MS = 800;
-    const SCROLL_LOCK_DY = 10; // if vertical drift exceeds this before horizontal intent, cancel
+    const EDGE_THRESHOLD = 24;
+    const MIN_THRESHOLD = 40;
+    const MIN_DURATION_MS = 40;
+    const MAX_DURATION_MS = 1200;
+    const SCROLL_LOCK_DY = 16;
 
     let startX = 0;
     let startY = 0;
@@ -79,18 +80,16 @@ export function useSwipeNav(paths: string[]) {
 
       // Decide gesture intent as soon as movement is meaningful.
       if (!intentDecided) {
-        // Vertical scroll detected before user showed clear horizontal intent → cancel for this gesture.
-        if (ady >= SCROLL_LOCK_DY && ady > adx) {
+        if (ady >= SCROLL_LOCK_DY && ady > adx * 1.2) {
           locked = true;
           emitHint(null, 0, null);
           return;
         }
-        // Require dominant horizontal movement (≥ 12px and > vertical) before we consider it a swipe.
-        if (adx >= 12 && adx > ady * 1.2) {
+        if (adx >= 10 && adx > ady) {
           intentDecided = true;
           horizontalIntent = true;
         } else {
-          return; // still ambiguous — don't show hint yet
+          return;
         }
       }
       if (!horizontalIntent) return;
@@ -125,7 +124,7 @@ export function useSwipeNav(paths: string[]) {
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
       const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
       const threshold = Math.max(rawThreshold, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
-      const verticalRatio = edgeSwipe ? 1.2 : 0.6;
+      const verticalRatio = edgeSwipe ? 1.5 : 1.0;
 
       if (Math.abs(dx) < threshold) return;
       if (Math.abs(dy) > Math.abs(dx) * verticalRatio) return;
