@@ -15,6 +15,7 @@ import {
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
 import { CancelOrderButton } from '@/components/CancelOrderButton';
 import GlobalSearch from '@/components/GlobalSearch';
+import { useAvatarSignedUrl } from '@/lib/avatarUrl';
 import type { OrderStatus } from '@/types';
 
 interface DashboardStats {
