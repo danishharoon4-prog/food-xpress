@@ -158,9 +158,9 @@ export default function AdminOrders() {
         .in('id', userIds);
       ridersById = (ridersData || []).reduce((acc, r) => {
         const profile = profiles?.find((p) => p.id === r.user_id);
-        acc[r.id] = { id: r.id, profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null };
+        acc[r.id] = { id: r.id, user_id: r.user_id, profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null };
         return acc;
-      }, {} as Record<string, { id: string; profile?: { full_name: string; phone: string | null } | null }>);
+      }, {} as Record<string, { id: string; user_id: string; profile?: { full_name: string; phone: string | null } | null }>);
     }
 
     // Fetch cancelled_by profiles + roles
