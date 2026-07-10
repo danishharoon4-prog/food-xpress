@@ -12,6 +12,7 @@ import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, Che
 import type { OrderStatus } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfileAvatar } from '@/lib/avatarUrl';
+import RiderAvatar from '@/components/RiderAvatar';
 
 function PartyAvatar({ userId, name }: { userId?: string | null; name?: string | null }) {
   const url = useProfileAvatar(userId);
@@ -283,7 +284,7 @@ export default function RestaurantOrders() {
                     Rider
                   </div>
                   <div className="flex items-start gap-3 pl-1">
-                    <PartyAvatar userId={o.rider.user_id} name={o.rider.profile?.full_name} />
+                    <RiderAvatar userId={o.rider.user_id} name={o.rider.profile?.full_name} />
                     <div className="text-sm space-y-1 flex-1 min-w-0">
                       <p className="font-medium">{o.rider.profile?.full_name || 'Rider'}</p>
                     {o.rider.profile?.phone && (

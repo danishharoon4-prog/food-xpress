@@ -16,19 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Bike, MapPin, Phone, Star, CheckCircle2 } from 'lucide-react';
 import FeedbackDialog from '@/components/FeedbackDialog';
 import type { Order, OrderStatus, Rider, Profile } from '@/types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useProfileAvatar } from '@/lib/avatarUrl';
-
-function RiderAvatar({ userId, name }: { userId?: string | null; name?: string | null }) {
-  const url = useProfileAvatar(userId);
-  const initial = (name || 'R').charAt(0).toUpperCase();
-  return (
-    <Avatar className="w-14 h-14 border-2 border-primary/20">
-      {url && <AvatarImage src={url} alt={name || 'Rider'} />}
-      <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">{initial}</AvatarFallback>
-    </Avatar>
-  );
-}
+import RiderAvatar from '@/components/RiderAvatar';
 
 
 export default function OrderTracking() {
@@ -290,7 +278,7 @@ export default function OrderTracking() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4">
-                  <RiderAvatar userId={(rider as any).user_id} name={rider.profile?.full_name} />
+                  <RiderAvatar userId={(rider as any).user_id} name={rider.profile?.full_name} className="w-14 h-14 border-2 border-primary/20" />
                   <div className="flex-1">
                     <p className="font-semibold">{rider.profile?.full_name || 'Rider'}</p>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">

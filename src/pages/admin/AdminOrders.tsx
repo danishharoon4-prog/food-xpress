@@ -16,6 +16,7 @@ import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import type { Order, OrderStatus } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfileAvatar } from '@/lib/avatarUrl';
+import RiderAvatar from '@/components/RiderAvatar';
 
 function PartyAvatar({ userId, name, className = 'w-9 h-9' }: { userId?: string | null; name?: string | null; className?: string }) {
   const url = useProfileAvatar(userId);
@@ -316,7 +317,7 @@ export default function AdminOrders() {
                   </div>
                   {order.rider_id ? (
                     <div className="flex items-center gap-2 flex-wrap">
-                      <PartyAvatar userId={order.assigned_rider?.user_id} name={order.assigned_rider?.profile?.full_name} className="w-8 h-8" />
+                      <RiderAvatar userId={order.assigned_rider?.user_id} name={order.assigned_rider?.profile?.full_name} className="w-8 h-8" />
                       <div className="min-w-0 flex-1">
                         <div className="font-medium text-success truncate">
                           {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}

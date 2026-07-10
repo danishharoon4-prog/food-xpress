@@ -14,6 +14,8 @@ interface Props {
   onChanged?: (newValue: string | null) => void;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  /** Optional image to show when the user has not uploaded a photo yet. */
+  fallbackSrc?: string;
 }
 
 export default function AvatarUploader({
@@ -23,6 +25,7 @@ export default function AvatarUploader({
   onChanged,
   className = '',
   size = 'lg',
+  fallbackSrc,
 }: Props) {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -128,7 +131,9 @@ export default function AvatarUploader({
     <div className={`flex items-center gap-4 ${className}`}>
       <div className="relative">
         <Avatar className={`${sizeCls} border-4 border-background shadow-md`}>
-          {signedUrl && <AvatarImage src={signedUrl} alt={fullName || 'Avatar'} />}
+          {(signedUrl || fallbackSrc) && (
+            <AvatarImage src={signedUrl || fallbackSrc} alt={fullName || 'Avatar'} className="object-cover" />
+          )}
           <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground font-semibold">
             {initials}
           </AvatarFallback>
