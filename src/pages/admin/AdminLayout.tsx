@@ -18,6 +18,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSwipeNav } from '@/hooks/useSwipeNav';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
@@ -36,6 +37,8 @@ function AdminLayoutInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  useSwipeNav(navItems.slice(0, 5).map(i => i.path));
+
 
 
 
