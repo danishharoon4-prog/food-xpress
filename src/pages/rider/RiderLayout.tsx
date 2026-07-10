@@ -39,6 +39,8 @@ function RiderLayoutInner() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  useSwipeNav(navItems.map(i => i.path));
+
 
   // Check verification status
   useEffect(() => {
