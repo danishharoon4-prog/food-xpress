@@ -16,6 +16,7 @@ export default function CustomerBottomNav() {
   const location = useLocation();
   const { getItemCount } = useCart();
   const count = getItemCount();
+  useSwipeNav(items.map(i => i.path));
   return (
     <>
     <div className="md:hidden h-16" aria-hidden="true" />
