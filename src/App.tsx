@@ -82,6 +82,7 @@ const App = () => (
           <BrowserRouter>
             <NotificationsListener />
             <ScrollReveal />
+            <LocationGate>
             <PageTransition>
             <Routes>
               <Route path="/" element={<RoleLanding />} />
