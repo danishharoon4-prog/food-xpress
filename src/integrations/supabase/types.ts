@@ -964,6 +964,7 @@ export type Database = {
           is_verified: boolean | null
           license_image_url: string | null
           license_number: string | null
+          personal_photo_url: string | null
           total_deliveries: number | null
           updated_at: string
           user_id: string
@@ -984,6 +985,7 @@ export type Database = {
           is_verified?: boolean | null
           license_image_url?: string | null
           license_number?: string | null
+          personal_photo_url?: string | null
           total_deliveries?: number | null
           updated_at?: string
           user_id: string
@@ -1004,6 +1006,7 @@ export type Database = {
           is_verified?: boolean | null
           license_image_url?: string | null
           license_number?: string | null
+          personal_photo_url?: string | null
           total_deliveries?: number | null
           updated_at?: string
           user_id?: string
