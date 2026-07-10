@@ -11,9 +11,34 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, User, Phone, Bike, X, History } from 'lucide-react';
+import { ShoppingBag, User, Phone, Bike, X, History, Store } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import type { Order, OrderStatus } from '@/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useProfileAvatar } from '@/lib/avatarUrl';
+
+function PartyAvatar({ userId, name, className = 'w-9 h-9' }: { userId?: string | null; name?: string | null; className?: string }) {
+  const url = useProfileAvatar(userId);
+  const initial = (name || '?').charAt(0).toUpperCase();
+  return (
+    <Avatar className={className}>
+      {url && <AvatarImage src={url} alt={name || ''} />}
+      <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{initial}</AvatarFallback>
+    </Avatar>
+  );
+}
+
+function RestaurantAvatar({ logoUrl, name, className = 'w-9 h-9' }: { logoUrl?: string | null; name?: string | null; className?: string }) {
+  const initial = (name || 'R').charAt(0).toUpperCase();
+  return (
+    <Avatar className={className}>
+      {logoUrl && <AvatarImage src={logoUrl} alt={name || ''} />}
+      <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-semibold">
+        {initial}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-warning/10 text-warning',
