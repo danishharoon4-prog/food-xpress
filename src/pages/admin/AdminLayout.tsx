@@ -18,6 +18,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSwipeNav } from '@/hooks/useSwipeNav';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
