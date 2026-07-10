@@ -32,6 +32,13 @@ const config: CapacitorConfig = {
       smallIcon: 'ic_stat_notification',
       iconColor: '#FF6F00',
     },
+    // Keyboard resizes the WebView so inputs/buttons never sit behind the
+    // soft keyboard on Android. `resize: 'native'` shrinks the web view;
+    // `resizeOnFullScreen` keeps it working in immersive/splash mode.
+    Keyboard: {
+      resize: 'native',
+      resizeOnFullScreen: true,
+    },
   },
 };
 
