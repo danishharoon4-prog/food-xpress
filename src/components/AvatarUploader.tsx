@@ -25,6 +25,7 @@ export default function AvatarUploader({
   onChanged,
   className = '',
   size = 'lg',
+  fallbackSrc,
 }: Props) {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement | null>(null);
