@@ -2,6 +2,7 @@ import { useLocation } from "react-router-dom";
 import { ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useMotionPreference } from "@/hooks/useMotionPreference";
+import { useNavPrefs } from "@/hooks/useNavPrefs";
 
 export function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation();
