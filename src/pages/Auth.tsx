@@ -149,8 +149,8 @@ export default function Auth() {
   ] as const;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/30 p-4">
-      <Card className="w-full max-w-md shadow-soft-xl border-0">
+    <div className="min-h-[100svh] w-full flex flex-col items-center justify-start sm:justify-center bg-gradient-to-br from-background via-background to-accent/30 px-4 pt-8 pb-8 sm:py-8">
+      <Card className="w-full max-w-md shadow-soft-xl border-0 mx-auto">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mb-2">
             <UtensilsCrossed className="w-8 h-8 text-primary-foreground" />
