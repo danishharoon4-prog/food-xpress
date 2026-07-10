@@ -204,7 +204,7 @@ export default function AvatarUploader({
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) upload(f);
+              if (f) pickFile(f);
               e.target.value = '';
             }}
           />
