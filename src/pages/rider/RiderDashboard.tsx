@@ -13,6 +13,7 @@ import { ensurePushSubscription } from '@/lib/pushSubscription';
 import { requestNotificationPermission } from '@/lib/browserNotify';
 import { isLovablePreviewNotificationContext, openNotificationPermissionTab } from '@/lib/notificationPermission';
 import { useBackgroundRiderTracking } from '@/hooks/useBackgroundRiderTracking';
+import DashboardWelcome from '@/components/DashboardWelcome';
 
 export default function RiderDashboard() {
   const { user } = useAuth();
@@ -359,6 +360,7 @@ export default function RiderDashboard() {
 
   return (
     <div className="space-y-6">
+      <DashboardWelcome roleLabel="Rider" subtitle={rider?.is_online ? 'You are online and receiving orders.' : 'Go online to start delivering.'} />
       {/* Online Toggle */}
       <Card className={rider?.is_online ? 'border-success' : ''}>
         <CardContent className="py-6">
