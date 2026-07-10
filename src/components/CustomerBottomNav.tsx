@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, UtensilsCrossed, ShoppingBag, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { useSwipeNav } from '@/hooks/useSwipeNav';
 import { cn } from '@/lib/utils';
 
 const items = [
