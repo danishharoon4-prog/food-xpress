@@ -18,23 +18,12 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
-    SplashScreen: {
-      launchShowDuration: 3000,
-      launchAutoHide: true,
-      backgroundColor: '#FF6F00',
-      androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
-      showSpinner: false,
-      splashFullScreen: true,
-      splashImmersive: true,
-    },
     LocalNotifications: {
       smallIcon: 'ic_stat_notification',
       iconColor: '#FF6F00',
     },
     // Keyboard resizes the WebView so inputs/buttons never sit behind the
-    // soft keyboard on Android. `resize: 'native'` shrinks the web view;
-    // `resizeOnFullScreen` keeps it working in immersive/splash mode.
+    // soft keyboard on Android. `resize: 'native'` shrinks the web view.
     Keyboard: {
       resize: 'native',
       resizeOnFullScreen: true,
