@@ -299,6 +299,7 @@ export default function RestaurantOrders() {
                       {o.rider.vehicle_number ? ` · ${o.rider.vehicle_number}` : ''}
                       {o.rider.average_rating ? ` · ★ ${Number(o.rider.average_rating).toFixed(1)}` : ''}
                     </p>
+                    </div>
                   </div>
                 </div>
               ) : (
