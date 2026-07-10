@@ -80,18 +80,16 @@ export function useSwipeNav(paths: string[]) {
 
       // Decide gesture intent as soon as movement is meaningful.
       if (!intentDecided) {
-        // Vertical scroll detected before user showed clear horizontal intent → cancel for this gesture.
-        if (ady >= SCROLL_LOCK_DY && ady > adx) {
+        if (ady >= SCROLL_LOCK_DY && ady > adx * 1.2) {
           locked = true;
           emitHint(null, 0, null);
           return;
         }
-        // Require dominant horizontal movement (≥ 12px and > vertical) before we consider it a swipe.
-        if (adx >= 12 && adx > ady * 1.2) {
+        if (adx >= 10 && adx > ady) {
           intentDecided = true;
           horizontalIntent = true;
         } else {
-          return; // still ambiguous — don't show hint yet
+          return;
         }
       }
       if (!horizontalIntent) return;
