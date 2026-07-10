@@ -131,7 +131,9 @@ export default function AvatarUploader({
     <div className={`flex items-center gap-4 ${className}`}>
       <div className="relative">
         <Avatar className={`${sizeCls} border-4 border-background shadow-md`}>
-          {signedUrl && <AvatarImage src={signedUrl} alt={fullName || 'Avatar'} />}
+          {(signedUrl || fallbackSrc) && (
+            <AvatarImage src={signedUrl || fallbackSrc} alt={fullName || 'Avatar'} className="object-cover" />
+          )}
           <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground font-semibold">
             {initials}
           </AvatarFallback>
