@@ -132,6 +132,8 @@ export default function Dashboard() {
     setLoading(false);
   };
 
+  const avatarSignedUrl = useAvatarSignedUrl(profile?.avatar_url);
+
   if (!user) return null;
 
   const initials = profile?.full_name
@@ -139,8 +141,6 @@ export default function Dashboard() {
     .map((n) => n[0])
     .join('')
     .toUpperCase() || 'U';
-
-  const avatarSignedUrl = useAvatarSignedUrl(profile?.avatar_url);
 
   return (
     <div className="min-h-screen bg-background">
@@ -356,12 +356,12 @@ export default function Dashboard() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={profile?.avatar_url || ''} />
+                  <Avatar className="h-12 w-12 border border-border">
+                    <AvatarImage src={avatarSignedUrl || ''} className="object-cover" />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{profile?.full_name}</p>
+                    <p className="font-semibold truncate">{profile?.full_name || 'User'}</p>
                     <p className="text-xs text-muted-foreground truncate">{profile?.email || user.email}</p>
                   </div>
                 </div>
