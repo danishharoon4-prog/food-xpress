@@ -317,7 +317,7 @@ export default function AdminOrders() {
                   </div>
                   {order.rider_id ? (
                     <div className="flex items-center gap-2 flex-wrap">
-                      <PartyAvatar userId={order.assigned_rider?.user_id} name={order.assigned_rider?.profile?.full_name} className="w-8 h-8" />
+                      <RiderAvatar userId={order.assigned_rider?.user_id} name={order.assigned_rider?.profile?.full_name} className="w-8 h-8" />
                       <div className="min-w-0 flex-1">
                         <div className="font-medium text-success truncate">
                           {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
