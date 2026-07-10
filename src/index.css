@@ -367,6 +367,62 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Auth screen: explicit layout for Android WebView/Capacitor.
+   Avoid relying on viewport/grid utility combinations that can behave
+   differently in packaged WebView builds or with cached native bundles. */
+.auth-screen {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1.5rem, env(safe-area-inset-bottom));
+  overflow-x: hidden;
+  background:
+    linear-gradient(135deg,
+      hsl(var(--background)) 0%,
+      hsl(var(--background)) 58%,
+      hsl(var(--accent) / 0.22) 100%);
+}
+
+.auth-panel {
+  width: 100% !important;
+  max-width: 28rem !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box;
+  border: 0 !important;
+  border-radius: 1rem !important;
+  background: hsl(var(--card)) !important;
+  box-shadow: var(--shadow-xl) !important;
+  overflow: hidden;
+}
+
+.auth-legal {
+  width: 100%;
+  display: block;
+  clear: both;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid hsl(var(--border));
+  text-align: center;
+}
+
+@media (max-width: 380px) {
+  .auth-screen {
+    align-items: flex-start;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .auth-panel > div {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+
 /* ===== Custom Sonner toast styling — brand gradient cards ===== */
 .fx-toast[data-sonner-toast] {
   background: linear-gradient(135deg, #FF8A00 0%, #FF6F00 55%, #E53935 100%) !important;
