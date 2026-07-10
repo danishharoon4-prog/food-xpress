@@ -229,6 +229,12 @@ export default function AvatarUploader({
             </Button>
           )}
         </div>
+        {uploading && (
+          <div className="mt-2 space-y-1">
+            <Progress value={progress} className="h-1.5" />
+            <p className="text-[11px] text-muted-foreground">{stage}</p>
+          </div>
+        )}
       </div>
     </div>
   );
