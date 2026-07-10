@@ -14,6 +14,7 @@ import { LocationPicker } from '@/components/LocationPicker';
 import { User, MapPin, Phone, Mail, Building, Heart, Loader2, Save, Trash2, Camera, X, CheckCircle2, Pencil } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { MotionSettings } from '@/components/MotionSettings';
+import AvatarUploader from '@/components/AvatarUploader';
 
 
 interface FavoriteRestaurant {
@@ -216,51 +217,13 @@ export default function UserProfile() {
         <div className="space-y-6">
           {/* Avatar */}
           <Card>
-            <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-5">
-              <div className="relative">
-                <Avatar className="w-24 h-24 border-4 border-background shadow-md">
-                  {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                {uploadingAvatar && (
-                  <div className="absolute inset-0 rounded-full bg-background/70 flex items-center justify-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 text-center sm:text-left space-y-2">
-                <p className="font-semibold text-lg">{fullName || 'Your Name'}</p>
-                <p className="text-sm text-muted-foreground">{email}</p>
-                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) handleAvatarUpload(f);
-                      e.target.value = '';
-                    }}
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingAvatar}
-                  >
-                    <Camera className="w-4 h-4 mr-1.5" />
-                    {avatarUrl ? 'Change photo' : 'Upload photo'}
-                  </Button>
-                  {avatarUrl && (
-                    <Button size="sm" variant="ghost" onClick={handleRemoveAvatar} disabled={uploadingAvatar}>
-                      <X className="w-4 h-4 mr-1.5" /> Remove
-                    </Button>
-                  )}
-                </div>
-              </div>
+            <CardContent className="pt-6">
+              <AvatarUploader
+                userId={user!.id}
+                fullName={fullName}
+                email={email}
+                onChanged={() => refreshProfile()}
+              />
             </CardContent>
           </Card>
 

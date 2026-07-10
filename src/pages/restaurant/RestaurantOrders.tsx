@@ -10,6 +10,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from '@/components/ui/textarea';
 import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, ChevronUp, ExternalLink, Truck, Search, Loader2, XCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import type { OrderStatus } from '@/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useProfileAvatar } from '@/lib/avatarUrl';
+
+function PartyAvatar({ userId, name }: { userId?: string | null; name?: string | null }) {
+  const url = useProfileAvatar(userId);
+  const initial = (name || '?').charAt(0).toUpperCase();
+  return (
+    <Avatar className="w-10 h-10">
+      {url && <AvatarImage src={url} alt={name || ''} />}
+      <AvatarFallback className="bg-primary/10 text-primary font-semibold">{initial}</AvatarFallback>
+    </Avatar>
+  );
+}
 
 const statusColors: Record<string, string> = {
   pending: 'bg-warning/10 text-warning',
@@ -226,7 +239,9 @@ export default function RestaurantOrders() {
                   <User className="w-4 h-4 text-primary" />
                   Customer
                 </div>
-                <div className="text-sm space-y-1 pl-6">
+                <div className="flex items-start gap-3 pl-1">
+                  <PartyAvatar userId={o.customer_id} name={o.customer?.full_name} />
+                  <div className="text-sm space-y-1 flex-1 min-w-0">
                   <p className="font-medium">{o.customer?.full_name || 'Customer'}</p>
                   {o.customer?.phone ? (
                     <a
@@ -254,8 +269,11 @@ export default function RestaurantOrders() {
                       <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
                     </a>
                   )}
+                  </div>
                 </div>
               </div>
+
+
 
               {/* Rider */}
               {o.rider ? (
@@ -264,8 +282,10 @@ export default function RestaurantOrders() {
                     <Bike className="w-4 h-4 text-primary" />
                     Rider
                   </div>
-                  <div className="text-sm space-y-1 pl-6">
-                    <p className="font-medium">{o.rider.profile?.full_name || 'Rider'}</p>
+                  <div className="flex items-start gap-3 pl-1">
+                    <PartyAvatar userId={o.rider.user_id} name={o.rider.profile?.full_name} />
+                    <div className="text-sm space-y-1 flex-1 min-w-0">
+                      <p className="font-medium">{o.rider.profile?.full_name || 'Rider'}</p>
                     {o.rider.profile?.phone && (
                       <a
                         href={`tel:${o.rider.profile.phone}`}
@@ -279,6 +299,7 @@ export default function RestaurantOrders() {
                       {o.rider.vehicle_number ? ` · ${o.rider.vehicle_number}` : ''}
                       {o.rider.average_rating ? ` · ★ ${Number(o.rider.average_rating).toFixed(1)}` : ''}
                     </p>
+                    </div>
                   </div>
                 </div>
               ) : (

@@ -11,6 +11,7 @@ import { Upload, CheckCircle2, AlertCircle, FileImage } from 'lucide-react';
 import type { Rider, RiderWallet } from '@/types';
 import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
 import { NotificationSettings } from '@/components/NotificationSettings';
+import AvatarUploader from '@/components/AvatarUploader';
 
 function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
   const src = useRiderDocSignedUrl(value);
@@ -275,6 +276,23 @@ export default function RiderSettings() {
           </CardContent>
         </Card>
       )}
+
+      {/* Profile Photo */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Photo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {user && (
+            <AvatarUploader
+              userId={user.id}
+              fullName={fullName}
+              email={profile?.email}
+              onChanged={() => refreshProfile()}
+            />
+          )}
+        </CardContent>
+      </Card>
 
       {/* Profile Settings */}
       <Card>
