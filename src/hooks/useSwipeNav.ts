@@ -124,7 +124,7 @@ export function useSwipeNav(paths: string[]) {
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
       const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
       const threshold = Math.max(rawThreshold, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
-      const verticalRatio = edgeSwipe ? 1.2 : 0.6;
+      const verticalRatio = edgeSwipe ? 1.5 : 1.0;
 
       if (Math.abs(dx) < threshold) return;
       if (Math.abs(dy) > Math.abs(dx) * verticalRatio) return;
