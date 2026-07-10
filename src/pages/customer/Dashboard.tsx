@@ -15,6 +15,7 @@ import {
 import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
 import { CancelOrderButton } from '@/components/CancelOrderButton';
 import GlobalSearch from '@/components/GlobalSearch';
+import { useAvatarSignedUrl } from '@/lib/avatarUrl';
 import type { OrderStatus } from '@/types';
 
 interface DashboardStats {
@@ -139,6 +140,8 @@ export default function Dashboard() {
     .join('')
     .toUpperCase() || 'U';
 
+  const avatarSignedUrl = useAvatarSignedUrl(profile?.avatar_url);
+
   return (
     <div className="min-h-screen bg-background">
       <CustomerHeader />
@@ -150,7 +153,7 @@ export default function Dashboard() {
           <div className="absolute bottom-0 left-1/2 w-32 h-32 bg-primary-foreground/5 rounded-full translate-y-1/2" />
           <div className="relative flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-primary-foreground/30">
-              <AvatarImage src={profile?.avatar_url || ''} />
+              <AvatarImage src={avatarSignedUrl || ''} className="object-cover" />
               <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-xl font-bold">
                 {initials}
               </AvatarFallback>
