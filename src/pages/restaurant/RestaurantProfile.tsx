@@ -29,7 +29,7 @@ const REQUIRED_FIELDS: Array<{ key: string; label: string }> = [
 ];
 
 export default function RestaurantProfile() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { restaurant, refetchRestaurant } = useOutletContext<{ restaurant: any; refetchRestaurant: () => Promise<void> }>();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -277,6 +277,7 @@ export default function RestaurantProfile() {
                     userId={user.id}
                     fullName={personal.full_name}
                     email={personal.email}
+                    onChanged={() => refreshProfile()}
                   />
                 </div>
               )}
