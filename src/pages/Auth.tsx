@@ -148,8 +148,19 @@ export default function Auth() {
     { value: 'restaurant', label: 'Restaurant', icon: Store, description: 'Sell on FoodExpress' },
   ] as const;
 
+  // On mobile, when the soft keyboard opens the focused field can be hidden
+  // behind the keyboard or overlap with the submit button. Scroll the focused
+  // element into view so it stays comfortably visible above the keyboard.
+  const handleFieldFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    const el = e.currentTarget;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 250);
+  };
+
   return (
-    <div className="min-h-[100svh] w-full flex flex-col items-center justify-start sm:justify-center bg-gradient-to-br from-background via-background to-accent/30 px-4 pt-8 pb-8 sm:py-8">
+    <div className="min-h-[100svh] w-full flex flex-col items-center justify-start sm:justify-center bg-gradient-to-br from-background via-background to-accent/30 px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))] sm:py-8">
+
       <Card className="w-full max-w-md shadow-soft-xl border-0 mx-auto">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mb-2">
