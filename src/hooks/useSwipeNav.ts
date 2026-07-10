@@ -60,5 +60,5 @@ export function useSwipeNav(paths: string[]) {
       window.removeEventListener('touchstart', onStart);
       window.removeEventListener('touchend', onEnd);
     };
-  }, [paths, location.pathname, navigate]);
+  }, [paths, location.pathname, navigate, prefs.swipeEnabled, prefs.swipeThreshold]);
 }
