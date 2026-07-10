@@ -92,11 +92,7 @@ function AdminLayoutInner() {
           {/* User */}
           <div className="p-4 border-t">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-semibold">
-                  {profile?.full_name?.charAt(0) || 'A'}
-                </span>
-              </div>
+              <RoleAvatar role="admin" avatarUrl={profile?.avatar_url} name={profile?.full_name} className="w-10 h-10 bg-white" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{profile?.full_name}</p>
                 <p className="text-xs text-muted-foreground">Administrator</p>
