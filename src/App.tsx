@@ -11,6 +11,7 @@ import { patchSonnerForBrowserNotifications } from "@/lib/browserNotify";
 import { PageTransition } from "@/components/PageTransition";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { SplashOverlay } from "@/components/SplashOverlay";
+import LocationGate from "@/components/LocationGate";
 
 patchSonnerForBrowserNotifications();
 
@@ -81,6 +82,7 @@ const App = () => (
           <BrowserRouter>
             <NotificationsListener />
             <ScrollReveal />
+            <LocationGate>
             <PageTransition>
             <Routes>
               <Route path="/" element={<RoleLanding />} />
@@ -137,6 +139,8 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </PageTransition>
+            </LocationGate>
+            
             
           </BrowserRouter>
         </TooltipProvider>
