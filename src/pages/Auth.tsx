@@ -159,10 +159,11 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-[100svh] w-full grid place-items-center bg-gradient-to-br from-background via-background to-accent/30 px-4 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))] sm:py-8">
+    <div className="auth-screen">
 
       <Card
-        className="w-full max-w-md mx-auto shadow-soft-xl border-0 [&_input]:scroll-mt-24 [&_input]:scroll-mb-24"
+        data-auth-card
+        className="auth-panel [&_input]:scroll-mt-24 [&_input]:scroll-mb-24"
         onFocus={(e) => {
           const t = e.target as HTMLElement;
           if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA') {
@@ -396,7 +397,7 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
 
-          <div className="mt-6 pt-4 border-t">
+          <div data-auth-legal className="auth-legal">
             <p className="text-center text-xs text-muted-foreground leading-relaxed">
               By continuing you agree to our{' '}
               <Link to="/terms" className="font-medium text-primary hover:underline">
