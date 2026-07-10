@@ -12,6 +12,7 @@ import { User, Phone, MapPin, Bike, Clock, Package, StickyNote, ChevronDown, Che
 import type { OrderStatus } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfileAvatar } from '@/lib/avatarUrl';
+import RiderAvatar from '@/components/RiderAvatar';
 
 function PartyAvatar({ userId, name }: { userId?: string | null; name?: string | null }) {
   const url = useProfileAvatar(userId);
