@@ -16,6 +16,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Phone, MapPin, Clock, Store, User, Plus } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import { CustomerLocationMap } from '@/components/CustomerLocationMap';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useProfileAvatar } from '@/lib/avatarUrl';
+
+function PartyAvatar({ userId, name, className = 'w-10 h-10' }: { userId?: string | null; name?: string | null; className?: string }) {
+  const url = useProfileAvatar(userId);
+  const initial = (name || '?').charAt(0).toUpperCase();
+  return (
+    <Avatar className={className}>
+      {url && <AvatarImage src={url} alt={name || ''} />}
+      <AvatarFallback className="bg-primary/10 text-primary font-semibold">{initial}</AvatarFallback>
+    </Avatar>
+  );
+}
 
 interface Props {
   orderId: string | null;
@@ -184,15 +197,20 @@ export function OrderDetailDialog({ orderId, open, onClose, onUpdated }: Props) 
 
             {/* Customer */}
             <div className="p-3 rounded-lg border bg-muted/30">
-              <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><User className="w-3 h-3" /> Customer</p>
-              <p className="font-medium">{order.customer?.full_name || 'Customer'}</p>
-              {order.customer?.phone ? (
-                <a href={`tel:${order.customer.phone}`} className="text-sm text-primary hover:underline flex items-center gap-1 mt-1 font-medium">
-                  <Phone className="w-3.5 h-3.5" /> {order.customer.phone}
-                </a>
-              ) : (
-                <p className="text-xs text-muted-foreground italic mt-1">No customer phone on file</p>
-              )}
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><User className="w-3 h-3" /> Customer</p>
+              <div className="flex items-center gap-3">
+                <PartyAvatar userId={order.customer_id} name={order.customer?.full_name} />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{order.customer?.full_name || 'Customer'}</p>
+                  {order.customer?.phone ? (
+                    <a href={`tel:${order.customer.phone}`} className="text-sm text-primary hover:underline flex items-center gap-1 mt-0.5 font-medium">
+                      <Phone className="w-3.5 h-3.5" /> {order.customer.phone}
+                    </a>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic mt-0.5">No customer phone on file</p>
+                  )}
+                </div>
+              </div>
               {order.status !== 'delivered' && (
                 <>
                   <p className="text-sm text-muted-foreground mt-2 flex items-start gap-1">
