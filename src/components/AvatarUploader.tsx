@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Loader2, X } from 'lucide-react';
 import { getAvatarSignedUrl } from '@/lib/avatarUrl';
+import AvatarCropDialog from '@/components/AvatarCropDialog';
 
 interface Props {
   userId: string;
