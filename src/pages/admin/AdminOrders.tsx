@@ -118,7 +118,7 @@ export default function AdminOrders() {
   const fetchOrders = async () => {
     const { data, error } = await supabase
       .from('orders')
-      .select('*, restaurant:restaurants(name), order_items(*)')
+      .select('*, restaurant:restaurants(name, logo_url), order_items(*)')
       .order('created_at', { ascending: false });
 
     if (error) {
