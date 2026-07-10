@@ -277,22 +277,29 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
-                {/* Customer Name */}
-                <div>
-                  <span className="text-muted-foreground">Customer Name: </span>
-                  <span className="font-medium">{order.customer?.full_name || 'N/A'}</span>
+                {/* Restaurant */}
+                <div className="flex items-center gap-2 pt-1">
+                  <RestaurantAvatar logoUrl={order.restaurant?.logo_url} name={order.restaurant?.name} className="w-8 h-8" />
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Store className="w-3 h-3" /> Restaurant
+                    </div>
+                    <div className="font-medium truncate">{order.restaurant?.name || 'N/A'}</div>
+                  </div>
                 </div>
 
-                {/* Customer contact */}
-                <div>
-                  <span className="text-muted-foreground">Customer contact: </span>
-                  {order.customer?.phone ? (
-                    <a href={`tel:${order.customer.phone}`} className="text-primary hover:underline">
-                      {order.customer.phone}
-                    </a>
-                  ) : (
-                    <span>N/A</span>
-                  )}
+                {/* Customer */}
+                <div className="flex items-center gap-2 pt-1">
+                  <PartyAvatar userId={order.customer_id} name={order.customer?.full_name} className="w-8 h-8" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-muted-foreground">Customer</div>
+                    <div className="font-medium truncate">{order.customer?.full_name || 'N/A'}</div>
+                    {order.customer?.phone && (
+                      <a href={`tel:${order.customer.phone}`} className="text-primary hover:underline text-xs flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {order.customer.phone}
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {/* Address */}
