@@ -20,11 +20,11 @@ export function useSwipeNav(paths: string[]) {
 
     // Edge zone width (px) — swipes starting here use a reduced threshold
     const EDGE_ZONE = 28;
-    const EDGE_THRESHOLD = 24; // very small: edge-swipe fires even from middle-ish release
-    const MIN_THRESHOLD = 60;  // absolute floor — no navigation below this dx
-    const MIN_DURATION_MS = 120; // ignore ultra-quick taps/jitter
-    const MAX_DURATION_MS = 800;
-    const SCROLL_LOCK_DY = 10; // if vertical drift exceeds this before horizontal intent, cancel
+    const EDGE_THRESHOLD = 24;
+    const MIN_THRESHOLD = 40;
+    const MIN_DURATION_MS = 40;
+    const MAX_DURATION_MS = 1200;
+    const SCROLL_LOCK_DY = 16;
 
     let startX = 0;
     let startY = 0;
