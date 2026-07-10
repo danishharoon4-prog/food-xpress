@@ -17,12 +17,18 @@ export function SplashOverlay() {
     return !sessionStorage.getItem('splash_shown');
   });
   const [exiting, setExiting] = useState(false);
+  const [failed, setFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Use absolute CDN URL so the native WebView (capacitor:// / https://localhost)
+  // can resolve the /__l5e/ Lovable asset path.
+  const videoSrc = /^https?:\/\//.test(splashVideo.url)
+    ? splashVideo.url
+    : `https://food-xpress.lovable.app${splashVideo.url}`;
 
   useEffect(() => {
     if (!visible) return;
     sessionStorage.setItem('splash_shown', '1');
-    // Safety fallback in case video fails/never ends
     const maxT = setTimeout(() => setExiting(true), 8000);
     const hideT = setTimeout(() => setVisible(false), 8800);
     return () => {
@@ -31,9 +37,24 @@ export function SplashOverlay() {
     };
   }, [visible]);
 
+  useEffect(() => {
+    if (!visible) return;
+    const v = videoRef.current;
+    if (!v) return;
+    const tryPlay = () => v.play().catch((e) => console.warn('[splash] play blocked', e));
+    tryPlay();
+  }, [visible]);
+
   const handleEnded = () => {
     setExiting(true);
     setTimeout(() => setVisible(false), 600);
+  };
+
+  const handleError = (e: any) => {
+    console.warn('[splash] video failed to load', e, videoSrc);
+    setFailed(true);
+    setTimeout(() => setExiting(true), 1200);
+    setTimeout(() => setVisible(false), 1800);
   };
 
   if (!isNative || !visible) return null;
@@ -44,16 +65,26 @@ export function SplashOverlay() {
         exiting ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <video
-        ref={videoRef}
-        src={splashVideo.url}
-        autoPlay
-        muted
-        playsInline
-        preload="auto"
-        onEnded={handleEnded}
-        className="w-full h-full object-cover"
-      />
+      {!failed ? (
+        <video
+          ref={videoRef}
+          src={videoSrc}
+          autoPlay
+          muted
+          playsInline
+          // @ts-ignore - webkit attr for iOS inline
+          webkit-playsinline="true"
+          preload="auto"
+          onEnded={handleEnded}
+          onError={handleError}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="text-white text-center px-6">
+          <div className="text-2xl font-bold mb-2">Food Xpress</div>
+          <div className="text-sm opacity-70">Loading…</div>
+        </div>
+      )}
     </div>
   );
 }
