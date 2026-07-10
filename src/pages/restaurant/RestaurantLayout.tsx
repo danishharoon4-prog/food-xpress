@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import RoleAvatar from '@/components/RoleAvatar';
 import { RoleGuard } from '@/components/RoleGuard';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
