@@ -5,14 +5,15 @@ import { useAvatarSignedUrl } from '@/lib/avatarUrl';
 interface Props {
   subtitle?: string;
   roleLabel?: string;
+  defaultAvatar?: string;
 }
 
 /**
  * Shared welcome banner shown at the top of admin / rider / restaurant
  * dashboards. Displays the signed-in user's uploaded profile picture
- * (falls back to initials) alongside their name.
+ * (falls back to a role-specific default image, then initials).
  */
-export default function DashboardWelcome({ subtitle, roleLabel }: Props) {
+export default function DashboardWelcome({ subtitle, roleLabel, defaultAvatar }: Props) {
   const { user, profile } = useAuth();
   const avatarSignedUrl = useAvatarSignedUrl(profile?.avatar_url);
 
@@ -24,13 +25,15 @@ export default function DashboardWelcome({ subtitle, roleLabel }: Props) {
       .join('')
       .toUpperCase() || name.charAt(0).toUpperCase();
 
+  const src = avatarSignedUrl || defaultAvatar || '';
+
   return (
     <div className="relative rounded-2xl bg-gradient-to-r from-primary to-primary/70 text-primary-foreground p-5 md:p-6 overflow-hidden">
       <div className="absolute top-0 right-0 w-40 h-40 bg-primary-foreground/5 rounded-full -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-1/2 w-24 h-24 bg-primary-foreground/5 rounded-full translate-y-1/2" />
       <div className="relative flex items-center gap-4">
-        <Avatar className="h-14 w-14 md:h-16 md:w-16 border-2 border-primary-foreground/30">
-          <AvatarImage src={avatarSignedUrl || ''} className="object-cover" />
+        <Avatar className="h-14 w-14 md:h-16 md:w-16 border-2 border-primary-foreground/30 bg-white">
+          <AvatarImage src={src} className="object-cover" />
           <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-lg font-bold">
             {initials}
           </AvatarFallback>

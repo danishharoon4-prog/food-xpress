@@ -14,6 +14,7 @@ import {
   Bell, Radio, Activity, Timer, PackageCheck, Truck, ChefHat, RefreshCw,
 } from 'lucide-react';
 import DashboardWelcome from '@/components/DashboardWelcome';
+import defaultAdminAvatar from '@/assets/default-admin-avatar.png';
 
 interface ActiveOrderRow {
   id: string;
