@@ -36,6 +36,8 @@ export default function AvatarUploader({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState<string>('');
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
 
   const sizeCls = size === 'sm' ? 'w-16 h-16' : size === 'md' ? 'w-20 h-20' : 'w-24 h-24';
 
