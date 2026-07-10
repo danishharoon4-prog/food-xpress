@@ -15,6 +15,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts';
+import DashboardWelcome from '@/components/DashboardWelcome';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'hsl(var(--warning))',
@@ -248,6 +249,7 @@ export default function RestaurantDashboard() {
 
   return (
     <div className="space-y-6">
+      <DashboardWelcome roleLabel="Restaurant Owner" subtitle={`Manage ${restaurant?.name || 'your restaurant'} in real time.`} />
       {/* Live new-order notifications */}
       {newOrders.length > 0 && (
         <div className="space-y-2">
