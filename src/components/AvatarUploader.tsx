@@ -52,18 +52,42 @@ export default function AvatarUploader({
     .split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 
   const upload = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast({ title: 'Invalid file', description: 'Please choose an image.', variant: 'destructive' });
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const MAX_BYTES = 8 * 1024 * 1024; // 8 MB raw upload cap
+
+    if (!ALLOWED.includes(file.type)) {
+      toast({
+        title: 'Unsupported file type',
+        description: 'Please choose a JPG, PNG, WEBP, or GIF image.',
+        variant: 'destructive',
+      });
       return;
     }
+    if (file.size > MAX_BYTES) {
+      toast({
+        title: 'File too large',
+        description: `Maximum size is ${Math.round(MAX_BYTES / (1024 * 1024))} MB.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setUploading(true);
     try {
-      const { compressImage } = await import('@/lib/compressImage');
-      const blob = await compressImage(file, { maxSize: 512, quality: 0.85, square: true });
+      let blob: Blob = file;
+      let contentType = 'image/jpeg';
+      try {
+        const { compressImage } = await import('@/lib/compressImage');
+        blob = await compressImage(file, { maxSize: 512, quality: 0.85, square: true });
+      } catch {
+        // Fallback: upload original if compression fails
+        blob = file;
+        contentType = file.type;
+      }
       const path = `${userId}/avatar-${Date.now()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from('avatars')
-        .upload(path, blob, { upsert: true, cacheControl: '3600', contentType: 'image/jpeg' });
+        .upload(path, blob, { upsert: true, cacheControl: '3600', contentType });
       if (upErr) throw upErr;
       const { error: dbErr } = await supabase
         .from('profiles')
