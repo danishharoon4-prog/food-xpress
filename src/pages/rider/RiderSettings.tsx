@@ -290,6 +290,7 @@ export default function RiderSettings() {
               userId={user.id}
               fullName={fullName}
               email={profile?.email}
+              fallbackSrc={defaultRiderAvatar}
               onChanged={() => refreshProfile()}
             />
           )}
