@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavPrefs } from './useNavPrefs';
 
 /**
  * Enables horizontal swipe navigation between the given ordered paths.
@@ -10,9 +11,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 export function useSwipeNav(paths: string[]) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { prefs } = useNavPrefs();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!prefs.swipeEnabled) return;
     if (!('ontouchstart' in window)) return;
 
     let startX = 0;
@@ -42,7 +45,7 @@ export function useSwipeNav(paths: string[]) {
       const dy = t.clientY - startY;
       const dt = Date.now() - startT;
       if (dt > 600) return;
-      if (Math.abs(dx) < 70) return;
+      if (Math.abs(dx) < prefs.swipeThreshold) return;
       if (Math.abs(dy) > Math.abs(dx) * 0.6) return; // mostly horizontal
 
       const idx = paths.indexOf(location.pathname);
@@ -57,5 +60,5 @@ export function useSwipeNav(paths: string[]) {
       window.removeEventListener('touchstart', onStart);
       window.removeEventListener('touchend', onEnd);
     };
-  }, [paths, location.pathname, navigate]);
+  }, [paths, location.pathname, navigate, prefs.swipeEnabled, prefs.swipeThreshold]);
 }
