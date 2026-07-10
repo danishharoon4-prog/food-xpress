@@ -11,9 +11,34 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, User, Phone, Bike, X, History } from 'lucide-react';
+import { ShoppingBag, User, Phone, Bike, X, History, Store } from 'lucide-react';
 import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import type { Order, OrderStatus } from '@/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useProfileAvatar } from '@/lib/avatarUrl';
+
+function PartyAvatar({ userId, name, className = 'w-9 h-9' }: { userId?: string | null; name?: string | null; className?: string }) {
+  const url = useProfileAvatar(userId);
+  const initial = (name || '?').charAt(0).toUpperCase();
+  return (
+    <Avatar className={className}>
+      {url && <AvatarImage src={url} alt={name || ''} />}
+      <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{initial}</AvatarFallback>
+    </Avatar>
+  );
+}
+
+function RestaurantAvatar({ logoUrl, name, className = 'w-9 h-9' }: { logoUrl?: string | null; name?: string | null; className?: string }) {
+  const initial = (name || 'R').charAt(0).toUpperCase();
+  return (
+    <Avatar className={className}>
+      {logoUrl && <AvatarImage src={logoUrl} alt={name || ''} />}
+      <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-semibold">
+        {initial}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-warning/10 text-warning',
@@ -37,8 +62,9 @@ interface RiderWithProfile {
 
 interface OrderWithRelations extends Order {
   customer?: { full_name: string; phone: string | null } | null;
-  assigned_rider?: { id: string; profile?: { full_name: string; phone: string | null } | null } | null;
+  assigned_rider?: { id: string; user_id?: string | null; profile?: { full_name: string; phone: string | null } | null } | null;
   cancelled_by_user?: { full_name: string; role: string } | null;
+  restaurant?: any;
 }
 
 export default function AdminOrders() {
@@ -92,7 +118,7 @@ export default function AdminOrders() {
   const fetchOrders = async () => {
     const { data, error } = await supabase
       .from('orders')
-      .select('*, restaurant:restaurants(name), order_items(*)')
+      .select('*, restaurant:restaurants(name, logo_url), order_items(*)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -132,9 +158,9 @@ export default function AdminOrders() {
         .in('id', userIds);
       ridersById = (ridersData || []).reduce((acc, r) => {
         const profile = profiles?.find((p) => p.id === r.user_id);
-        acc[r.id] = { id: r.id, profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null };
+        acc[r.id] = { id: r.id, user_id: r.user_id, profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null };
         return acc;
-      }, {} as Record<string, { id: string; profile?: { full_name: string; phone: string | null } | null }>);
+      }, {} as Record<string, { id: string; user_id: string; profile?: { full_name: string; phone: string | null } | null }>);
     }
 
     // Fetch cancelled_by profiles + roles
@@ -251,22 +277,29 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
-                {/* Customer Name */}
-                <div>
-                  <span className="text-muted-foreground">Customer Name: </span>
-                  <span className="font-medium">{order.customer?.full_name || 'N/A'}</span>
+                {/* Restaurant */}
+                <div className="flex items-center gap-2 pt-1">
+                  <RestaurantAvatar logoUrl={order.restaurant?.logo_url} name={order.restaurant?.name} className="w-8 h-8" />
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Store className="w-3 h-3" /> Restaurant
+                    </div>
+                    <div className="font-medium truncate">{order.restaurant?.name || 'N/A'}</div>
+                  </div>
                 </div>
 
-                {/* Customer contact */}
-                <div>
-                  <span className="text-muted-foreground">Customer contact: </span>
-                  {order.customer?.phone ? (
-                    <a href={`tel:${order.customer.phone}`} className="text-primary hover:underline">
-                      {order.customer.phone}
-                    </a>
-                  ) : (
-                    <span>N/A</span>
-                  )}
+                {/* Customer */}
+                <div className="flex items-center gap-2 pt-1">
+                  <PartyAvatar userId={order.customer_id} name={order.customer?.full_name} className="w-8 h-8" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-muted-foreground">Customer</div>
+                    <div className="font-medium truncate">{order.customer?.full_name || 'N/A'}</div>
+                    {order.customer?.phone && (
+                      <a href={`tel:${order.customer.phone}`} className="text-primary hover:underline text-xs flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {order.customer.phone}
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {/* Address */}
@@ -282,16 +315,19 @@ export default function AdminOrders() {
                     <span className="text-muted-foreground">Rider Assign:</span>
                   </div>
                   {order.rider_id ? (
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <span className="font-medium text-success">
-                        {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
-                      </span>
-                      {order.assigned_rider?.profile?.phone && (
-                        <a href={`tel:${order.assigned_rider.profile.phone}`} className="text-primary hover:underline flex items-center gap-1 text-xs">
-                          <Phone className="w-3 h-3" />
-                          {order.assigned_rider.profile.phone}
-                        </a>
-                      )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <PartyAvatar userId={order.assigned_rider?.user_id} name={order.assigned_rider?.profile?.full_name} className="w-8 h-8" />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-success truncate">
+                          {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
+                        </div>
+                        {order.assigned_rider?.profile?.phone && (
+                          <a href={`tel:${order.assigned_rider.profile.phone}`} className="text-primary hover:underline flex items-center gap-1 text-xs">
+                            <Phone className="w-3 h-3" />
+                            {order.assigned_rider.profile.phone}
+                          </a>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
