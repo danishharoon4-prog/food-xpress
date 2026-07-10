@@ -34,7 +34,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
         animate="animate"
         exit="exit"
         variants={variants}
-        transition={{ duration: reduce ? 0.15 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: (reduce ? 0.15 : 0.3) * prefs.animationSpeed, ease: [0.22, 1, 0.36, 1] }}
         style={{ willChange: "opacity" }}
       >
         {children}
