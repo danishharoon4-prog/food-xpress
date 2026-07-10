@@ -139,6 +139,8 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </PageTransition>
+            </LocationGate>
+            
             
           </BrowserRouter>
         </TooltipProvider>
