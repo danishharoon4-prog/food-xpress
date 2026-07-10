@@ -33,6 +33,8 @@ export default function AvatarUploader({
   const [stored, setStored] = useState<string | null>(null);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState<string>('');
 
   const sizeCls = size === 'sm' ? 'w-16 h-16' : size === 'md' ? 'w-20 h-20' : 'w-24 h-24';
 
