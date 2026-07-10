@@ -198,8 +198,9 @@ export default function AvatarUploader({
           </AvatarFallback>
         </Avatar>
         {uploading && (
-          <div className="absolute inset-0 rounded-full bg-background/70 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full bg-background/70 flex flex-col items-center justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <span className="text-[10px] font-semibold text-primary mt-0.5">{progress}%</span>
           </div>
         )}
       </div>
