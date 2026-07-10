@@ -54,19 +54,22 @@ let lastTs = 0;
 let nativeNotifId = 1;
 let channelEnsured = false;
 
-const HIGH_CHANNEL_ID = 'food-express-high';
+// Bumped id to force channel recreation with public lock-screen visibility.
+const HIGH_CHANNEL_ID = 'food-express-high-v2';
 
 async function ensureHighImportanceChannel() {
   if (channelEnsured) return;
   channelEnsured = true;
   try {
     const { LocalNotifications } = await import('@capacitor/local-notifications');
+    // Best-effort cleanup of the old channel so users don't see duplicates.
+    try { await (LocalNotifications as any).deleteChannel({ id: 'food-express-high' }); } catch { /* noop */ }
     await LocalNotifications.createChannel({
       id: HIGH_CHANNEL_ID,
       name: 'Food Express Alerts',
       description: 'Order updates and important alerts',
-      importance: 5, // IMPORTANCE_HIGH -> heads-up
-      visibility: 1,
+      importance: 5, // IMPORTANCE_HIGH -> heads-up banner
+      visibility: 1,  // VISIBILITY_PUBLIC -> show full content on lock screen
       sound: 'default',
       lights: true,
       lightColor: '#FF6F00',
