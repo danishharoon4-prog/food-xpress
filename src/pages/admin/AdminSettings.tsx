@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import AvatarUploader from '@/components/AvatarUploader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +41,7 @@ type Settings = {
 };
 
 export default function AdminSettings() {
+  const { user, profile, refreshProfile } = useAuth();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [original, setOriginal] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -133,6 +136,24 @@ export default function AdminSettings() {
           </Badge>
         )}
       </div>
+
+      {/* Admin profile photo */}
+      {user && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Profile Photo</CardTitle>
+            <CardDescription>Visible to customers, riders, and restaurants you interact with.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AvatarUploader
+              userId={user.id}
+              fullName={profile?.full_name}
+              email={profile?.email}
+              onChanged={() => refreshProfile()}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick summary */}
       <div className="grid gap-3 md:grid-cols-4">
