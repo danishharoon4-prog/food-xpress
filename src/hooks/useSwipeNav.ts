@@ -11,9 +11,11 @@ import { useNavPrefs } from './useNavPrefs';
 export function useSwipeNav(paths: string[]) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { prefs } = useNavPrefs();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!prefs.swipeEnabled) return;
     if (!('ontouchstart' in window)) return;
 
     let startX = 0;
