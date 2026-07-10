@@ -43,7 +43,7 @@ export type NotifPrefs = {
 
 export const DEFAULT_PREFS: Omit<NotifPrefs, 'user_id'> = {
   push_enabled: true,
-  toast_enabled: false,
+  toast_enabled: true,
   sound_enabled: true,
   event_order_placed: true,
   event_confirmed: true,

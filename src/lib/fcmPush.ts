@@ -54,6 +54,20 @@ export async function registerFcmForCurrentUser(userId: string): Promise<void> {
       registered = false;
     });
 
+    // Foreground FCM: Android suppresses notification-payload messages while the
+    // app is in foreground. Re-emit via LocalNotifications so users still get a
+    // heads-up banner on the high-importance channel.
+    PushNotifications.addListener('pushNotificationReceived', async (notif) => {
+      try {
+        const { fireBrowserNotification } = await import('@/lib/browserNotify');
+        const title = notif.title || (notif.data as any)?.title || 'Notification';
+        const body = notif.body || (notif.data as any)?.body || '';
+        fireBrowserNotification(title, body);
+      } catch (e) {
+        console.error('Foreground push re-emit failed', e);
+      }
+    });
+
     PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
       const data = action.notification?.data as Record<string, string> | undefined;
       const orderId = data?.order_id;
