@@ -256,21 +256,19 @@ export default function Auth() {
                         key={value}
                         type="button"
                         onClick={() => setSelectedRole(value)}
-                        className={`p-4 rounded-xl border-2 transition-all text-left ${
+                        className={`p-2.5 rounded-xl border-2 transition-all text-center flex flex-col items-center gap-1.5 ${
                           selectedRole === value
                             ? 'border-primary bg-accent shadow-sm'
                             : 'border-border hover:border-primary/40 hover:bg-accent/50'
                         }`}
                       >
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            selectedRole === value ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                          }`}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <span className="text-sm font-semibold">{label}</span>
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                          selectedRole === value ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                        }`}>
+                          <Icon className="w-4 h-4" />
                         </div>
-                        <p className="text-xs text-muted-foreground leading-tight">{description}</p>
+                        <span className="text-xs font-semibold leading-tight">{label}</span>
+                        <p className="text-[10px] text-muted-foreground leading-tight hidden sm:block">{description}</p>
                       </button>
                     ))}
                   </div>
