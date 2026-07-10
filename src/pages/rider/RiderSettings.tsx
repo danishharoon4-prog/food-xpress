@@ -12,6 +12,7 @@ import type { Rider, RiderWallet } from '@/types';
 import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import AvatarUploader from '@/components/AvatarUploader';
+import defaultRiderAvatar from '@/assets/default-rider-avatar.png';
 
 function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
   const src = useRiderDocSignedUrl(value);
