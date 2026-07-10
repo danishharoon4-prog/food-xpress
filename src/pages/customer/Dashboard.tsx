@@ -16,6 +16,7 @@ import { OrderProgressIndicator } from '@/components/OrderProgressIndicator';
 import { CancelOrderButton } from '@/components/CancelOrderButton';
 import GlobalSearch from '@/components/GlobalSearch';
 import { useAvatarSignedUrl } from '@/lib/avatarUrl';
+import RoleAvatar from '@/components/RoleAvatar';
 import type { OrderStatus } from '@/types';
 
 interface DashboardStats {
@@ -356,10 +357,12 @@ export default function Dashboard() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="h-12 w-12 border border-border">
-                    <AvatarImage src={avatarSignedUrl || ''} className="object-cover" />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">{initials}</AvatarFallback>
-                  </Avatar>
+                  <RoleAvatar
+                    role="customer"
+                    avatarUrl={profile?.avatar_url}
+                    name={profile?.full_name}
+                    className="h-12 w-12 border border-border"
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate">{profile?.full_name || 'User'}</p>
                     <p className="text-xs text-muted-foreground truncate">{profile?.email || user.email}</p>
