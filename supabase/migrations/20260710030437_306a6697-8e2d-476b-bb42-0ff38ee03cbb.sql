@@ -1,0 +1,1 @@
+ALTER TABLE public.riders ADD COLUMN IF NOT EXISTS personal_photo_url text;
