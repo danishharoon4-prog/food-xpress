@@ -12,7 +12,12 @@ import { z } from 'zod';
 import type { AppRole } from '@/types';
 
 const emailSchema = z.string().email('Please enter a valid email address');
-const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+const passwordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(72, 'Password must be less than 72 characters')
+  .regex(/[A-Za-z]/, 'Password must contain a letter')
+  .regex(/[0-9]/, 'Password must contain a number');
 const nameSchema = z.string().min(2, 'Name must be at least 2 characters');
 
 export default function Auth() {
