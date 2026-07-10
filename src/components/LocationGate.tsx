@@ -97,7 +97,7 @@ export default function LocationGate({ children }: Props) {
       // Try the native-settings plugin if installed, otherwise fall back to App.
       // Both imports are wrapped so missing plugins don't crash.
       try {
-        const mod: any = await import('capacitor-native-settings').catch(() => null);
+        const mod: any = await import(/* @vite-ignore */ 'capacitor-native-settings').catch(() => null);
         if (mod?.NativeSettings) {
           if (Capacitor.getPlatform() === 'android') {
             await mod.NativeSettings.openAndroid({ option: mod.AndroidSettings?.Location ?? 'location' });
