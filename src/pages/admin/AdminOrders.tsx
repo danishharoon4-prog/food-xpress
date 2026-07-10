@@ -16,6 +16,7 @@ import { DeliveryCountdown } from '@/components/DeliveryCountdown';
 import type { Order, OrderStatus } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfileAvatar } from '@/lib/avatarUrl';
+import RiderAvatar from '@/components/RiderAvatar';
 
 function PartyAvatar({ userId, name, className = 'w-9 h-9' }: { userId?: string | null; name?: string | null; className?: string }) {
   const url = useProfileAvatar(userId);
