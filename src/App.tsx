@@ -79,7 +79,9 @@ const App = () => (
       <CartProvider>
         <TooltipProvider>
           <SplashOverlay />
+          <SwipeHintOverlay />
           <Toaster />
+
           <Sonner />
           <BrowserRouter>
             <NotificationsListener />
