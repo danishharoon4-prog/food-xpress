@@ -23,7 +23,7 @@ function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
   );
 }
 
-type DocField = 'cnic_image_url' | 'vehicle_doc_url' | 'license_image_url';
+type DocField = 'cnic_image_url' | 'vehicle_doc_url' | 'license_image_url' | 'personal_photo_url';
 
 export default function RiderSettings() {
   const { user, profile, refreshProfile } = useAuth();
@@ -53,6 +53,7 @@ export default function RiderSettings() {
   const cnicInputRef = useRef<HTMLInputElement>(null);
   const vehicleInputRef = useRef<HTMLInputElement>(null);
   const licenseInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) fetchData();
@@ -350,7 +351,8 @@ export default function RiderSettings() {
             <FileImage className="w-5 h-5" /> Verification Documents
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-3 gap-4">
+        <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <DocUploader title="Personal Photo" field="personal_photo_url" inputRef={photoInputRef} url={(rider as any)?.personal_photo_url || null} />
           <DocUploader title="CNIC Photo" field="cnic_image_url" inputRef={cnicInputRef} url={rider?.cnic_image_url || null} />
           <DocUploader title="Vehicle Document" field="vehicle_doc_url" inputRef={vehicleInputRef} url={rider?.vehicle_doc_url || null} />
           <DocUploader title="Driving License" field="license_image_url" inputRef={licenseInputRef} url={rider?.license_image_url || null} />
