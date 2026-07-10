@@ -25,9 +25,15 @@ export default function LocationGate({ children }: Props) {
   const check = useCallback(async () => {
     setStatus('checking');
     setMessage('');
+    // Only enforce location on native mobile apps. Web/browser users skip the gate.
+    if (!Capacitor.isNativePlatform()) {
+      setStatus('ok');
+      return;
+    }
     try {
-      if (Capacitor.isNativePlatform()) {
+      {
         const { Geolocation } = await import('@capacitor/geolocation');
+
         let perm = await Geolocation.checkPermissions();
         if (perm.location !== 'granted' && perm.coarseLocation !== 'granted') {
           perm = await Geolocation.requestPermissions({ permissions: ['location'] });
