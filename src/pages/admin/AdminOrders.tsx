@@ -315,16 +315,19 @@ export default function AdminOrders() {
                     <span className="text-muted-foreground">Rider Assign:</span>
                   </div>
                   {order.rider_id ? (
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <span className="font-medium text-success">
-                        {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
-                      </span>
-                      {order.assigned_rider?.profile?.phone && (
-                        <a href={`tel:${order.assigned_rider.profile.phone}`} className="text-primary hover:underline flex items-center gap-1 text-xs">
-                          <Phone className="w-3 h-3" />
-                          {order.assigned_rider.profile.phone}
-                        </a>
-                      )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <PartyAvatar userId={order.assigned_rider?.user_id} name={order.assigned_rider?.profile?.full_name} className="w-8 h-8" />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-success truncate">
+                          {order.assigned_rider?.profile?.full_name || getRiderName(order.rider_id)}
+                        </div>
+                        {order.assigned_rider?.profile?.phone && (
+                          <a href={`tel:${order.assigned_rider.profile.phone}`} className="text-primary hover:underline flex items-center gap-1 text-xs">
+                            <Phone className="w-3 h-3" />
+                            {order.assigned_rider.profile.phone}
+                          </a>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <Select onValueChange={(riderId) => assignRider(order.id, riderId)}>
