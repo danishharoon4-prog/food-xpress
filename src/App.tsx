@@ -22,6 +22,8 @@ import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import { PrivacyPolicy, TermsAndConditions } from "./pages/Legal";
+
 import { RoleGuard } from "@/components/RoleGuard";
 import RoleLanding from "@/components/RoleLanding";
 
@@ -90,6 +92,10 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsAndConditions />} />
+
+
               
               {/* Customer Routes — public browsing stays open; account routes gated by RoleGuard */}
               <Route path="/dashboard" element={<RoleGuard allow="customer"><Dashboard /></RoleGuard>} />
