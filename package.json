@@ -19,7 +19,6 @@
     "@capacitor/geolocation": "^8.2.0",
     "@capacitor/local-notifications": "^8.2.0",
     "@capacitor/push-notifications": "^8.1.1",
-    "@capacitor/splash-screen": "^8.0.1",
     "@fontsource/manrope": "^5.2.8",
     "@fontsource/sora": "^5.2.8",
     "@hookform/resolvers": "^3.10.0",
