@@ -137,16 +137,18 @@ export function useSwipeNav(paths: string[]) {
       else if (dx > 0 && idx > 0) navigate(paths[idx - 1]);
     };
 
-    window.addEventListener('touchstart', onStart, { passive: true });
-    window.addEventListener('touchmove', onMove, { passive: true });
-    window.addEventListener('touchend', onEnd, { passive: true });
-    window.addEventListener('touchcancel', onEnd, { passive: true });
+    const opts: AddEventListenerOptions = { passive: true, capture: true };
+    document.addEventListener('touchstart', onStart, opts);
+    document.addEventListener('touchmove', onMove, opts);
+    document.addEventListener('touchend', onEnd, opts);
+    document.addEventListener('touchcancel', onEnd, opts);
     return () => {
-      window.removeEventListener('touchstart', onStart);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onEnd);
-      window.removeEventListener('touchcancel', onEnd);
+      document.removeEventListener('touchstart', onStart, opts);
+      document.removeEventListener('touchmove', onMove, opts);
+      document.removeEventListener('touchend', onEnd, opts);
+      document.removeEventListener('touchcancel', onEnd, opts);
     };
+
   }, [paths, location.pathname, navigate, prefs.swipeEnabled, prefs.swipeThreshold]);
 }
 
