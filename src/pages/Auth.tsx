@@ -323,6 +323,24 @@ export default function Auth() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="signup-phone">Mobile Number</Label>
+                  <Input
+                    id="signup-phone"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="03XXXXXXXXX"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {errors.phone && (
+                    <p className="text-sm text-destructive">{errors.phone}</p>
+                  )}
+                </div>
+
+
+                <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
                     id="signup-email"
