@@ -1,155 +1,146 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNavPrefs } from './useNavPrefs';
 
 /**
- * Enables horizontal swipe navigation between the given ordered paths.
+ * Horizontal swipe navigation between the given ordered paths.
  * Swipe left  → next path
  * Swipe right → previous path
- * Only active on touch devices (mobile).
+ *
+ * Uses pointer events which work reliably in Capacitor Android WebView,
+ * regular mobile browsers and desktop (mouse drag).
  */
 export function useSwipeNav(paths: string[]) {
   const navigate = useNavigate();
   const location = useLocation();
   const { prefs } = useNavPrefs();
 
+  // Keep latest values in refs so the effect stays mounted per component
+  // (we only rebind when swipe pref toggles).
+  const pathsRef = useRef(paths);
+  const locationRef = useRef(location);
+  const thresholdRef = useRef(prefs.swipeThreshold);
+  useEffect(() => { pathsRef.current = paths; }, [paths]);
+  useEffect(() => { locationRef.current = location; }, [location]);
+  useEffect(() => { thresholdRef.current = prefs.swipeThreshold; }, [prefs.swipeThreshold]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!prefs.swipeEnabled) return;
-    const hasTouch = 'ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0;
-    if (!hasTouch) return;
 
-    // Edge zone width (px) — swipes starting here use a reduced threshold
-    const EDGE_ZONE = 32;
-    const EDGE_THRESHOLD = 20;
-    const MIN_THRESHOLD = 30;
-    const MIN_DURATION_MS = 30;
+    const EDGE_ZONE = 40;
+    const EDGE_THRESHOLD = 24;
+    const MIN_THRESHOLD = 40;
     const MAX_DURATION_MS = 1500;
-    const SCROLL_LOCK_DY = 28;
-
+    const H_INTENT_PX = 10; // px horizontal before we lock horizontal intent
 
     let startX = 0;
     let startY = 0;
     let startT = 0;
+    let pointerId: number | null = null;
     let tracking = false;
-    let locked = false; // vertical-scroll lock: swipe cancelled for this gesture
-    let intentDecided = false; // once horizontal or vertical intent is set, don't flip
+    let locked = false;
     let horizontalIntent = false;
     let fromLeftEdge = false;
     let fromRightEdge = false;
 
-    const onStart = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return;
+    const emitHint = (dir: 'left' | 'right' | null, progress: number, label: string | null) => {
+      window.dispatchEvent(new CustomEvent('swipe-nav-hint', { detail: { dir, progress, label } }));
+    };
+
+    const getLabel = (offset: number) => {
+      const p = pathsRef.current;
+      const idx = p.indexOf(locationRef.current.pathname);
+      if (idx === -1) return null;
+      const target = idx + offset;
+      if (target < 0 || target >= p.length) return null;
+      return p[target];
+    };
+
+    const reset = () => {
+      tracking = false;
+      locked = false;
+      horizontalIntent = false;
+      pointerId = null;
+      emitHint(null, 0, null);
+    };
+
+    const onDown = (e: PointerEvent) => {
+      // Only primary touch/pen input; ignore mouse to keep desktop drag-free.
+      if (e.pointerType === 'mouse') return;
       const target = e.target as HTMLElement | null;
-      if (target?.closest('input, textarea, select, [role="slider"], [data-no-swipe], .no-swipe')) {
-        tracking = false;
-        return;
-      }
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
+      if (target?.closest('input, textarea, select, [role="slider"], [data-no-swipe], .no-swipe')) return;
+      startX = e.clientX;
+      startY = e.clientY;
       startT = Date.now();
+      pointerId = e.pointerId;
       tracking = true;
       locked = false;
-      intentDecided = false;
       horizontalIntent = false;
       const w = window.innerWidth;
       fromLeftEdge = startX <= EDGE_ZONE;
       fromRightEdge = startX >= w - EDGE_ZONE;
     };
 
-    const emitHint = (dir: 'left' | 'right' | null, progress: number, label: string | null) => {
-      window.dispatchEvent(new CustomEvent('swipe-nav-hint', {
-        detail: { dir, progress, label },
-      }));
-    };
-
-    const getLabel = (offset: number) => {
-      const idx = paths.indexOf(location.pathname);
-      if (idx === -1) return null;
-      const target = idx + offset;
-      if (target < 0 || target >= paths.length) return null;
-      return paths[target];
-    };
-
-    const onMove = (e: TouchEvent) => {
-      if (!tracking || locked || e.touches.length !== 1) return;
-      const t = e.touches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
+    const onMove = (e: PointerEvent) => {
+      if (!tracking || locked) return;
+      if (pointerId !== null && e.pointerId !== pointerId) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
       const adx = Math.abs(dx);
       const ady = Math.abs(dy);
 
-      // Decide gesture intent as soon as movement is meaningful.
-      if (!intentDecided) {
-        if (ady >= SCROLL_LOCK_DY && ady > adx * 1.5) {
-          locked = true;
-          emitHint(null, 0, null);
-          return;
-        }
-        if (adx >= 8 && adx > ady) {
-          intentDecided = true;
-          horizontalIntent = true;
-        } else {
-          return;
-        }
+      if (!horizontalIntent) {
+        // If clearly vertical first, cancel this gesture.
+        if (ady > 16 && ady > adx * 1.3) { locked = true; emitHint(null, 0, null); return; }
+        if (adx < H_INTENT_PX) return;
+        horizontalIntent = true;
       }
 
-      if (!horizontalIntent) return;
-
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
-      const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
+      const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : thresholdRef.current;
       const threshold = Math.max(rawThreshold, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
       const dir: 'left' | 'right' = dx < 0 ? 'left' : 'right';
       const label = getLabel(dir === 'left' ? 1 : -1);
       if (!label) { emitHint(null, 0, null); return; }
-      const progress = Math.min(1, adx / threshold);
-      emitHint(dir, progress, label);
+      emitHint(dir, Math.min(1, adx / threshold), label);
     };
 
-    const onEnd = (e: TouchEvent) => {
-      const wasTracking = tracking;
-      const wasLocked = locked;
+    const onUp = (e: PointerEvent) => {
+      if (!tracking) return;
+      if (pointerId !== null && e.pointerId !== pointerId) return;
       const wasHorizontal = horizontalIntent;
-      tracking = false;
-      locked = false;
-      intentDecided = false;
-      horizontalIntent = false;
-      emitHint(null, 0, null);
-      if (!wasTracking || wasLocked || !wasHorizontal) return;
-
-      const t = e.changedTouches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
+      const wasLocked = locked;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
       const dt = Date.now() - startT;
-      if (dt < MIN_DURATION_MS || dt > MAX_DURATION_MS) return;
+      reset();
+      if (wasLocked || !wasHorizontal) return;
+      if (dt > MAX_DURATION_MS) return;
 
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
-      const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : prefs.swipeThreshold;
+      const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : thresholdRef.current;
       const threshold = Math.max(rawThreshold, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
-      const verticalRatio = edgeSwipe ? 1.5 : 1.0;
-
       if (Math.abs(dx) < threshold) return;
-      if (Math.abs(dy) > Math.abs(dx) * verticalRatio) return;
+      if (Math.abs(dy) > Math.abs(dx)) return;
 
-      const idx = paths.indexOf(location.pathname);
+      const p = pathsRef.current;
+      const idx = p.indexOf(locationRef.current.pathname);
       if (idx === -1) return;
-      if (dx < 0 && idx < paths.length - 1) navigate(paths[idx + 1]);
-      else if (dx > 0 && idx > 0) navigate(paths[idx - 1]);
+      if (dx < 0 && idx < p.length - 1) navigate(p[idx + 1]);
+      else if (dx > 0 && idx > 0) navigate(p[idx - 1]);
     };
 
     const opts: AddEventListenerOptions = { passive: true, capture: true };
-    document.addEventListener('touchstart', onStart, opts);
-    document.addEventListener('touchmove', onMove, opts);
-    document.addEventListener('touchend', onEnd, opts);
-    document.addEventListener('touchcancel', onEnd, opts);
+    window.addEventListener('pointerdown', onDown, opts);
+    window.addEventListener('pointermove', onMove, opts);
+    window.addEventListener('pointerup', onUp, opts);
+    window.addEventListener('pointercancel', onUp, opts);
     return () => {
-      document.removeEventListener('touchstart', onStart, opts);
-      document.removeEventListener('touchmove', onMove, opts);
-      document.removeEventListener('touchend', onEnd, opts);
-      document.removeEventListener('touchcancel', onEnd, opts);
+      window.removeEventListener('pointerdown', onDown, opts);
+      window.removeEventListener('pointermove', onMove, opts);
+      window.removeEventListener('pointerup', onUp, opts);
+      window.removeEventListener('pointercancel', onUp, opts);
     };
-
-  }, [paths, location.pathname, navigate, prefs.swipeEnabled, prefs.swipeThreshold]);
+  }, [navigate, prefs.swipeEnabled]);
 }
-
-
