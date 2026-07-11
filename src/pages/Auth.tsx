@@ -134,7 +134,7 @@ export default function Auth() {
     if (!validateForm(true)) return;
 
     setIsLoading(true);
-    const { error } = await signUp(email, password, fullName, selectedRole);
+    const { error } = await signUp(email, password, fullName, phone, selectedRole);
     setIsLoading(false);
 
     if (error) {
