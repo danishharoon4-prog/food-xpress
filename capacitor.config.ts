@@ -5,6 +5,14 @@ const config: CapacitorConfig = {
   appName: 'food-xpress',
   webDir: 'dist',
   backgroundColor: '#FFFFFF',
+  // Live updates: app loads the published website directly.
+  // Any change published to Lovable will reflect in the app after refresh —
+  // no rebuild needed for JS/UI/CSS changes.
+  server: {
+    url: 'https://food-xpress.lovable.app',
+    cleartext: false,
+    androidScheme: 'https',
+  },
   android: {
     allowMixedContent: false,
     // captureInput must be false — when true, Android WebView intercepts
