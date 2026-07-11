@@ -20,12 +20,13 @@ export function useSwipeNav(paths: string[]) {
     if (!hasTouch) return;
 
     // Edge zone width (px) — swipes starting here use a reduced threshold
-    const EDGE_ZONE = 28;
-    const EDGE_THRESHOLD = 24;
-    const MIN_THRESHOLD = 40;
-    const MIN_DURATION_MS = 40;
-    const MAX_DURATION_MS = 1200;
-    const SCROLL_LOCK_DY = 16;
+    const EDGE_ZONE = 32;
+    const EDGE_THRESHOLD = 20;
+    const MIN_THRESHOLD = 30;
+    const MIN_DURATION_MS = 30;
+    const MAX_DURATION_MS = 1500;
+    const SCROLL_LOCK_DY = 28;
+
 
     let startX = 0;
     let startY = 0;
@@ -80,18 +81,19 @@ export function useSwipeNav(paths: string[]) {
 
       // Decide gesture intent as soon as movement is meaningful.
       if (!intentDecided) {
-        if (ady >= SCROLL_LOCK_DY && ady > adx * 1.2) {
+        if (ady >= SCROLL_LOCK_DY && ady > adx * 1.5) {
           locked = true;
           emitHint(null, 0, null);
           return;
         }
-        if (adx >= 10 && adx > ady) {
+        if (adx >= 8 && adx > ady) {
           intentDecided = true;
           horizontalIntent = true;
         } else {
           return;
         }
       }
+
       if (!horizontalIntent) return;
 
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
@@ -135,16 +137,18 @@ export function useSwipeNav(paths: string[]) {
       else if (dx > 0 && idx > 0) navigate(paths[idx - 1]);
     };
 
-    window.addEventListener('touchstart', onStart, { passive: true });
-    window.addEventListener('touchmove', onMove, { passive: true });
-    window.addEventListener('touchend', onEnd, { passive: true });
-    window.addEventListener('touchcancel', onEnd, { passive: true });
+    const opts: AddEventListenerOptions = { passive: true, capture: true };
+    document.addEventListener('touchstart', onStart, opts);
+    document.addEventListener('touchmove', onMove, opts);
+    document.addEventListener('touchend', onEnd, opts);
+    document.addEventListener('touchcancel', onEnd, opts);
     return () => {
-      window.removeEventListener('touchstart', onStart);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onEnd);
-      window.removeEventListener('touchcancel', onEnd);
+      document.removeEventListener('touchstart', onStart, opts);
+      document.removeEventListener('touchmove', onMove, opts);
+      document.removeEventListener('touchend', onEnd, opts);
+      document.removeEventListener('touchcancel', onEnd, opts);
     };
+
   }, [paths, location.pathname, navigate, prefs.swipeEnabled, prefs.swipeThreshold]);
 }
 
