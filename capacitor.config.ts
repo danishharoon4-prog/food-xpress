@@ -19,7 +19,6 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     LocalNotifications: {
-      smallIcon: 'ic_stat_notification',
       iconColor: '#FF6F00',
     },
     // Keyboard resizes the WebView so inputs/buttons never sit behind the
