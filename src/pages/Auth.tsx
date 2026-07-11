@@ -44,6 +44,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { signIn, signUp, user, role, isLoading: authLoading } = useAuth();
