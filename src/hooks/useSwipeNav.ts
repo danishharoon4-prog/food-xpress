@@ -20,12 +20,13 @@ export function useSwipeNav(paths: string[]) {
     if (!hasTouch) return;
 
     // Edge zone width (px) — swipes starting here use a reduced threshold
-    const EDGE_ZONE = 28;
-    const EDGE_THRESHOLD = 24;
-    const MIN_THRESHOLD = 40;
-    const MIN_DURATION_MS = 40;
-    const MAX_DURATION_MS = 1200;
-    const SCROLL_LOCK_DY = 16;
+    const EDGE_ZONE = 32;
+    const EDGE_THRESHOLD = 20;
+    const MIN_THRESHOLD = 30;
+    const MIN_DURATION_MS = 30;
+    const MAX_DURATION_MS = 1500;
+    const SCROLL_LOCK_DY = 28;
+
 
     let startX = 0;
     let startY = 0;
