@@ -91,6 +91,14 @@ export default function Auth() {
         }
       }
 
+      try {
+        phoneSchema.parse(phone);
+      } catch (e) {
+        if (e instanceof z.ZodError) {
+          newErrors.phone = e.errors[0].message;
+        }
+      }
+
       if (!confirmPassword) {
         newErrors.confirmPassword = 'Please confirm your password';
       } else if (password && confirmPassword !== password) {
