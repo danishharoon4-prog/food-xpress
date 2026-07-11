@@ -19,6 +19,10 @@ const passwordSchema = z
   .regex(/[A-Za-z]/, 'Password must contain a letter')
   .regex(/[0-9]/, 'Password must contain a number');
 const nameSchema = z.string().min(2, 'Name must be at least 2 characters');
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(/^(\+92|0)?3\d{9}$/, 'Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)');
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -40,6 +44,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { signIn, signUp, user, role, isLoading: authLoading } = useAuth();
@@ -86,6 +91,14 @@ export default function Auth() {
         }
       }
 
+      try {
+        phoneSchema.parse(phone);
+      } catch (e) {
+        if (e instanceof z.ZodError) {
+          newErrors.phone = e.errors[0].message;
+        }
+      }
+
       if (!confirmPassword) {
         newErrors.confirmPassword = 'Please confirm your password';
       } else if (password && confirmPassword !== password) {
@@ -121,7 +134,7 @@ export default function Auth() {
     if (!validateForm(true)) return;
 
     setIsLoading(true);
-    const { error } = await signUp(email, password, fullName, selectedRole);
+    const { error } = await signUp(email, password, fullName, phone, selectedRole);
     setIsLoading(false);
 
     if (error) {
@@ -308,6 +321,24 @@ export default function Auth() {
                     <p className="text-sm text-destructive">{errors.fullName}</p>
                   )}
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-phone">Mobile Number</Label>
+                  <Input
+                    id="signup-phone"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="03XXXXXXXXX"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {errors.phone && (
+                    <p className="text-sm text-destructive">{errors.phone}</p>
+                  )}
+                </div>
+
 
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>

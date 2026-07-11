@@ -9,7 +9,7 @@ interface AuthContextType {
   profile: Profile | null;
   role: AppRole | null;
   isLoading: boolean;
-  signUp: (email: string, password: string, fullName: string, role?: AppRole) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, phone: string, role?: AppRole) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string, remember?: boolean) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
 
-  const signUp = async (email: string, password: string, fullName: string, _role: AppRole = 'customer') => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string, _role: AppRole = 'customer') => {
     const redirectUrl = `${window.location.origin}/`;
 
     // SECURITY: only 'restaurant' or 'rider' can be requested at signup.
@@ -114,17 +114,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const requestedRole: AppRole =
       _role === 'restaurant' || _role === 'rider' ? _role : 'customer';
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          phone,
           role: requestedRole,
         },
       },
     });
+
+    // Ensure phone is persisted on the profile even if the DB trigger doesn't map it.
+    if (!error && data.user) {
+      try {
+        await supabase.from('profiles').update({ phone }).eq('id', data.user.id);
+      } catch (e) {
+        console.error('profile phone update failed', e);
+      }
+    }
 
     return { error: error as Error | null };
   };
