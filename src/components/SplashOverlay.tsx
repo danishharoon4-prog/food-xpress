@@ -13,8 +13,8 @@ export default function SplashOverlay() {
 
   useEffect(() => {
     if (!isNative) return;
-    const fadeTimer = setTimeout(() => setFading(true), 3200);
-    const hideTimer = setTimeout(() => setVisible(false), 3800);
+    const fadeTimer = setTimeout(() => setFading(true), 5000);
+    const hideTimer = setTimeout(() => setVisible(false), 5600);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
