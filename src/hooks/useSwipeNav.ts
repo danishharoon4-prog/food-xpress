@@ -81,18 +81,19 @@ export function useSwipeNav(paths: string[]) {
 
       // Decide gesture intent as soon as movement is meaningful.
       if (!intentDecided) {
-        if (ady >= SCROLL_LOCK_DY && ady > adx * 1.2) {
+        if (ady >= SCROLL_LOCK_DY && ady > adx * 1.5) {
           locked = true;
           emitHint(null, 0, null);
           return;
         }
-        if (adx >= 10 && adx > ady) {
+        if (adx >= 8 && adx > ady) {
           intentDecided = true;
           horizontalIntent = true;
         } else {
           return;
         }
       }
+
       if (!horizontalIntent) return;
 
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
