@@ -13,6 +13,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 
 import { SwipeHintOverlay } from "@/components/SwipeHintOverlay";
 import LocationGate from "@/components/LocationGate";
+import SplashOverlay from "@/components/SplashOverlay";
 
 patchSonnerForBrowserNotifications();
 
@@ -79,7 +80,7 @@ const App = () => (
     <AuthProvider>
       <CartProvider>
         <TooltipProvider>
-          
+          <SplashOverlay />
           <SwipeHintOverlay />
           <Toaster />
 
