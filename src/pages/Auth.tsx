@@ -19,6 +19,10 @@ const passwordSchema = z
   .regex(/[A-Za-z]/, 'Password must contain a letter')
   .regex(/[0-9]/, 'Password must contain a number');
 const nameSchema = z.string().min(2, 'Name must be at least 2 characters');
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(/^(\+92|0)?3\d{9}$/, 'Enter a valid Pakistani mobile number (e.g. 03XXXXXXXXX)');
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
