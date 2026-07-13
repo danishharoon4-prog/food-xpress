@@ -72,7 +72,14 @@ import CustomerSupport from "./pages/customer/Support";
 import RiderSupport from "./pages/rider/RiderSupport";
 import RestaurantSupport from "./pages/restaurant/RestaurantSupport";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
