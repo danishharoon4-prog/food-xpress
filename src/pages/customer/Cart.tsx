@@ -7,8 +7,9 @@ import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, clearCart, getSubtotal } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, getSubtotal, getItemUnitPrice } = useCart();
   const subtotal = getSubtotal();
+
 
   if (items.length === 0) {
     return (
