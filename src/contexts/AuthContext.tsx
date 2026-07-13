@@ -61,10 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const applySession = async (session: Session | null, source: 'listener' | 'initial') => {
       const nextUserId = session?.user?.id ?? null;
+      const identityChanged = nextUserId !== currentUserId;
 
       // If user identity changed (account switch / reopen with different session),
       // clear stale profile+role IMMEDIATELY so guards never see the wrong role.
-      if (nextUserId !== currentUserId) {
+      if (identityChanged) {
         setProfile(null);
         setRole(null);
       }
@@ -74,16 +75,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        // Keep isLoading=true until role is resolved so route guards
-        // (AdminLayout/RiderLayout/RestaurantLayout/Auth redirect) don't
-        // act on a null/stale role and redirect to the wrong dashboard.
-        setIsLoading(true);
-        await fetchUserData(session.user.id);
+        // Only refetch profile/role on initial load or when the user identity
+        // actually changed. Token refresh events (tab focus, background refresh)
+        // must NOT trigger a reload — otherwise the whole app tree unmounts
+        // and looks like a page refresh.
+        if (source === 'initial' || identityChanged) {
+          setIsLoading(true);
+          await fetchUserData(session.user.id);
+          setIsLoading(false);
+        }
       } else {
         setProfile(null);
         setRole(null);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
