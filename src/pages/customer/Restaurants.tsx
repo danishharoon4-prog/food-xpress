@@ -55,6 +55,7 @@ export default function Restaurants() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const { addItem, getRestaurantId, items: cartItems } = useCart();
+  const navigate = useNavigate();
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [deals, setDeals] = useState<DealItem[]>([]);
