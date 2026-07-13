@@ -129,7 +129,7 @@ export default function Restaurants() {
       .not('discount_price', 'is', null)
       .order('updated_at', { ascending: false })
       .limit(12);
-    if (data) setDeals(data as DealItem[]);
+    if (data) setDeals(data as unknown as DealItem[]);
     setDealsLoading(false);
   };
 
