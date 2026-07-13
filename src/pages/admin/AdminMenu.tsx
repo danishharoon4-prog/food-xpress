@@ -214,7 +214,7 @@ export default function AdminMenu() {
                 <Textarea id="itemDesc" value={description} onChange={(e) => setDescription(e.target.value)} />
               </div>
               <div>
-                <Label htmlFor="itemPrice">Price (PKR) *</Label>
+                <Label htmlFor="itemPrice">Base Price (PKR) *</Label>
                 <Input
                   id="itemPrice"
                   type="number"
@@ -224,7 +224,59 @@ export default function AdminMenu() {
                   onChange={(e) => setPrice(e.target.value)}
                   required
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Used when no sizes are configured. If you add sizes below, customers must pick a size and its price will apply.
+                </p>
               </div>
+
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Size Variants (optional)</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Add sizes like Small / Medium / Large with separate prices (useful for pizzas, drinks, etc.)
+                    </p>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={addSizeRow}>
+                    <Plus className="w-4 h-4 mr-1" /> Add Size
+                  </Button>
+                </div>
+                {sizes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No sizes — single-price item.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {sizes.map((s, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <Input
+                          placeholder="Size name (e.g. Small)"
+                          value={s.name}
+                          onChange={(e) => updateSize(idx, { name: e.target.value })}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Price"
+                          value={s.price || ''}
+                          onChange={(e) => updateSize(idx, { price: parseFloat(e.target.value) || 0 })}
+                          className="w-28"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSize(idx)}
+                          className="text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="flex items-center justify-between">
                 <Label htmlFor="itemDeal">Fresh Deal</Label>
                 <Switch id="itemDeal" checked={isDeal} onCheckedChange={setIsDeal} />
