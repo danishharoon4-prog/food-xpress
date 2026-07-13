@@ -6,16 +6,25 @@ import CustomerHeader from '@/components/CustomerHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, MapPin, Clock, Star, Plus, Minus, ShoppingCart } from 'lucide-react';
-import type { Restaurant, MenuItem } from '@/types';
+import type { Restaurant, MenuItem, MenuItemSize } from '@/types';
 
 export default function RestaurantMenu() {
   const { id } = useParams<{ id: string }>();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { items, addItem, removeItem, updateQuantity, getItemCount, getSubtotal } = useCart();
+  const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
+  const [pickedSize, setPickedSize] = useState<string>('');
+  const { items, addItem, removeItem, updateQuantity, getItemCount, getSubtotal, makeCartKey } = useCart();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -29,16 +38,30 @@ export default function RestaurantMenu() {
     ]);
 
     if (restaurantRes.data) setRestaurant(restaurantRes.data as Restaurant);
-    if (menuRes.data) setMenuItems(menuRes.data as MenuItem[]);
+    if (menuRes.data) setMenuItems(menuRes.data as unknown as MenuItem[]);
     setLoading(false);
   };
 
-  const getItemQuantity = (menuItemId: string) => {
-    const item = items.find((i) => i.menuItem.id === menuItemId);
+  const hasSizes = (item: MenuItem) => Array.isArray(item.sizes) && item.sizes.length > 0;
+
+  const getItemQuantity = (menuItem: MenuItem) => {
+    if (hasSizes(menuItem)) {
+      // sum across all sizes of this menu item
+      return items
+        .filter((i) => i.menuItem.id === menuItem.id)
+        .reduce((n, i) => n + i.quantity, 0);
+    }
+    const key = makeCartKey(menuItem.id, null);
+    const item = items.find((i) => i.cartKey === key);
     return item?.quantity || 0;
   };
 
   const handleAddToCart = (menuItem: MenuItem) => {
+    if (hasSizes(menuItem)) {
+      setPickedSize(menuItem.sizes![0].name);
+      setSizePickerItem(menuItem);
+      return;
+    }
     addItem(menuItem);
     toast({
       title: 'Added to cart',
@@ -46,15 +69,39 @@ export default function RestaurantMenu() {
     });
   };
 
+  const confirmSizeAdd = () => {
+    if (!sizePickerItem) return;
+    const size = sizePickerItem.sizes!.find((s) => s.name === pickedSize);
+    if (!size) return;
+    addItem(sizePickerItem, 1, { selectedSize: size });
+    toast({
+      title: 'Added to cart',
+      description: `${sizePickerItem.name} (${size.name}) added to your cart`,
+    });
+    setSizePickerItem(null);
+    setPickedSize('');
+  };
+
   const handleUpdateQuantity = (menuItem: MenuItem, delta: number) => {
-    const currentQty = getItemQuantity(menuItem.id);
-    const newQty = currentQty + delta;
-    
-    if (newQty <= 0) {
-      removeItem(menuItem.id);
-    } else {
-      updateQuantity(menuItem.id, newQty);
+    if (hasSizes(menuItem)) {
+      // For sized items, +delta always opens size picker; -delta removes last-added variant
+      if (delta > 0) {
+        setPickedSize(menuItem.sizes![0].name);
+        setSizePickerItem(menuItem);
+        return;
+      }
+      const variants = items.filter((i) => i.menuItem.id === menuItem.id);
+      if (variants.length === 0) return;
+      const last = variants[variants.length - 1];
+      updateQuantity(last.cartKey, last.quantity - 1);
+      return;
     }
+    const key = makeCartKey(menuItem.id, null);
+    const current = items.find((i) => i.cartKey === key);
+    const currentQty = current?.quantity || 0;
+    const newQty = currentQty + delta;
+    if (newQty <= 0) removeItem(key);
+    else updateQuantity(key, newQty);
   };
 
   const itemCount = getItemCount();
@@ -97,13 +144,11 @@ export default function RestaurantMenu() {
       <CustomerHeader />
 
       <main className="container py-6">
-        {/* Back Button */}
         <Link to="/restaurants" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Restaurants
         </Link>
 
-        {/* Restaurant Header */}
         <div className="relative rounded-2xl overflow-hidden mb-8">
           <div className="h-48 md:h-64 bg-gradient-to-br from-primary/20 to-accent">
             {restaurant.image_url && (
@@ -139,9 +184,8 @@ export default function RestaurantMenu() {
           </div>
         </div>
 
-        {/* Menu Items */}
         <h2 className="text-2xl font-bold mb-6">Menu</h2>
-        
+
         {menuItems.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground">No menu items available yet.</p>
@@ -149,7 +193,11 @@ export default function RestaurantMenu() {
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {menuItems.map((item) => {
-              const qty = getItemQuantity(item.id);
+              const qty = getItemQuantity(item);
+              const sized = hasSizes(item);
+              const priceLabel = sized
+                ? `From PKR ${Math.min(...item.sizes!.map((s) => Number(s.price))).toLocaleString()}`
+                : `PKR ${Number(item.price).toLocaleString()}`;
 
               return (
                 <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
@@ -182,10 +230,22 @@ export default function RestaurantMenu() {
                             {item.description}
                           </p>
                         )}
+                        {sized && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.sizes!.map((s) => (
+                              <span
+                                key={s.name}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
+                              >
+                                {s.name} · PKR {Number(s.price).toLocaleString()}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center justify-between gap-2 mt-2">
                         <span className="font-bold text-primary text-sm sm:text-base whitespace-nowrap">
-                          PKR {Number(item.price).toLocaleString()}
+                          {priceLabel}
                         </span>
 
                         {qty === 0 ? (
@@ -195,7 +255,7 @@ export default function RestaurantMenu() {
                             className="gradient-primary h-8 px-3 text-xs"
                           >
                             <Plus className="w-3.5 h-3.5 mr-1" />
-                            Add
+                            {sized ? 'Select' : 'Add'}
                           </Button>
                         ) : (
                           <div className="flex items-center gap-1">
@@ -228,7 +288,38 @@ export default function RestaurantMenu() {
         )}
       </main>
 
-      {/* Cart Footer */}
+      {/* Size Picker Dialog */}
+      <Dialog open={!!sizePickerItem} onOpenChange={(open) => !open && setSizePickerItem(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Choose a size</DialogTitle>
+            <DialogDescription>
+              {sizePickerItem?.name} — pick which size you'd like to add.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {sizePickerItem?.sizes?.map((s) => (
+              <button
+                key={s.name}
+                type="button"
+                onClick={() => setPickedSize(s.name)}
+                className={`w-full text-left flex items-center justify-between rounded-lg border px-4 py-3 transition ${
+                  pickedSize === s.name
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/40'
+                }`}
+              >
+                <span className="font-medium">{s.name}</span>
+                <span className="font-bold text-primary">PKR {Number(s.price).toLocaleString()}</span>
+              </button>
+            ))}
+          </div>
+          <Button className="w-full gradient-primary" onClick={confirmSizeAdd} disabled={!pickedSize}>
+            Add to Cart
+          </Button>
+        </DialogContent>
+      </Dialog>
+
       {itemCount > 0 && (
         <div className="fixed bottom-16 md:bottom-0 left-0 right-0 p-3 md:p-4 bg-card border-t shadow-soft-xl z-40">
           <div className="container">

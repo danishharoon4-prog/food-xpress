@@ -72,6 +72,11 @@ export interface MenuCategory {
   created_at: string;
 }
 
+export interface MenuItemSize {
+  name: string;
+  price: number;
+}
+
 export interface MenuItem {
   id: string;
   restaurant_id: string;
@@ -85,6 +90,7 @@ export interface MenuItem {
   image_url: string | null;
   is_available: boolean;
   is_featured: boolean;
+  sizes?: MenuItemSize[] | null;
   created_at: string;
   updated_at: string;
   category?: MenuCategory;
@@ -92,10 +98,13 @@ export interface MenuItem {
 }
 
 export interface CartItem {
+  cartKey: string;
   menuItem: MenuItem;
   quantity: number;
   specialInstructions?: string;
+  selectedSize?: MenuItemSize | null;
 }
+
 
 export interface Rider {
   id: string;

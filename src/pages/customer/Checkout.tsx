@@ -266,6 +266,7 @@ export default function Checkout() {
         _items: items.map((item) => ({
           menu_item_id: item.menuItem.id,
           quantity: item.quantity,
+          size: item.selectedSize?.name || null,
           special_instructions: item.specialInstructions || null,
         })),
         _estimated_minutes: estimatedMinutes ?? 45,
@@ -457,14 +458,18 @@ export default function Checkout() {
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {items.map((item) => (
-                  <div key={item.menuItem.id} className="flex justify-between text-sm">
+                {items.map((item) => {
+                  const unit = item.selectedSize ? Number(item.selectedSize.price) : Number(item.menuItem.price);
+                  return (
+                  <div key={item.cartKey} className="flex justify-between text-sm">
                     <span>
-                      {item.menuItem.name} × {item.quantity}
+                      {item.menuItem.name}
+                      {item.selectedSize ? ` (${item.selectedSize.name})` : ''} × {item.quantity}
                     </span>
-                    <span>PKR {(Number(item.menuItem.price) * item.quantity).toLocaleString()}</span>
+                    <span>PKR {(unit * item.quantity).toLocaleString()}</span>
                   </div>
-                ))}
+                  );
+                })}
 
                 <Separator />
 

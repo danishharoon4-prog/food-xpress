@@ -7,8 +7,9 @@ import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, clearCart, getSubtotal } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, getSubtotal, getItemUnitPrice } = useCart();
   const subtotal = getSubtotal();
+
 
   if (items.length === 0) {
     return (
@@ -44,8 +45,10 @@ export default function Cart() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <Card key={item.menuItem.id}>
+            {items.map((item) => {
+              const unit = getItemUnitPrice(item);
+              return (
+              <Card key={item.cartKey}>
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     {item.menuItem.image_url && (
@@ -60,16 +63,21 @@ export default function Cart() {
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <div>
-                          <h3 className="font-semibold">{item.menuItem.name}</h3>
+                          <h3 className="font-semibold">
+                            {item.menuItem.name}
+                            {item.selectedSize && (
+                              <span className="text-muted-foreground font-normal"> ({item.selectedSize.name})</span>
+                            )}
+                          </h3>
                           <p className="text-sm text-muted-foreground">
-                            PKR {Number(item.menuItem.price).toLocaleString()} each
+                            PKR {unit.toLocaleString()} each
                           </p>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeItem(item.menuItem.id)}
+                          onClick={() => removeItem(item.cartKey)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -81,7 +89,7 @@ export default function Cart() {
                             size="icon"
                             variant="outline"
                             className="h-8 w-8"
-                            onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.cartKey, item.quantity - 1)}
                           >
                             <Minus className="w-4 h-4" />
                           </Button>
@@ -90,20 +98,21 @@ export default function Cart() {
                             size="icon"
                             variant="outline"
                             className="h-8 w-8"
-                            onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.cartKey, item.quantity + 1)}
                           >
                             <Plus className="w-4 h-4" />
                           </Button>
                         </div>
                         <span className="font-bold">
-                          PKR {(Number(item.menuItem.price) * item.quantity).toLocaleString()}
+                          PKR {(unit * item.quantity).toLocaleString()}
                         </span>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {/* Order Summary */}
