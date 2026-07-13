@@ -266,6 +266,7 @@ export default function Checkout() {
         _items: items.map((item) => ({
           menu_item_id: item.menuItem.id,
           quantity: item.quantity,
+          size: item.selectedSize?.name || null,
           special_instructions: item.specialInstructions || null,
         })),
         _estimated_minutes: estimatedMinutes ?? 45,
