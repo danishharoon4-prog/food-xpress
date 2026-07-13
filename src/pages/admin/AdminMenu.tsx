@@ -11,8 +11,8 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, UtensilsCrossed, LayoutGrid, List } from 'lucide-react';
-import type { MenuItem, Restaurant } from '@/types';
+import { Plus, Pencil, Trash2, UtensilsCrossed, LayoutGrid, List, X } from 'lucide-react';
+import type { MenuItem, MenuItemSize, Restaurant } from '@/types';
 import ImageCropInput from '@/components/ImageCropInput';
 
 export default function AdminMenu() {
