@@ -35,6 +35,7 @@ export default function AdminMenu() {
   const [imageUrl, setImageUrl] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [sizes, setSizes] = useState<MenuItemSize[]>([]);
 
   useEffect(() => {
     fetchData();
