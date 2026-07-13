@@ -29,7 +29,7 @@ export default function RestaurantMenu() {
     ]);
 
     if (restaurantRes.data) setRestaurant(restaurantRes.data as Restaurant);
-    if (menuRes.data) setMenuItems(menuRes.data as MenuItem[]);
+    if (menuRes.data) setMenuItems(menuRes.data as unknown as MenuItem[]);
     setLoading(false);
   };
 
