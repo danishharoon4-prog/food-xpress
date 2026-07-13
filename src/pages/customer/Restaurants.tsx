@@ -175,7 +175,7 @@ export default function Restaurants() {
     }
   };
 
-  const quickAdd = (
+  const quickAdd = async (
     e: React.MouseEvent,
     payload: {
       id: string;
@@ -189,6 +189,22 @@ export default function Restaurants() {
   ) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // If this item has size variants, redirect to the restaurant menu to pick a size
+    const { data: sizesRow } = await supabase
+      .from('menu_items')
+      .select('sizes')
+      .eq('id', payload.id)
+      .maybeSingle();
+    const sizesArr = (sizesRow?.sizes as unknown as { name: string; price: number }[] | null) || null;
+    if (sizesArr && Array.isArray(sizesArr) && sizesArr.length > 0) {
+      toast({
+        title: 'Choose a size',
+        description: `${payload.name} has multiple sizes — please pick one.`,
+      });
+      navigate(`/restaurant/${payload.restaurant_id}`);
+      return;
+    }
 
     const currentRestaurantId = getRestaurantId();
     const switching =
