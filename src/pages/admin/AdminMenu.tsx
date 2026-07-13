@@ -63,6 +63,7 @@ export default function AdminMenu() {
     setImageUrl('');
     setIsAvailable(true);
     setIsFeatured(false);
+    setSizes([]);
     setEditingItem(null);
   };
 
@@ -79,14 +80,34 @@ export default function AdminMenu() {
       setImageUrl(item.image_url || '');
       setIsAvailable(item.is_available);
       setIsFeatured(item.is_featured);
+      setSizes(Array.isArray(item.sizes) ? item.sizes : []);
     } else {
       resetForm();
     }
     setDialogOpen(true);
   };
 
+  const addSizeRow = () => setSizes((prev) => [...prev, { name: '', price: 0 }]);
+  const updateSize = (idx: number, patch: Partial<MenuItemSize>) =>
+    setSizes((prev) => prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
+  const removeSize = (idx: number) => setSizes((prev) => prev.filter((_, i) => i !== idx));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate sizes if any
+    const cleanSizes = sizes
+      .map((s) => ({ name: s.name.trim(), price: Number(s.price) }))
+      .filter((s) => s.name.length > 0);
+    if (cleanSizes.some((s) => !Number.isFinite(s.price) || s.price <= 0)) {
+      toast({ title: 'Invalid size price', description: 'Each size must have a price greater than 0.', variant: 'destructive' });
+      return;
+    }
+    const nameSet = new Set(cleanSizes.map((s) => s.name.toLowerCase()));
+    if (nameSet.size !== cleanSizes.length) {
+      toast({ title: 'Duplicate size', description: 'Size names must be unique.', variant: 'destructive' });
+      return;
+    }
 
     const itemData: any = {
       restaurant_id: restaurantId,
@@ -99,7 +120,9 @@ export default function AdminMenu() {
       image_url: imageUrl || null,
       is_available: isAvailable,
       is_featured: isFeatured,
+      sizes: cleanSizes.length > 0 ? cleanSizes : null,
     };
+
 
     if (editingItem) {
       const { error } = await supabase
