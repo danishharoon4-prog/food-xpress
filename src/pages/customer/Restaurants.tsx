@@ -393,12 +393,52 @@ export default function Restaurants() {
             </>
           )}
 
-          {(city !== 'all' || cuisine !== 'all') && (
+          <button
+            onClick={() => setOpenNow((v) => !v)}
+            className={`flex-none h-11 px-4 rounded-2xl text-sm font-bold border transition-colors inline-flex items-center gap-1.5 ${
+              openNow
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-card text-muted-foreground border-border/60 hover:border-primary/40'
+            }`}
+          >
+            <Clock className="w-4 h-4" /> Open now
+          </button>
+
+          <button
+            onClick={() => {
+              if (!user) {
+                toast({ title: 'Sign in required', description: 'Sign in to filter by favorites', variant: 'destructive' });
+                return;
+              }
+              setFavOnly((v) => !v);
+            }}
+            className={`flex-none h-11 px-4 rounded-2xl text-sm font-bold border transition-colors inline-flex items-center gap-1.5 ${
+              favOnly
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-card text-muted-foreground border-border/60 hover:border-primary/40'
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${favOnly ? 'fill-current' : ''}`} /> Favorites
+          </button>
+
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+            <SelectTrigger className="flex-none h-11 w-auto min-w-[170px] rounded-2xl bg-card border-border/60 font-bold text-sm">
+              <ArrowUpDown className="w-4 h-4 mr-1.5 text-primary" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recommended">Recommended</SelectItem>
+              <SelectItem value="rating">Top Rated</SelectItem>
+              <SelectItem value="name">A – Z</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {(city !== 'all' || cuisine !== 'all' || openNow || favOnly || sortBy !== 'recommended') && (
             <Button
               variant="ghost"
               size="sm"
               className="flex-none h-11 rounded-2xl text-muted-foreground hover:text-foreground font-semibold"
-              onClick={() => { setCity('all'); setCuisine('all'); }}
+              onClick={() => { setCity('all'); setCuisine('all'); setOpenNow(false); setFavOnly(false); setSortBy('recommended'); }}
             >
               Clear
             </Button>
