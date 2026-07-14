@@ -162,9 +162,10 @@ export default function RestaurantMenu() {
           <div className="h-48 md:h-64 bg-gradient-to-br from-primary/20 to-accent">
             {restaurant.image_url && (
               <img
-                src={restaurant.image_url}
+                src={resolveImg(restaurant.image_url)}
                 alt={restaurant.name}
                 className="w-full h-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
             )}
           </div>
