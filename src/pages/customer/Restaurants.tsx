@@ -67,6 +67,9 @@ export default function Restaurants() {
   const [topRatedLoading, setTopRatedLoading] = useState(true);
   const [city, setCity] = useState<string>('all');
   const [cuisine, setCuisine] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'recommended' | 'rating' | 'name'>('recommended');
+  const [openNow, setOpenNow] = useState(false);
+  const [favOnly, setFavOnly] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [ratings, setRatings] = useState<Record<string, { avg: number; count: number }>>({});
 
