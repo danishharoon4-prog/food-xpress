@@ -197,31 +197,38 @@ export default function RestaurantMenu() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold mb-6">Menu</h2>
-
         {menuItems.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground">No menu items available yet.</p>
           </div>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {menuItems.map((item) => {
+          (() => {
+            const grouped = new Map<string, MenuItem[]>();
+            const uncategorized: MenuItem[] = [];
+            menuItems.forEach((it) => {
+              const cid = (it as any).category_id as string | null;
+              if (cid) {
+                if (!grouped.has(cid)) grouped.set(cid, []);
+                grouped.get(cid)!.push(it);
+              } else {
+                uncategorized.push(it);
+              }
+            });
+            const orderedCats = categories.filter((c) => grouped.has(c.id));
+            const showTabs = orderedCats.length > 0;
+
+            const renderCard = (item: MenuItem) => {
               const qty = getItemQuantity(item);
               const sized = hasSizes(item);
               const priceLabel = sized
                 ? `From PKR ${Math.min(...item.sizes!.map((s) => Number(s.price))).toLocaleString()}`
                 : `PKR ${Number(item.price).toLocaleString()}`;
-
               return (
                 <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="flex gap-3 p-3">
                     <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
                       {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-primary/30">
                           {item.name.charAt(0)}
@@ -239,17 +246,12 @@ export default function RestaurantMenu() {
                           )}
                         </div>
                         {item.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {item.description}
-                          </p>
+                          <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
                         )}
                         {sized && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {item.sizes!.map((s) => (
-                              <span
-                                key={s.name}
-                                className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
-                              >
+                              <span key={s.name} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                                 {s.name} · PKR {Number(s.price).toLocaleString()}
                               </span>
                             ))}
@@ -257,36 +259,19 @@ export default function RestaurantMenu() {
                         )}
                       </div>
                       <div className="flex items-center justify-between gap-2 mt-2">
-                        <span className="font-bold text-primary text-sm sm:text-base whitespace-nowrap">
-                          {priceLabel}
-                        </span>
-
+                        <span className="font-bold text-primary text-sm sm:text-base whitespace-nowrap">{priceLabel}</span>
                         {qty === 0 ? (
-                          <Button
-                            size="sm"
-                            onClick={() => handleAddToCart(item)}
-                            className="gradient-primary h-8 px-3 text-xs"
-                          >
+                          <Button size="sm" onClick={() => handleAddToCart(item)} className="gradient-primary h-8 px-3 text-xs">
                             <Plus className="w-3.5 h-3.5 mr-1" />
                             {sized ? 'Select' : 'Add'}
                           </Button>
                         ) : (
                           <div className="flex items-center gap-1">
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-7 w-7"
-                              onClick={() => handleUpdateQuantity(item, -1)}
-                            >
+                            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => handleUpdateQuantity(item, -1)}>
                               <Minus className="w-3.5 h-3.5" />
                             </Button>
                             <span className="w-5 text-center text-sm font-medium">{qty}</span>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-7 w-7"
-                              onClick={() => handleUpdateQuantity(item, 1)}
-                            >
+                            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => handleUpdateQuantity(item, 1)}>
                               <Plus className="w-3.5 h-3.5" />
                             </Button>
                           </div>
@@ -296,10 +281,64 @@ export default function RestaurantMenu() {
                   </div>
                 </Card>
               );
-            })}
-          </div>
+            };
+
+            return (
+              <>
+                {showTabs && (
+                  <div className="sticky top-14 md:top-16 z-30 -mx-4 md:mx-0 mb-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+                    <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
+                      {orderedCats.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => scrollToCategory(c.id)}
+                          className="flex-shrink-0 px-4 py-1.5 rounded-full border border-border bg-card text-sm font-medium hover:border-primary hover:text-primary transition-colors whitespace-nowrap"
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                      {uncategorized.length > 0 && (
+                        <button
+                          onClick={() => scrollToCategory('other')}
+                          className="flex-shrink-0 px-4 py-1.5 rounded-full border border-border bg-card text-sm font-medium hover:border-primary hover:text-primary transition-colors whitespace-nowrap"
+                        >
+                          Other
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-8">
+                  {orderedCats.map((c) => (
+                    <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32">
+                      <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-3">
+                        <span>{c.name}</span>
+                        <span className="text-xs font-normal text-muted-foreground">({grouped.get(c.id)!.length})</span>
+                      </h2>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {grouped.get(c.id)!.map(renderCard)}
+                      </div>
+                    </section>
+                  ))}
+
+                  {uncategorized.length > 0 && (
+                    <section id="cat-other" className="scroll-mt-32">
+                      <h2 className="text-xl md:text-2xl font-bold mb-4">
+                        {orderedCats.length > 0 ? 'Other' : 'Menu'}
+                      </h2>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {uncategorized.map(renderCard)}
+                      </div>
+                    </section>
+                  )}
+                </div>
+              </>
+            );
+          })()
         )}
       </main>
+
 
       {/* Size Picker Dialog */}
       <Dialog open={!!sizePickerItem} onOpenChange={(open) => !open && setSizePickerItem(null)}>
