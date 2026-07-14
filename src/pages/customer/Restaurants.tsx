@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy, Plus, Check } from 'lucide-react';
+import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy, Plus, Check, ArrowUpDown } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant, MenuItem } from '@/types';
 import { motion } from 'framer-motion';
