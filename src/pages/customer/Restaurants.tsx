@@ -485,9 +485,9 @@ export default function Restaurants() {
                       <Link to={`/restaurant/${item.restaurant_id}`} className="group block">
                         <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-orange-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                           {item.image_url ? (
-                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            <img src={resolveImg(item.image_url)} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                           ) : item.restaurant_image ? (
-                            <img src={item.restaurant_image} alt={item.restaurant_name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            <img src={resolveImg(item.restaurant_image)} alt={item.restaurant_name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <Utensils className="w-10 h-10 text-primary/40" />
@@ -609,13 +609,13 @@ export default function Restaurants() {
                   <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                     {deal.image_url ? (
                       <img
-                        src={deal.image_url}
+                        src={resolveImg(deal.image_url)}
                         alt={deal.name}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                     ) : deal.restaurant?.image_url ? (
                       <img
-                        src={deal.restaurant.image_url}
+                        src={resolveImg(deal.restaurant.image_url)}
                         alt={deal.restaurant.name}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
@@ -721,7 +721,7 @@ export default function Restaurants() {
                     <Link to={`/restaurant/${r.id}`} className="group block">
                       <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-yellow-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl transition-all duration-500">
                         {r.image_url ? (
-                          <img src={r.image_url} alt={r.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          <img src={resolveImg(r.image_url)} alt={r.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <Utensils className="w-10 h-10 text-primary/40" />
@@ -801,7 +801,7 @@ export default function Restaurants() {
                     <div className="relative overflow-hidden rounded-[2rem] aspect-[1.4] mb-5 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                       {restaurant.image_url ? (
                         <img
-                          src={restaurant.image_url}
+                          src={resolveImg(restaurant.image_url)}
                           alt={restaurant.name}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
