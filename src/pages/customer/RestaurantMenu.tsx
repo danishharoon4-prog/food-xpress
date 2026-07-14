@@ -278,56 +278,78 @@ export default function RestaurantMenu() {
               );
             };
 
+            const totalCount = menuItems.length;
+            const catCounts = new Map<string, number>();
+            orderedCats.forEach((c) => catCounts.set(c.id, grouped.get(c.id)!.length));
+
+            const filteredItems =
+              activeCategory === 'all'
+                ? menuItems
+                : activeCategory === 'other'
+                ? uncategorized
+                : grouped.get(activeCategory) ?? [];
+
+            const activeCatName =
+              activeCategory === 'all'
+                ? 'All Items'
+                : activeCategory === 'other'
+                ? 'Other'
+                : orderedCats.find((c) => c.id === activeCategory)?.name ?? 'Menu';
+
+            const chipBase =
+              'flex-shrink-0 px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap transition-all active:scale-95';
+            const chipInactive =
+              'border-border bg-card text-foreground/80 hover:border-primary/40';
+            const chipActive =
+              'border-primary bg-primary text-primary-foreground shadow-sm';
+
             return (
               <>
                 {showTabs && (
                   <div className="sticky top-14 md:top-16 z-30 -mx-4 md:mx-0 mb-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
                     <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
+                      <button
+                        onClick={() => setActiveCategory('all')}
+                        className={`${chipBase} ${activeCategory === 'all' ? chipActive : chipInactive}`}
+                      >
+                        All <span className="opacity-70">({totalCount})</span>
+                      </button>
                       {orderedCats.map((c) => (
                         <button
                           key={c.id}
-                          onClick={() => scrollToCategory(c.id)}
-                          className="flex-shrink-0 px-4 py-1.5 rounded-full border border-border bg-card text-sm font-medium hover:border-primary hover:text-primary transition-colors whitespace-nowrap"
+                          onClick={() => setActiveCategory(c.id)}
+                          className={`${chipBase} ${activeCategory === c.id ? chipActive : chipInactive}`}
                         >
-                          {c.name}
+                          {c.name} <span className="opacity-70">({catCounts.get(c.id)})</span>
                         </button>
                       ))}
                       {uncategorized.length > 0 && (
                         <button
-                          onClick={() => scrollToCategory('other')}
-                          className="flex-shrink-0 px-4 py-1.5 rounded-full border border-border bg-card text-sm font-medium hover:border-primary hover:text-primary transition-colors whitespace-nowrap"
+                          onClick={() => setActiveCategory('other')}
+                          className={`${chipBase} ${activeCategory === 'other' ? chipActive : chipInactive}`}
                         >
-                          Other
+                          Other <span className="opacity-70">({uncategorized.length})</span>
                         </button>
                       )}
                     </div>
                   </div>
                 )}
 
-                <div className="space-y-8">
-                  {orderedCats.map((c) => (
-                    <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32">
-                      <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center gap-3">
-                        <span>{c.name}</span>
-                        <span className="text-xs font-normal text-muted-foreground">({grouped.get(c.id)!.length})</span>
-                      </h2>
-                      <div className="grid gap-3 md:grid-cols-2">
-                        {grouped.get(c.id)!.map(renderCard)}
-                      </div>
-                    </section>
-                  ))}
-
-                  {uncategorized.length > 0 && (
-                    <section id="cat-other" className="scroll-mt-32">
-                      <h2 className="text-xl md:text-2xl font-bold mb-4">
-                        {orderedCats.length > 0 ? 'Other' : 'Menu'}
-                      </h2>
-                      <div className="grid gap-3 md:grid-cols-2">
-                        {uncategorized.map(renderCard)}
-                      </div>
-                    </section>
+                <section>
+                  <div className="flex items-baseline justify-between mb-3">
+                    <h2 className="text-lg md:text-2xl font-bold">{activeCatName}</h2>
+                    <span className="text-xs text-muted-foreground">{filteredItems.length} items</span>
+                  </div>
+                  {filteredItems.length === 0 ? (
+                    <div className="text-center py-16 text-muted-foreground">
+                      No items in this category.
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {filteredItems.map(renderCard)}
+                    </div>
                   )}
-                </div>
+                </section>
               </>
             );
           })()
