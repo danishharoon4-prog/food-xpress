@@ -48,13 +48,7 @@ export default function RestaurantMenu() {
     setLoading(false);
   };
 
-  const scrollToCategory = (catId: string) => {
-    const el = document.getElementById(`cat-${catId}`);
-    if (el) {
-      const y = el.getBoundingClientRect().top + window.scrollY - 120;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }
-  };
+  // (scroll-to-category removed — replaced with real filtering)
 
   const hasSizes = (item: MenuItem) => Array.isArray(item.sizes) && item.sizes.length > 0;
 
