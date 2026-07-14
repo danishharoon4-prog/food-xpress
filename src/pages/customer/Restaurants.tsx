@@ -265,11 +265,34 @@ export default function Restaurants() {
     new Set(restaurants.map((r) => r.cuisine_type).filter((c): c is string => !!c))
   ).sort();
 
-  const filteredRestaurants = restaurants.filter((r) => {
-    const matchesCity = city === 'all' || r.city === city;
-    const matchesCuisine = cuisine === 'all' || r.cuisine_type === cuisine;
-    return matchesCity && matchesCuisine;
-  });
+  const isOpenNow = (r: Restaurant) => {
+    if (!r.opening_time || !r.closing_time) return true;
+    const now = new Date();
+    const cur = now.getHours() * 60 + now.getMinutes();
+    const [oh, om] = r.opening_time.split(':').map(Number);
+    const [ch, cm] = r.closing_time.split(':').map(Number);
+    const open = oh * 60 + om;
+    const close = ch * 60 + cm;
+    return close > open ? cur >= open && cur <= close : cur >= open || cur <= close;
+  };
+
+  const filteredRestaurants = restaurants
+    .filter((r) => {
+      const matchesCity = city === 'all' || r.city === city;
+      const matchesCuisine = cuisine === 'all' || r.cuisine_type === cuisine;
+      const matchesFav = !favOnly || favoriteIds.has(r.id);
+      const matchesOpen = !openNow || isOpenNow(r);
+      return matchesCity && matchesCuisine && matchesFav && matchesOpen;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'rating') {
+        const ra = ratings[a.id]?.avg ?? 0;
+        const rb = ratings[b.id]?.avg ?? 0;
+        return rb - ra;
+      }
+      return 0;
+    });
 
   const discountPercent = (item: DealItem) => {
     if (!item.discount_price || item.price <= 0) return 0;
