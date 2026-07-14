@@ -23,6 +23,7 @@ export default function RestaurantMenu() {
   const { id } = useParams<{ id: string }>();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
   const [pickedSize, setPickedSize] = useState<string>('');
@@ -34,14 +35,24 @@ export default function RestaurantMenu() {
   }, [id]);
 
   const fetchData = async () => {
-    const [restaurantRes, menuRes] = await Promise.all([
+    const [restaurantRes, menuRes, catRes] = await Promise.all([
       supabase.from('restaurants').select('*').eq('id', id).single(),
       supabase.from('menu_items').select('*').eq('restaurant_id', id).eq('is_available', true).order('is_featured', { ascending: false }),
+      supabase.from('menu_categories').select('id, name, display_order').eq('restaurant_id', id).order('display_order'),
     ]);
 
     if (restaurantRes.data) setRestaurant(restaurantRes.data as Restaurant);
     if (menuRes.data) setMenuItems(menuRes.data as unknown as MenuItem[]);
+    if (catRes.data) setCategories(catRes.data as MenuCategory[]);
     setLoading(false);
+  };
+
+  const scrollToCategory = (catId: string) => {
+    const el = document.getElementById(`cat-${catId}`);
+    if (el) {
+      const y = el.getBoundingClientRect().top + window.scrollY - 120;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
   };
 
   const hasSizes = (item: MenuItem) => Array.isArray(item.sizes) && item.sizes.length > 0;
