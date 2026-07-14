@@ -13,6 +13,7 @@ import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy, Plus, Check, 
 import GlobalSearch from '@/components/GlobalSearch';
 import type { Restaurant, MenuItem } from '@/types';
 import { motion } from 'framer-motion';
+import { resolveImg } from '@/lib/img';
 
 type TopItem = {
   id: string;
