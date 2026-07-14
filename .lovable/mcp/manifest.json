@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "sdk_version": "0.21.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://kbhyflhxyqvkrstoyava.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "food-express-mcp",
+      "version": "0.1.0",
+      "title": "FoodExpress"
+    },
+    "tools": [
+      {
+        "name": "list_restaurants",
+        "title": "List restaurants",
+        "description": "List approved, active restaurants on FoodExpress. Optional city filter and text search on name/cuisine.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "Filter by city, e.g. 'Mansehra'."
+            },
+            "search": {
+              "type": "string",
+              "description": "Search text matched against name or cuisine."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Max rows (default 20)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_restaurant_menu",
+        "title": "Get restaurant menu",
+        "description": "Return the available menu items for one restaurant, including any size variants and prices.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "restaurant_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Restaurant id from list_restaurants."
+            },
+            "search": {
+              "type": "string",
+              "description": "Optional text filter on item name."
+            }
+          },
+          "required": [
+            "restaurant_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_orders",
+        "title": "List my orders",
+        "description": "List the signed-in user's own orders (RLS enforced). Optional status filter and result limit.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "confirmed",
+                "preparing",
+                "ready_for_pickup",
+                "picked_up",
+                "on_the_way",
+                "awaiting_confirmation",
+                "delivered",
+                "cancelled"
+              ],
+              "description": "Filter by order status."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Max rows (default 10)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_order",
+        "title": "Get order details",
+        "description": "Get full details for a single order (RLS enforced — only the customer, assigned rider, restaurant owner, or admin can read it). Includes items.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "order_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Order id."
+            }
+          },
+          "required": [
+            "order_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "cancel_order",
+        "title": "Cancel order",
+        "description": "Cancel an order. Customers can cancel only before it enters preparation; restaurant owners and admins can cancel any time before pickup. Requires a reason.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "order_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Order id to cancel."
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 3,
+              "description": "Human-readable cancellation reason."
+            }
+          },
+          "required": [
+            "order_id",
+            "reason"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
