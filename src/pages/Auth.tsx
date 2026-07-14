@@ -54,13 +54,19 @@ export default function Auth() {
   useEffect(() => {
     if (authLoading) return;
     if (user && role) {
+      // Honor ?next= (used by OAuth consent flow) if it's a safe same-origin path.
+      const rawNext = searchParams.get('next');
+      if (rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')) {
+        window.location.replace(rawNext);
+        return;
+      }
       const redirectPath =
         role === 'admin' ? '/admin' :
         role === 'rider' ? '/rider' :
         role === 'restaurant' ? '/restaurant' : '/';
       navigate(redirectPath, { replace: true });
     }
-  }, [user, role, authLoading, navigate]);
+  }, [user, role, authLoading, navigate, searchParams]);
 
 
   const validateForm = (isSignup: boolean): boolean => {

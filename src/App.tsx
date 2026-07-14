@@ -25,6 +25,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { PrivacyPolicy, TermsAndConditions } from "./pages/Legal";
+import OAuthConsent from "./pages/OAuthConsent";
 
 import { RoleGuard } from "@/components/RoleGuard";
 import RoleLanding from "@/components/RoleLanding";
@@ -105,6 +106,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsAndConditions />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
 
               
