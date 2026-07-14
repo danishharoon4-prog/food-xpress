@@ -27,6 +27,7 @@ export default function RestaurantMenu() {
   const [loading, setLoading] = useState(true);
   const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
   const [pickedSize, setPickedSize] = useState<string>('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   const { items, addItem, removeItem, updateQuantity, getItemCount, getSubtotal, makeCartKey } = useCart();
   const { toast } = useToast();
 
