@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 
+const PUBLISHED_ORIGIN = "https://food-xpress.lovable.app";
 const RELOAD_GUARD_KEY = "fx-mobile-live-reload-at";
 const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 const RELOAD_GUARD_MS = 45 * 1000;
@@ -30,12 +31,22 @@ function wasRecentlyReloaded(): boolean {
   return Number.isFinite(last) && Date.now() - last < RELOAD_GUARD_MS;
 }
 
+function getPublishedRouteUrl(): string {
+  const nextUrl = new URL(window.location.href);
+  const publishedUrl = new URL(`${window.location.pathname}${window.location.search}${window.location.hash}`, PUBLISHED_ORIGIN);
+
+  // If the installed app is still serving the bundled Capacitor/Vite copy
+  // (capacitor://localhost, http://localhost, etc.), move it to the live site.
+  // This is what makes future Lovable publishes appear without rebuilding.
+  const isAlreadyLiveOrigin = nextUrl.origin === PUBLISHED_ORIGIN;
+  const target = isAlreadyLiveOrigin ? nextUrl : publishedUrl;
+  target.searchParams.set("fx_app_refresh", String(Date.now()));
+  return target.toString();
+}
+
 function refreshCurrentRoute() {
   sessionStorage.setItem(RELOAD_GUARD_KEY, String(Date.now()));
-
-  const nextUrl = new URL(window.location.href);
-  nextUrl.searchParams.set("fx_app_refresh", String(Date.now()));
-  window.location.replace(nextUrl.toString());
+  window.location.replace(getPublishedRouteUrl());
 }
 
 async function checkForPublishedUpdate() {
@@ -44,9 +55,11 @@ async function checkForPublishedUpdate() {
   if (isTypingNow() || wasRecentlyReloaded()) return;
 
   const currentSignature = getAssetSignatureFromDocument(document);
-  if (!currentSignature) return;
 
-  const checkUrl = new URL("/", window.location.origin);
+  const currentOrigin = window.location.origin;
+  const isBundledAppOrigin = currentOrigin !== PUBLISHED_ORIGIN;
+
+  const checkUrl = new URL("/", PUBLISHED_ORIGIN);
   checkUrl.searchParams.set("fx_update_check", String(Date.now()));
 
   try {
@@ -64,7 +77,7 @@ async function checkForPublishedUpdate() {
     const latestDoc = new DOMParser().parseFromString(html, "text/html");
     const latestSignature = getAssetSignatureFromDocument(latestDoc);
 
-    if (latestSignature && latestSignature !== currentSignature) {
+    if (isBundledAppOrigin || !currentSignature || (latestSignature && latestSignature !== currentSignature)) {
       refreshCurrentRoute();
     }
   } catch {
