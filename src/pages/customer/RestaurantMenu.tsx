@@ -16,6 +16,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, MapPin, Clock, Star, Plus, Minus, ShoppingCart } from 'lucide-react';
 import type { Restaurant, MenuItem, MenuItemSize } from '@/types';
+import { resolveImg } from '@/lib/img';
 
 type MenuCategory = { id: string; name: string; display_order: number };
 
@@ -161,9 +162,10 @@ export default function RestaurantMenu() {
           <div className="h-48 md:h-64 bg-gradient-to-br from-primary/20 to-accent">
             {restaurant.image_url && (
               <img
-                src={restaurant.image_url}
+                src={resolveImg(restaurant.image_url)}
                 alt={restaurant.name}
                 className="w-full h-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
             )}
           </div>
@@ -223,12 +225,25 @@ export default function RestaurantMenu() {
                   <div className="flex gap-3 p-3">
                     <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
                       {item.image_url ? (
-                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-primary/30">
-                          {item.name.charAt(0)}
-                        </div>
-                      )}
+                        <img
+                          src={resolveImg(item.image_url)}
+                          alt={item.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const img = e.currentTarget as HTMLImageElement;
+                            img.style.display = 'none';
+                            const fb = img.nextElementSibling as HTMLElement | null;
+                            if (fb) fb.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-full h-full items-center justify-center text-2xl font-bold text-primary/30"
+                        style={{ display: item.image_url ? 'none' : 'flex' }}
+                      >
+                        {item.name.charAt(0)}
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div className="min-w-0">
