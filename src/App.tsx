@@ -42,6 +42,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSupport from "./pages/admin/AdminSupport";
+import AdminAppReleases from "./pages/admin/AdminAppReleases";
+import DownloadApp from "./pages/DownloadApp";
 
 
 // Rider
@@ -109,6 +111,7 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsAndConditions />} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+              <Route path="/download" element={<DownloadApp />} />
 
 
               
@@ -135,6 +138,7 @@ const App = () => (
                 <Route path="support" element={<AdminSupport />} />
                 <Route path="reports" element={<AdminReports />} />
                 <Route path="settings" element={<AdminSettings />} />
+                <Route path="app-releases" element={<AdminAppReleases />} />
               </Route>
 
               {/* Rider Routes */}
