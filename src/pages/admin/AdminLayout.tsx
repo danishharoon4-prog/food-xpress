@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   MessageSquare,
+  Smartphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSwipeNav } from '@/hooks/useSwipeNav';
@@ -29,6 +30,7 @@ const navItems = [
   { path: '/admin/users', icon: Users, label: 'Users' },
   { path: '/admin/support', icon: MessageSquare, label: 'Support' },
   { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
+  { path: '/admin/app-releases', icon: Smartphone, label: 'App Releases' },
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
