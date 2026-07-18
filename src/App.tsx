@@ -42,6 +42,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSupport from "./pages/admin/AdminSupport";
+import AdminAppReleases from "./pages/admin/AdminAppReleases";
+import DownloadApp from "./pages/DownloadApp";
 
 
 // Rider
