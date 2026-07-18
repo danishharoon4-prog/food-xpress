@@ -7,16 +7,15 @@ import { useNavPrefs } from './useNavPrefs';
  * Swipe left  → next path
  * Swipe right → previous path
  *
- * Uses pointer events which work reliably in Capacitor Android WebView,
- * regular mobile browsers and desktop (mouse drag).
+ * Uses native touch events (most reliable in Capacitor Android WebView,
+ * even when the swipe crosses vertically-scrollable content). Falls back
+ * to pointer events for desktop/pen input.
  */
 export function useSwipeNav(paths: string[]) {
   const navigate = useNavigate();
   const location = useLocation();
   const { prefs } = useNavPrefs();
 
-  // Keep latest values in refs so the effect stays mounted per component
-  // (we only rebind when swipe pref toggles).
   const pathsRef = useRef(paths);
   const locationRef = useRef(location);
   const thresholdRef = useRef(prefs.swipeThreshold);
@@ -32,17 +31,17 @@ export function useSwipeNav(paths: string[]) {
     const EDGE_THRESHOLD = 24;
     const MIN_THRESHOLD = 40;
     const MAX_DURATION_MS = 1500;
-    const H_INTENT_PX = 10; // px horizontal before we lock horizontal intent
 
     let startX = 0;
     let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
     let startT = 0;
-    let pointerId: number | null = null;
     let tracking = false;
-    let locked = false;
-    let horizontalIntent = false;
     let fromLeftEdge = false;
     let fromRightEdge = false;
+    let horizontalIntent = false;
+    let cancelled = false;
 
     const emitHint = (dir: 'left' | 'right' | null, progress: number, label: string | null) => {
       window.dispatchEvent(new CustomEvent('swipe-nav-hint', { detail: { dir, progress, label } }));
@@ -57,70 +56,60 @@ export function useSwipeNav(paths: string[]) {
       return p[target];
     };
 
-    const reset = () => {
-      tracking = false;
-      locked = false;
-      horizontalIntent = false;
-      pointerId = null;
-      emitHint(null, 0, null);
+    const isBlocked = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      return !!el?.closest?.('input, textarea, select, [role="slider"], [data-no-swipe], .no-swipe');
     };
 
-    const onDown = (e: PointerEvent) => {
-      // Only primary touch/pen input; ignore mouse to keep desktop drag-free.
-      if (e.pointerType === 'mouse') return;
-      const target = e.target as HTMLElement | null;
-      if (target?.closest('input, textarea, select, [role="slider"], [data-no-swipe], .no-swipe')) return;
-      startX = e.clientX;
-      startY = e.clientY;
+    const begin = (x: number, y: number, target: EventTarget | null) => {
+      if (isBlocked(target)) { tracking = false; return; }
+      startX = lastX = x;
+      startY = lastY = y;
       startT = Date.now();
-      pointerId = e.pointerId;
       tracking = true;
-      locked = false;
+      cancelled = false;
       horizontalIntent = false;
       const w = window.innerWidth;
-      fromLeftEdge = startX <= EDGE_ZONE;
-      fromRightEdge = startX >= w - EDGE_ZONE;
+      fromLeftEdge = x <= EDGE_ZONE;
+      fromRightEdge = x >= w - EDGE_ZONE;
     };
 
-    const onMove = (e: PointerEvent) => {
-      if (!tracking || locked) return;
-      if (pointerId !== null && e.pointerId !== pointerId) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
+    const move = (x: number, y: number) => {
+      if (!tracking || cancelled) return;
+      lastX = x; lastY = y;
+      const dx = x - startX;
+      const dy = y - startY;
       const adx = Math.abs(dx);
       const ady = Math.abs(dy);
-
       if (!horizontalIntent) {
-        // If clearly vertical first, cancel this gesture.
-        if (ady > 16 && ady > adx * 1.3) { locked = true; emitHint(null, 0, null); return; }
-        if (adx < H_INTENT_PX) return;
+        if (ady > 14 && ady > adx * 1.2) { cancelled = true; emitHint(null, 0, null); return; }
+        if (adx < 10) return;
         horizontalIntent = true;
       }
-
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
-      const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : thresholdRef.current;
-      const threshold = Math.max(rawThreshold, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
+      const threshold = Math.max(edgeSwipe ? EDGE_THRESHOLD : thresholdRef.current, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
       const dir: 'left' | 'right' = dx < 0 ? 'left' : 'right';
       const label = getLabel(dir === 'left' ? 1 : -1);
       if (!label) { emitHint(null, 0, null); return; }
       emitHint(dir, Math.min(1, adx / threshold), label);
     };
 
-    const onUp = (e: PointerEvent) => {
+    const end = () => {
       if (!tracking) return;
-      if (pointerId !== null && e.pointerId !== pointerId) return;
       const wasHorizontal = horizontalIntent;
-      const wasLocked = locked;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
+      const wasCancelled = cancelled;
+      const dx = lastX - startX;
+      const dy = lastY - startY;
       const dt = Date.now() - startT;
-      reset();
-      if (wasLocked || !wasHorizontal) return;
+      tracking = false;
+      horizontalIntent = false;
+      cancelled = false;
+      emitHint(null, 0, null);
+      if (wasCancelled || !wasHorizontal) return;
       if (dt > MAX_DURATION_MS) return;
 
       const edgeSwipe = (fromLeftEdge && dx > 0) || (fromRightEdge && dx < 0);
-      const rawThreshold = edgeSwipe ? EDGE_THRESHOLD : thresholdRef.current;
-      const threshold = Math.max(rawThreshold, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
+      const threshold = Math.max(edgeSwipe ? EDGE_THRESHOLD : thresholdRef.current, edgeSwipe ? EDGE_THRESHOLD : MIN_THRESHOLD);
       if (Math.abs(dx) < threshold) return;
       if (Math.abs(dy) > Math.abs(dx)) return;
 
@@ -131,16 +120,59 @@ export function useSwipeNav(paths: string[]) {
       else if (dx > 0 && idx > 0) navigate(p[idx - 1]);
     };
 
-    const opts: AddEventListenerOptions = { passive: true, capture: true };
-    window.addEventListener('pointerdown', onDown, opts);
-    window.addEventListener('pointermove', onMove, opts);
-    window.addEventListener('pointerup', onUp, opts);
-    window.addEventListener('pointercancel', onUp, opts);
+    // Touch (primary path for mobile / Capacitor Android WebView)
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) { tracking = false; return; }
+      const t = e.touches[0];
+      begin(t.clientX, t.clientY, e.target);
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!tracking) return;
+      const t = e.touches[0];
+      if (!t) return;
+      move(t.clientX, t.clientY);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      if (t) { lastX = t.clientX; lastY = t.clientY; }
+      end();
+    };
+    const onTouchCancel = () => { cancelled = false; end(); };
+
+    // Pointer (desktop pen / mouse ignored intentionally)
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse' || e.pointerType === 'touch') return; // touch handled above
+      begin(e.clientX, e.clientY, e.target);
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse' || e.pointerType === 'touch') return;
+      move(e.clientX, e.clientY);
+    };
+    const onPointerUp = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse' || e.pointerType === 'touch') return;
+      lastX = e.clientX; lastY = e.clientY;
+      end();
+    };
+
+    const passive: AddEventListenerOptions = { passive: true };
+    window.addEventListener('touchstart', onTouchStart, passive);
+    window.addEventListener('touchmove', onTouchMove, passive);
+    window.addEventListener('touchend', onTouchEnd, passive);
+    window.addEventListener('touchcancel', onTouchCancel, passive);
+    window.addEventListener('pointerdown', onPointerDown, passive);
+    window.addEventListener('pointermove', onPointerMove, passive);
+    window.addEventListener('pointerup', onPointerUp, passive);
+    window.addEventListener('pointercancel', onPointerUp, passive);
+
     return () => {
-      window.removeEventListener('pointerdown', onDown, opts);
-      window.removeEventListener('pointermove', onMove, opts);
-      window.removeEventListener('pointerup', onUp, opts);
-      window.removeEventListener('pointercancel', onUp, opts);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchCancel);
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
     };
   }, [navigate, prefs.swipeEnabled]);
 }
