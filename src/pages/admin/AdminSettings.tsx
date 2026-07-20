@@ -158,6 +158,13 @@ export default function AdminSettings() {
         </Card>
       )}
 
+      {/* Personal preferences (notifications / animations / navigation) */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <NotificationSettings />
+        <MotionSettings />
+        <NavigationSettings />
+      </div>
+
       {/* Quick summary */}
       <div className="grid gap-3 md:grid-cols-4">
         <Card>
