@@ -43,6 +43,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSupport from "./pages/admin/AdminSupport";
 import AdminAppReleases from "./pages/admin/AdminAppReleases";
+import AdminBackup from "./pages/admin/AdminBackup";
 import DownloadApp from "./pages/DownloadApp";
 
 
@@ -139,6 +140,7 @@ const App = () => (
                 <Route path="reports" element={<AdminReports />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="app-releases" element={<AdminAppReleases />} />
+                <Route path="backup" element={<AdminBackup />} />
               </Route>
 
               {/* Rider Routes */}
