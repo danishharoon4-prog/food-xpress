@@ -140,6 +140,7 @@ const App = () => (
                 <Route path="reports" element={<AdminReports />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="app-releases" element={<AdminAppReleases />} />
+                <Route path="backup" element={<AdminBackup />} />
               </Route>
 
               {/* Rider Routes */}
