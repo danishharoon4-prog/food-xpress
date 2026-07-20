@@ -120,6 +120,7 @@ const App = () => (
             <ScrollReveal />
             <LocationGate>
             <PageTransition>
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<RoleLanding />} />
               <Route path="/home" element={<Index />} />
@@ -184,6 +185,7 @@ const App = () => (
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
             </PageTransition>
             </LocationGate>
             
