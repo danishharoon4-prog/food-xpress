@@ -94,7 +94,7 @@ export default function Restaurants() {
   const fetchRestaurants = async () => {
     const { data } = await supabase
       .from('restaurants')
-      .select('id, name, description, cuisine_type, image_url, city, address, latitude, longitude, is_active, approval_status, opening_time, closing_time, delivery_time_min, delivery_time_max, minimum_order, owner_id')
+      .select('*')
       .eq('is_active', true)
       .eq('approval_status', 'approved')
       .order('name');
