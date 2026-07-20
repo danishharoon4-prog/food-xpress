@@ -360,7 +360,7 @@ export default function RestaurantMenu() {
                       No items in this category.
                     </div>
                   ) : (
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
                       {filteredItems.map(renderCard)}
                     </div>
                   )}
