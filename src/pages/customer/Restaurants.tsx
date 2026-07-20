@@ -662,17 +662,17 @@ export default function Restaurants() {
                     </motion.button>
                   </div>
                   <div className="px-1">
-                    <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">
+                    <h3 className="font-bold text-sm truncate group-hover:text-primary transition-colors">
                       {deal.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground truncate mb-2 font-medium">
+                    <p className="text-[11px] text-muted-foreground truncate mb-1.5 font-medium">
                       {deal.restaurant?.name || 'Restaurant'}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-base font-extrabold text-primary">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-extrabold text-primary">
                         PKR {Number(deal.discount_price).toLocaleString()}
                       </span>
-                      <span className="text-xs text-muted-foreground line-through font-medium">
+                      <span className="text-[10px] text-muted-foreground line-through font-medium">
                         PKR {Number(deal.price).toLocaleString()}
                       </span>
                     </div>
