@@ -25,7 +25,7 @@ function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
   );
 }
 
-type DocField = 'cnic_image_url' | 'vehicle_doc_url' | 'license_image_url' | 'personal_photo_url';
+type DocField = 'cnic_image_url' | 'vehicle_doc_url' | 'license_image_url' | 'personal_photo_url' | 'police_verification_url';
 
 export default function RiderSettings() {
   const { user, profile, refreshProfile } = useAuth();
