@@ -594,7 +594,7 @@ export default function Restaurants() {
               </div>
             </motion.div>
           ) : (
-            <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
               {deals.map((deal, idx) => (
                 <motion.div
                   key={deal.id}
@@ -603,7 +603,7 @@ export default function Restaurants() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: idx * 0.05 }}
                   whileHover={{ y: -6 }}
-                  className="min-w-[240px] max-w-[240px] flex-shrink-0"
+                  className="min-w-[160px] max-w-[160px] sm:min-w-[190px] sm:max-w-[190px] flex-shrink-0"
                 >
                   <Link to={`/restaurant/${deal.restaurant_id}`} className="group block">
                   <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
