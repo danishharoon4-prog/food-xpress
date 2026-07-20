@@ -44,7 +44,10 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSupport from "./pages/admin/AdminSupport";
 import AdminAppReleases from "./pages/admin/AdminAppReleases";
 import AdminBackup from "./pages/admin/AdminBackup";
+import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import DownloadApp from "./pages/DownloadApp";
+import SecuritySettings from "./pages/SecuritySettings";
+import IdleTimeoutManager from "@/components/security/IdleTimeoutManager";
 
 
 // Rider
@@ -95,6 +98,7 @@ const App = () => (
           <SplashOverlay />
           <MobileLiveUpdate />
           <SwipeHintOverlay />
+          <IdleTimeoutManager />
           <Toaster />
 
           <Sonner />
@@ -125,6 +129,7 @@ const App = () => (
               <Route path="/order/:id" element={<RoleGuard allow={["customer","admin","rider"]}><OrderTracking /></RoleGuard>} />
               <Route path="/orders" element={<RoleGuard allow="customer"><MyOrders /></RoleGuard>} />
               <Route path="/profile" element={<RoleGuard allow={["customer","admin","rider","restaurant"]}><UserProfile /></RoleGuard>} />
+              <Route path="/settings/security" element={<RoleGuard allow={["customer","admin","rider","restaurant"]}><SecuritySettings /></RoleGuard>} />
               <Route path="/payment/callback" element={<RoleGuard allow="customer"><PaymentCallback /></RoleGuard>} />
               <Route path="/support" element={<CustomerSupport />} />
 
@@ -141,6 +146,7 @@ const App = () => (
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="app-releases" element={<AdminAppReleases />} />
                 <Route path="backup" element={<AdminBackup />} />
+                <Route path="audit-log" element={<AdminAuditLog />} />
               </Route>
 
               {/* Rider Routes */}

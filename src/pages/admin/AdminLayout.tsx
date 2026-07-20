@@ -18,6 +18,7 @@ import {
   MessageSquare,
   Smartphone,
   DatabaseBackup,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSwipeNav } from '@/hooks/useSwipeNav';
@@ -33,6 +34,7 @@ const navItems = [
   { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
   { path: '/admin/app-releases', icon: Smartphone, label: 'App Releases' },
   { path: '/admin/backup', icon: DatabaseBackup, label: 'Backup' },
+  { path: '/admin/audit-log', icon: ShieldCheck, label: 'Audit Log' },
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
