@@ -697,17 +697,17 @@ export default function Restaurants() {
             </div>
 
             {topRatedLoading ? (
-              <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="min-w-[260px] max-w-[260px] animate-pulse">
-                    <div className="h-40 bg-muted rounded-3xl" />
-                    <div className="h-4 w-32 bg-muted rounded mt-3" />
-                    <div className="h-4 w-20 bg-muted rounded mt-2" />
+                  <div key={i} className="min-w-[170px] max-w-[170px] sm:min-w-[200px] sm:max-w-[200px] animate-pulse">
+                    <div className="h-32 bg-muted rounded-2xl" />
+                    <div className="h-4 w-28 bg-muted rounded mt-3" />
+                    <div className="h-4 w-16 bg-muted rounded mt-2" />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
+              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
                 {topRated.map((r, idx) => (
                   <motion.div
                     key={r.id}
@@ -716,7 +716,7 @@ export default function Restaurants() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: idx * 0.05 }}
                     whileHover={{ y: -6 }}
-                    className="min-w-[260px] max-w-[260px] flex-shrink-0"
+                    className="min-w-[170px] max-w-[170px] sm:min-w-[200px] sm:max-w-[200px] flex-shrink-0"
                   >
                     <Link to={`/restaurant/${r.id}`} className="group block">
                       <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-yellow-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl transition-all duration-500">
