@@ -7,12 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, CheckCircle2, AlertCircle, FileImage } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, FileImage, ShieldCheck } from 'lucide-react';
 import type { Rider, RiderWallet } from '@/types';
 import { useRiderDocSignedUrl } from '@/lib/riderDocUrl';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import AvatarUploader from '@/components/AvatarUploader';
 import defaultRiderAvatar from '@/assets/default-rider-avatar.png';
+import { RiderTermsDialog, RIDER_TERMS_VERSION } from '@/components/RiderTermsDialog';
 
 function SecureDocImage({ value, alt }: { value: string | null; alt: string }) {
   const src = useRiderDocSignedUrl(value);
