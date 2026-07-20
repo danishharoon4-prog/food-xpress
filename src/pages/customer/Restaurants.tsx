@@ -562,12 +562,12 @@ export default function Restaurants() {
           </div>
 
           {dealsLoading ? (
-            <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="min-w-[240px] max-w-[240px] animate-pulse">
-                  <div className="h-40 bg-muted rounded-3xl" />
-                  <div className="h-4 w-32 bg-muted rounded mt-3" />
-                  <div className="h-4 w-20 bg-muted rounded mt-2" />
+                <div key={i} className="min-w-[160px] max-w-[160px] sm:min-w-[190px] sm:max-w-[190px] animate-pulse">
+                  <div className="h-32 bg-muted rounded-2xl" />
+                  <div className="h-4 w-28 bg-muted rounded mt-3" />
+                  <div className="h-4 w-16 bg-muted rounded mt-2" />
                 </div>
               ))}
             </div>
