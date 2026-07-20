@@ -369,11 +369,49 @@ export default function RiderSettings() {
             <FileImage className="w-5 h-5" /> Verification Documents
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <DocUploader title="Personal Photo" field="personal_photo_url" inputRef={photoInputRef} url={(rider as any)?.personal_photo_url || null} />
           <DocUploader title="CNIC Photo" field="cnic_image_url" inputRef={cnicInputRef} url={rider?.cnic_image_url || null} />
           <DocUploader title="Vehicle Document" field="vehicle_doc_url" inputRef={vehicleInputRef} url={rider?.vehicle_doc_url || null} />
           <DocUploader title="Driving License" field="license_image_url" inputRef={licenseInputRef} url={rider?.license_image_url || null} />
+          <DocUploader title="Police Character Certificate" field="police_verification_url" inputRef={policeInputRef} url={(rider as any)?.police_verification_url || null} />
+        </CardContent>
+      </Card>
+
+      {/* Terms & Conditions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5" /> Rider Agreement
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm">
+            {(rider as any)?.terms_accepted_at ? (
+              <div className="flex items-center gap-2">
+                <Badge className="bg-success/10 text-success">
+                  <CheckCircle2 className="w-3 h-3 mr-1" /> Accepted
+                </Badge>
+                <span className="text-muted-foreground">
+                  Version {(rider as any)?.terms_version || '—'} on{' '}
+                  {new Date((rider as any).terms_accepted_at).toLocaleDateString()}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-warning border-warning/40">
+                  <AlertCircle className="w-3 h-3 mr-1" /> Not accepted
+                </Badge>
+                <span className="text-muted-foreground">Verification ke liye terms accept karna zaroori hai.</span>
+              </div>
+            )}
+          </div>
+          <RiderTermsDialog
+            onAccept={handleAcceptTerms}
+            accepted={!!(rider as any)?.terms_accepted_at}
+            acceptedAt={(rider as any)?.terms_accepted_at || null}
+            version={(rider as any)?.terms_version || null}
+          />
         </CardContent>
       </Card>
 
