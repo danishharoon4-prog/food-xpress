@@ -459,17 +459,17 @@ export default function Restaurants() {
             </div>
 
             {topItemsLoading ? (
-              <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="min-w-[220px] max-w-[220px] animate-pulse">
-                    <div className="h-36 bg-muted rounded-3xl" />
-                    <div className="h-4 w-28 bg-muted rounded mt-3" />
+                  <div key={i} className="min-w-[150px] max-w-[150px] sm:min-w-[180px] sm:max-w-[180px] animate-pulse">
+                    <div className="h-28 sm:h-32 bg-muted rounded-2xl" />
+                    <div className="h-4 w-24 bg-muted rounded mt-3" />
                     <div className="h-4 w-16 bg-muted rounded mt-2" />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex gap-5 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
+              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
                 {topItems.map((item, idx) => {
                   const displayPrice = item.discount_price ?? item.price;
                   return (
@@ -480,7 +480,7 @@ export default function Restaurants() {
                       viewport={{ once: true }}
                       transition={{ duration: 0.4, delay: idx * 0.05 }}
                       whileHover={{ y: -6 }}
-                      className="min-w-[220px] max-w-[220px] flex-shrink-0"
+                      className="min-w-[150px] max-w-[150px] sm:min-w-[180px] sm:max-w-[180px] flex-shrink-0"
                     >
                       <Link to={`/restaurant/${item.restaurant_id}`} className="group block">
                         <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-orange-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
