@@ -206,6 +206,20 @@ export default function RiderSettings() {
     setUploading(null);
   };
 
+  const handleAcceptTerms = async () => {
+    if (!rider) return;
+    const { error } = await supabase
+      .from('riders')
+      .update({ terms_accepted_at: new Date().toISOString(), terms_version: RIDER_TERMS_VERSION } as any)
+      .eq('id', rider.id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Terms accepted', description: 'Shukriya! Terms record ho gaye.' });
+      fetchData();
+    }
+  };
+
   if (loading) {
     return <div className="animate-pulse text-muted-foreground">Loading...</div>;
   }
