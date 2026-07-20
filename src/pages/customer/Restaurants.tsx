@@ -807,7 +807,7 @@ export default function Restaurants() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-6xl font-extrabold text-primary/40">
+                          <span className="text-4xl sm:text-5xl font-extrabold text-primary/40">
                             {restaurant.name.charAt(0)}
                           </span>
                         </div>
