@@ -50,6 +50,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       app_releases: {
         Row: {
           created_at: string
@@ -141,6 +180,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_history: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string
+          device_fingerprint: string | null
+          id: string
+          ip_address: string | null
+          is_new_device: boolean | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          is_new_device?: boolean | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          is_new_device?: boolean | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       menu_categories: {
         Row: {
@@ -1310,6 +1385,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_admin_action: {
+        Args: {
+          _action: string
+          _details?: Json
+          _target_id?: string
+          _target_type?: string
+        }
+        Returns: undefined
+      }
       mark_ready_for_pickup: {
         Args: { _order_id: string; _self_delivery: boolean }
         Returns: boolean
@@ -1329,6 +1413,16 @@ export type Database = {
           order_id: string
           order_number: string
         }[]
+      }
+      record_login: {
+        Args: {
+          _city?: string
+          _country?: string
+          _device_fingerprint: string
+          _ip: string
+          _user_agent: string
+        }
+        Returns: boolean
       }
       set_restaurant_open: {
         Args: { _is_open: boolean; _restaurant_id: string }
