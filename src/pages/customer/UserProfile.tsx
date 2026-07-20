@@ -387,6 +387,19 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
+          {/* Security */}
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">Security & 2FA</p>
+                <p className="text-sm text-muted-foreground">Two-factor auth, sign-in history, auto sign-out.</p>
+              </div>
+              <Link to="/settings/security" className="text-sm font-medium text-primary hover:underline whitespace-nowrap">
+                Manage →
+              </Link>
+            </CardContent>
+          </Card>
+
           {/* Notification Settings */}
           <NotificationSettings />
 
