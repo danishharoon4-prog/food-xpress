@@ -784,7 +784,7 @@ export default function Restaurants() {
               <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
             </div>
           ) : (
-            <div className="grid gap-8 md:gap-10 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {filteredRestaurants.map((restaurant, idx) => {
                 const r = ratings[restaurant.id];
                 const isFav = favoriteIds.has(restaurant.id);
@@ -798,7 +798,7 @@ export default function Restaurants() {
                     whileHover={{ y: -8 }}
                   >
                   <Link to={`/restaurant/${restaurant.id}`} className="group block">
-                    <div className="relative overflow-hidden rounded-[2rem] aspect-[1.4] mb-5 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
+                    <div className="relative overflow-hidden rounded-2xl aspect-[1.4] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                       {restaurant.image_url ? (
                         <img
                           src={resolveImg(restaurant.image_url)}
