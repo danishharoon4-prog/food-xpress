@@ -194,9 +194,12 @@ export default function AdminBackup() {
       <div>
         <h1 className="text-2xl font-bold">Backup Center</h1>
         <p className="text-muted-foreground text-sm">
-          Backup seedha Google Drive aur GitHub par upload hoga. Settings save ho jati hain.
+          Manual backup ya automatic background backup — dono Google Drive aur GitHub par upload honge.
         </p>
       </div>
+
+      <AutoBackupPanel />
+
 
       {/* Destinations */}
       <div className="grid md:grid-cols-2 gap-4">
