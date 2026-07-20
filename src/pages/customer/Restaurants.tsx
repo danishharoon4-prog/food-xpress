@@ -814,11 +814,11 @@ export default function Restaurants() {
                       )}
 
                       {/* Rating pill */}
-                      <div className="absolute top-4 right-4 bg-card/95 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1.5">
-                        <span className="text-sm font-extrabold">
+                      <div className="absolute top-2.5 right-2.5 bg-card/95 backdrop-blur-md px-2 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                        <span className="text-xs font-extrabold">
                           {r ? r.avg.toFixed(1) : 'New'}
                         </span>
-                        <Star className="w-4 h-4 text-primary fill-primary" />
+                        <Star className="w-3 h-3 text-primary fill-primary" />
                       </div>
 
                       {/* Favorite */}
@@ -826,7 +826,7 @@ export default function Restaurants() {
                         onClick={(e) => toggleFavorite(e, restaurant.id)}
                         whileHover={{ scale: 1.12 }}
                         whileTap={{ scale: 0.85 }}
-                        className="absolute top-4 left-4 h-10 w-10 rounded-full bg-card/95 backdrop-blur-md hover:bg-card shadow-sm inline-flex items-center justify-center"
+                        className="absolute top-2.5 left-2.5 h-8 w-8 rounded-full bg-card/95 backdrop-blur-md hover:bg-card shadow-sm inline-flex items-center justify-center"
                         aria-label="Toggle favorite"
                       >
                         <motion.span
@@ -836,7 +836,7 @@ export default function Restaurants() {
                           transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                         >
                           <Heart
-                            className={`w-[18px] h-[18px] transition-colors ${
+                            className={`w-4 h-4 transition-colors ${
                               isFav ? 'fill-destructive text-destructive' : 'text-foreground'
                             }`}
                           />
@@ -844,15 +844,15 @@ export default function Restaurants() {
                       </motion.button>
 
                       {/* Bottom chips */}
-                      <div className="absolute bottom-4 left-4 flex gap-2">
+                      <div className="absolute bottom-2.5 left-2.5 flex gap-1.5">
                         {restaurant.cuisine_type && (
-                          <span className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
+                          <span className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider">
                             {restaurant.cuisine_type}
                           </span>
                         )}
                         {restaurant.opening_time && restaurant.closing_time && (
-                          <span className="bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest inline-flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
+                          <span className="bg-black/60 backdrop-blur-md text-white px-2 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" />
                             {restaurant.opening_time.slice(0, 5)}
                           </span>
                         )}
