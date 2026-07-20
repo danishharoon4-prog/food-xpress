@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import AvatarUploader from '@/components/AvatarUploader';
+import { NotificationSettings } from '@/components/NotificationSettings';
+import { MotionSettings } from '@/components/MotionSettings';
+import { NavigationSettings } from '@/components/NavigationSettings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -154,6 +157,13 @@ export default function AdminSettings() {
           </CardContent>
         </Card>
       )}
+
+      {/* Personal preferences (notifications / animations / navigation) */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <NotificationSettings />
+        <MotionSettings />
+        <NavigationSettings />
+      </div>
 
       {/* Quick summary */}
       <div className="grid gap-3 md:grid-cols-4">
