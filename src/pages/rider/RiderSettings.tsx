@@ -56,6 +56,7 @@ export default function RiderSettings() {
   const vehicleInputRef = useRef<HTMLInputElement>(null);
   const licenseInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const policeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) fetchData();
