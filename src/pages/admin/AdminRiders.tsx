@@ -295,22 +295,37 @@ export default function AdminRiders() {
             <DialogTitle>{docsRider?.profile?.full_name || 'Rider'} — Documents</DialogTitle>
           </DialogHeader>
           {docsRider && (
-            <div className="grid sm:grid-cols-3 gap-4">
-              {[
-                { label: 'CNIC', url: (docsRider as any).cnic_image_url },
-                { label: 'Vehicle Document', url: (docsRider as any).vehicle_doc_url },
-                { label: 'Driving License', url: (docsRider as any).license_image_url },
-              ].map(({ label, url }) => (
-                <div key={label} className="space-y-2">
-                  <p className="text-sm font-medium">{label}</p>
-                  {url ? (
-                    <AdminDocImage value={url} alt={label} />
-                  ) : (
-                    <div className="border rounded p-6 text-center text-xs text-muted-foreground bg-muted/30">Not uploaded</div>
-                  )}
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="grid sm:grid-cols-3 gap-4">
+                {[
+                  { label: 'Personal Photo', url: (docsRider as any).personal_photo_url },
+                  { label: 'CNIC', url: (docsRider as any).cnic_image_url },
+                  { label: 'Vehicle Document', url: (docsRider as any).vehicle_doc_url },
+                  { label: 'Driving License', url: (docsRider as any).license_image_url },
+                  { label: 'Police Character Certificate', url: (docsRider as any).police_verification_url },
+                ].map(({ label, url }) => (
+                  <div key={label} className="space-y-2">
+                    <p className="text-sm font-medium">{label}</p>
+                    {url ? (
+                      <AdminDocImage value={url} alt={label} />
+                    ) : (
+                      <div className="border rounded p-6 text-center text-xs text-muted-foreground bg-muted/30">Not uploaded</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 border-t pt-4 text-sm">
+                <p className="font-medium mb-1">Terms &amp; Conditions</p>
+                {(docsRider as any).terms_accepted_at ? (
+                  <p className="text-muted-foreground">
+                    Accepted (version {(docsRider as any).terms_version || '—'}) on{' '}
+                    {new Date((docsRider as any).terms_accepted_at).toLocaleString()}
+                  </p>
+                ) : (
+                  <p className="text-warning">Rider ne abhi tak terms accept nahi kiye.</p>
+                )}
+              </div>
+            </>
           )}
         </DialogContent>
       </Dialog>

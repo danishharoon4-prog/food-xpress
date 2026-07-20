@@ -1004,6 +1004,9 @@ export type Database = {
           license_image_url: string | null
           license_number: string | null
           personal_photo_url: string | null
+          police_verification_url: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           total_deliveries: number | null
           updated_at: string
           user_id: string
@@ -1025,6 +1028,9 @@ export type Database = {
           license_image_url?: string | null
           license_number?: string | null
           personal_photo_url?: string | null
+          police_verification_url?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           total_deliveries?: number | null
           updated_at?: string
           user_id: string
@@ -1046,6 +1052,9 @@ export type Database = {
           license_image_url?: string | null
           license_number?: string | null
           personal_photo_url?: string | null
+          police_verification_url?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           total_deliveries?: number | null
           updated_at?: string
           user_id?: string
