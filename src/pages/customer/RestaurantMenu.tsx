@@ -222,8 +222,8 @@ export default function RestaurantMenu() {
                 : `PKR ${Number(item.price).toLocaleString()}`;
               return (
                 <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="flex gap-3 p-3">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+                  <div className="flex gap-3 p-2.5 sm:p-3">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
                       {item.image_url ? (
                         <img
                           src={resolveImg(item.image_url)}
@@ -239,7 +239,7 @@ export default function RestaurantMenu() {
                         />
                       ) : null}
                       <div
-                        className="w-full h-full items-center justify-center text-2xl font-bold text-primary/30"
+                        className="w-full h-full items-center justify-center text-xl font-bold text-primary/30"
                         style={{ display: item.image_url ? 'none' : 'flex' }}
                       >
                         {item.name.charAt(0)}
@@ -360,7 +360,7 @@ export default function RestaurantMenu() {
                       No items in this category.
                     </div>
                   ) : (
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
                       {filteredItems.map(renderCard)}
                     </div>
                   )}
