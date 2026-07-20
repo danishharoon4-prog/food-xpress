@@ -737,8 +737,8 @@ export default function Restaurants() {
                         </div>
                       </div>
                       <div className="px-1">
-                        <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{r.name}</h3>
-                        <p className="text-xs text-muted-foreground truncate font-medium">
+                        <h3 className="font-bold text-sm truncate group-hover:text-primary transition-colors">{r.name}</h3>
+                        <p className="text-[11px] text-muted-foreground truncate font-medium">
                           {r.cuisine_type || 'Restaurant'}{r.city ? ` · ${r.city}` : ''}
                         </p>
                       </div>
