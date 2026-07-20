@@ -159,6 +159,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           sessionStorage.setItem(SESSION_SENTINEL, '1');
         }
       } catch {}
+
+      // Log the sign-in (IP, device, geo) — fire-and-forget, never blocks login.
+      try {
+        const { getDeviceFingerprint } = await import('@/lib/deviceFingerprint');
+        supabase.functions
+          .invoke('log-login', { body: { device_fingerprint: getDeviceFingerprint() } })
+          .catch((e) => console.warn('log-login failed', e));
+      } catch (e) {
+        console.warn('log-login dispatch failed', e);
+      }
     }
 
     return { error: error as Error | null };

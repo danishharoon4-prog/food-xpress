@@ -2,3 +2,6 @@ project_id = "kbhyflhxyqvkrstoyava"
 
 [functions.download-apk]
 verify_jwt = false
+
+[functions.log-login]
+verify_jwt = false

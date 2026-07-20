@@ -1,79 +1,87 @@
-# Android App Improvements Plan
+# Security Hardening Plan
 
-Sirf Android (Capacitor) app pe kaam hoga. Website ka koi user-facing behavior nahi todega.
-
-## 1. App smoothness (performance)
-
-- `capacitor.config.ts` mein Android WebView tuning add karna: `android.webContentsDebuggingEnabled: false` production ke liye, `allowMixedContent: true` sirf debug, `backgroundColor: '#FFFFFF'` (blank flash rokay).
-- `SplashScreen.launchShowDuration` 1500ms → 800ms (fast startup feel).
-- `App.tsx` mein already `lazy()` route splitting hai to bas verify karenge — heavy pages (`AdminReports`, `LiveTrackingMap`, `OrderTracking`) already lazy hain, koi extra lazy nahi chahiye agar hain.
-- `useMotionPreference` ko default `reduced` bana denge sirf jab `Capacitor.isNativePlatform()` — Android WebView pe framer-motion aur bari transitions jerky lagti hain.
-- `PageTransition` component ka opacity fade native pe skip karenge (instant switch).
-
-## 2. GPS "please allow location access in your browser" fix
-
-Root cause: `LocationPicker.tsx` aur kuch dosray jagah abhi bhi `navigator.geolocation` seedha use ho raha hai. Android WebView is prompt ko block karta hai to hamesha "denied" milta hai.
-
-Fix:
-- `LocationPicker.tsx` ka `locateMe()` aur initial-load GPS call `useLocation` hook ke `getCurrentLocation()` se replace karenge (wo pehle se Capacitor Geolocation handle karta hai native pe).
-- Baaqi jagah bhi (e.g. `hooks/useBrowserNotifications.ts` agar location use karta ho) ek grep chala ke fix karenge.
-- Error message improve: agar native permission denied ho to Urdu-friendly toast + "Settings → App → Permissions → Location allow karain" hint.
-
-## 3. Toast / in-app notification UI polish
-
-- Sonner `<Toaster>` config: `richColors`, `position="top-center"` mobile pe (currently likely bottom-right), rounded shadow, thicker text, safe-area padding (Android status bar overlap).
-- Toast duration 4s → 3s.
-- Success/error/warning ke liye colored border-left accent, icon larger.
-
-## 4. Image uploads enable karna
-
-Buckets already hain: `avatars` (private), `rider-documents` (private). Zaroorat:
-
-- **`support-attachments`** naya private bucket for support chat images.
-- **RLS policies** on `storage.objects` for tino buckets:
-  - `avatars`: user apni file (`<uid>/…`) upload/read/delete kar sakay; admin sab dekh sakay; authenticated user kisi bhi avatar read kar sakay (profile pics public-ish).
-  - `rider-documents`: sirf owning rider + admin upload/read.
-  - `support-attachments`: sirf ticket owner + admin.
-- **Capacitor Camera plugin** (`@capacitor/camera`) install: native pe camera/gallery se image pick karna smooth ho (browser file input WebView pe flaky).
-- `ImageCropInput.tsx` ko update: native pe pehle `Camera.getPhoto()`, fir crop, fir upload; web pe wahi purana flow.
-- Ek helper `src/lib/uploadImage.ts` — bucket + path + file → returns signed URL.
-- Profile page, Rider docs upload page aur SupportChat mein use.
-
-## 5. Background running
-
-Do alag cheezein:
-
-### 5a. Notifications background (FCM push)
-
-- Firebase project user ke paas hona chahiye. `google-services.json` file android app ke `android/app/` folder mein add karni hogi — yeh sirf user local pe kar sakta hai (GitHub Actions build workflow mein secret ke tor pe add kar sakte hain).
-- Workflow (`.github/workflows/main.yml`) mein new step: agar `GOOGLE_SERVICES_JSON` secret set ho to decode karke `android/app/google-services.json` mein likhna. Warna skip (crash na ho).
-- `.env` mein `VITE_FCM_ENABLED=true` set karnay ki condition — currently guard laga hai to native crash nahi hoga.
-- Registration flow already `src/lib/fcmPush.ts` mein hai — bas guard ko flip karnay ka instruction dena hoga.
-- Instructions user ko: Firebase console pe project banayen, `google-services.json` download karen, GitHub repo Settings → Secrets mein `GOOGLE_SERVICES_JSON` (base64) daalen. Main workflow update kar dunga.
-
-### 5b. Rider live location in background
-
-- `@capacitor-community/background-geolocation` plugin install.
-- Naya hook `src/hooks/useBackgroundRiderTracking.ts` — sirf jab rider `is_online = true` aur `Capacitor.isNativePlatform()`, background service start kare, har 30 sec pe coords ko `rider_locations` table (ya `riders` row) mein update kare.
-- `AndroidManifest` permissions Capacitor plugin auto-merge kar deta hai (`ACCESS_BACKGROUND_LOCATION`, `FOREGROUND_SERVICE`).
-- Rider ko warning dialog first-time: "Battery zyada use ho gi. Background location allow karain."
-- Off toggle: rider dashboard mein "Go Offline" button service stop kare.
-
-## Technical notes
-
-- New npm packages: `@capacitor/camera`, `@capacitor-community/background-geolocation`.
-- Workflow already `npx cap sync android` chalata hai, permissions auto-merge ho jayen gi.
-- No web behavior change: har naya plugin `Capacitor.isNativePlatform()` guard ke pichay.
-- DB change: sirf `rider_locations` table agar pehle nahi hai (check karna hai). RLS: rider apni row write kare, admin + assigned customer read kar sakay.
-
-## User steps after merge
-
-1. `git pull`
-2. GitHub → Settings → Secrets → `GOOGLE_SERVICES_JSON` add karain (base64 of Firebase file). Skip agar push notifications ki abhi zaroorat nahi.
-3. GitHub Actions → Build Android APK → Run
-4. Naya APK install (purana uninstall karke)
-5. Pehli baar permissions prompts (Location, Camera, Notifications, Background) → "Allow all the time" (rider ke liye) select karen
+Char aham security features add karenge takay admin/website hacking attempts detect aur block ho sakein.
 
 ---
 
-Shall I go ahead and implement all 5 sections? Ya kisi ek pe pehle focus karain (e.g. sirf GPS + toast + uploads pehle, background stuff baad mein)?
+## 1. Admin Audit Log (kis ne kya kiya, kab kiya)
+
+**Database:**
+- New table `admin_audit_logs` (actor_id, actor_email, action, target_type, target_id, details JSONB, ip_address, user_agent, created_at)
+- RLS: sirf admins padh sakte hain, koi bhi insert nahi kar sakta directly — sirf `log_admin_action()` SECURITY DEFINER function ke through.
+- Existing admin RPC functions (`admin_set_user_ban`, `admin_set_user_role`, `approve_restaurant`, `cancel_order` when by admin, `apply_restaurant_location_change`) mein audit entries automatically likhenge.
+
+**UI:**
+- New admin page `/admin/audit-log` — filter by admin, action type, date range. Har entry pe details expand.
+- Sidebar mein "Audit Log" link (Shield icon).
+
+---
+
+## 2. Login Alerts (naya device / naya IP)
+
+**Database:**
+- New table `login_history` (user_id, ip_address, user_agent, device_fingerprint, city, created_at)
+- Edge function `log-login` — client login ke baad call karega, IP + UA log karega, aur agar previous 30 din mein yeh device/IP nahi dekha to notification bhejega ("New login detected from ...").
+- Notification `notifications` table mein jayegi (existing push infra automatically deliver karegi).
+
+**UI:**
+- `AuthContext` sign-in success ke baad `log-login` invoke karega.
+- New page `/settings/security` — recent logins list (last 20), current session highlight, "Sign out all other sessions" button.
+
+---
+
+## 3. MFA (2-Factor Authentication) — TOTP
+
+**Backend:** Supabase Auth ka built-in TOTP MFA use karenge (koi extra secret nahi chahiye).
+
+**UI (Settings → Security tab):**
+- "Enable 2FA" button → QR code display → user Google Authenticator/Authy scan kare → 6-digit code verify → MFA enrolled.
+- Admins ke liye MFA **strongly recommended** banner login ke baad, jab tak enroll na karein.
+- Login flow update: agar user MFA enabled hai to password ke baad 6-digit code prompt aayega.
+- "Disable 2FA" (password re-verify ke sath).
+
+---
+
+## 4. Auto Session Timeout (idle logout)
+
+- `AuthContext` mein idle timer add karenge. Default: **30 minutes inactivity** (mousemove/keydown/touchstart reset karta hai).
+- Timeout se 1 min pehle toast: "Aap idle hain — 60 seconds mein sign out ho jayenge."
+- Setting configurable in `/settings/security` (15 / 30 / 60 min / never — never sirf non-admin).
+- Admins ke liye max 30 min force.
+
+---
+
+## 5. Bonus: HIBP Password Check
+
+- `configure_auth` tool se leaked password protection enable karenge — signup/password change ke waqt HIBP database check hoga.
+
+---
+
+## Files (new + edited)
+
+**New:**
+- Migration: `admin_audit_logs`, `login_history` tables + `log_admin_action()` function + updates to existing admin RPCs
+- Edge function: `supabase/functions/log-login/index.ts`
+- Pages: `src/pages/admin/AdminAuditLog.tsx`, `src/pages/SecuritySettings.tsx`
+- Components: `src/components/security/MfaEnrollDialog.tsx`, `src/components/security/RecentLoginsCard.tsx`, `src/components/security/IdleTimeoutManager.tsx`
+
+**Edited:**
+- `src/contexts/AuthContext.tsx` — log-login invoke, MFA challenge flow, idle timer wiring
+- `src/pages/Auth.tsx` — MFA code prompt after password
+- `src/App.tsx` — routes for `/admin/audit-log` and `/settings/security`
+- `src/components/AdminLayout.tsx` — sidebar link
+- Admin RPCs — insert into `admin_audit_logs`
+
+---
+
+## Order of implementation
+
+1. Migration (tables, functions, updated RPCs)
+2. `log-login` edge function
+3. AuthContext (login logging + idle timer + MFA flow)
+4. Security Settings page (MFA + recent logins + timeout preference)
+5. Auth.tsx MFA prompt
+6. Admin Audit Log page
+7. Enable HIBP via `configure_auth`
+
+Approve karo to migration se start karun.
