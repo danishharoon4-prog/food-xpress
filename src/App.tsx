@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,76 +19,88 @@ import SplashOverlay from "@/components/SplashOverlay";
 
 patchSonnerForBrowserNotifications();
 
-// Pages
+// Pages — keep light landing pages eager, lazy-load the rest
 import { Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import { PrivacyPolicy, TermsAndConditions } from "./pages/Legal";
-import OAuthConsent from "./pages/OAuthConsent";
 
 import { RoleGuard } from "@/components/RoleGuard";
 import RoleLanding from "@/components/RoleLanding";
-
-// Admin
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminRestaurants from "./pages/admin/AdminRestaurants";
-import AdminMenu from "./pages/admin/AdminMenu";
-import AdminOrders from "./pages/admin/AdminOrders";
-import AdminRiders from "./pages/admin/AdminRiders";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminReports from "./pages/admin/AdminReports";
-import AdminSettings from "./pages/admin/AdminSettings";
-import AdminSupport from "./pages/admin/AdminSupport";
-import AdminAppReleases from "./pages/admin/AdminAppReleases";
-import AdminBackup from "./pages/admin/AdminBackup";
-import AdminAuditLog from "./pages/admin/AdminAuditLog";
-import DownloadApp from "./pages/DownloadApp";
-import SecuritySettings from "./pages/SecuritySettings";
 import IdleTimeoutManager from "@/components/security/IdleTimeoutManager";
 
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Legal = () => import("./pages/Legal");
+const PrivacyPolicy = lazy(() => Legal().then(m => ({ default: m.PrivacyPolicy })));
+const TermsAndConditions = lazy(() => Legal().then(m => ({ default: m.TermsAndConditions })));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
-// Rider
-import RiderLayout from "./pages/rider/RiderLayout";
-import RiderDashboard from "./pages/rider/RiderDashboard";
-import RiderOrders from "./pages/rider/RiderOrders";
-import RiderEarnings from "./pages/rider/RiderEarnings";
-import RiderRatings from "./pages/rider/RiderRatings";
-import RiderSettings from "./pages/rider/RiderSettings";
+// Admin (lazy)
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminRestaurants = lazy(() => import("./pages/admin/AdminRestaurants"));
+const AdminMenu = lazy(() => import("./pages/admin/AdminMenu"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminRiders = lazy(() => import("./pages/admin/AdminRiders"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminSupport = lazy(() => import("./pages/admin/AdminSupport"));
+const AdminAppReleases = lazy(() => import("./pages/admin/AdminAppReleases"));
+const AdminBackup = lazy(() => import("./pages/admin/AdminBackup"));
+const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
+const DownloadApp = lazy(() => import("./pages/DownloadApp"));
+const SecuritySettings = lazy(() => import("./pages/SecuritySettings"));
 
-// Restaurant
-import RestaurantLayout from "./pages/restaurant/RestaurantLayout";
-import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
-import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
-import RestaurantMenuPage from "./pages/restaurant/RestaurantMenu";
-import RestaurantProfile from "./pages/restaurant/RestaurantProfile";
-import RestaurantWallet from "./pages/restaurant/RestaurantWallet";
+// Rider (lazy)
+const RiderLayout = lazy(() => import("./pages/rider/RiderLayout"));
+const RiderDashboard = lazy(() => import("./pages/rider/RiderDashboard"));
+const RiderOrders = lazy(() => import("./pages/rider/RiderOrders"));
+const RiderEarnings = lazy(() => import("./pages/rider/RiderEarnings"));
+const RiderRatings = lazy(() => import("./pages/rider/RiderRatings"));
+const RiderSettings = lazy(() => import("./pages/rider/RiderSettings"));
+const RiderSupport = lazy(() => import("./pages/rider/RiderSupport"));
 
-// Customer
-import Dashboard from "./pages/customer/Dashboard";
-import Restaurants from "./pages/customer/Restaurants";
-import RestaurantMenu from "./pages/customer/RestaurantMenu";
-import Cart from "./pages/customer/Cart";
-import Checkout from "./pages/customer/Checkout";
-import OrderTracking from "./pages/customer/OrderTracking";
-import MyOrders from "./pages/customer/MyOrders";
-import UserProfile from "./pages/customer/UserProfile";
-import PaymentCallback from "./pages/customer/PaymentCallback";
-import CustomerSupport from "./pages/customer/Support";
-import RiderSupport from "./pages/rider/RiderSupport";
-import RestaurantSupport from "./pages/restaurant/RestaurantSupport";
+// Restaurant (lazy)
+const RestaurantLayout = lazy(() => import("./pages/restaurant/RestaurantLayout"));
+const RestaurantDashboard = lazy(() => import("./pages/restaurant/RestaurantDashboard"));
+const RestaurantOrders = lazy(() => import("./pages/restaurant/RestaurantOrders"));
+const RestaurantMenuPage = lazy(() => import("./pages/restaurant/RestaurantMenu"));
+const RestaurantProfile = lazy(() => import("./pages/restaurant/RestaurantProfile"));
+const RestaurantWallet = lazy(() => import("./pages/restaurant/RestaurantWallet"));
+const RestaurantSupport = lazy(() => import("./pages/restaurant/RestaurantSupport"));
+
+// Customer (lazy — keep browsing snappy but split heavy pages)
+const Dashboard = lazy(() => import("./pages/customer/Dashboard"));
+const Restaurants = lazy(() => import("./pages/customer/Restaurants"));
+const RestaurantMenu = lazy(() => import("./pages/customer/RestaurantMenu"));
+const Cart = lazy(() => import("./pages/customer/Cart"));
+const Checkout = lazy(() => import("./pages/customer/Checkout"));
+const OrderTracking = lazy(() => import("./pages/customer/OrderTracking"));
+const MyOrders = lazy(() => import("./pages/customer/MyOrders"));
+const UserProfile = lazy(() => import("./pages/customer/UserProfile"));
+const PaymentCallback = lazy(() => import("./pages/customer/PaymentCallback"));
+const CustomerSupport = lazy(() => import("./pages/customer/Support"));
+
+const RouteFallback = () => (
+  <div className="min-h-[50vh] flex items-center justify-center">
+    <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
     },
   },
 });
+
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
