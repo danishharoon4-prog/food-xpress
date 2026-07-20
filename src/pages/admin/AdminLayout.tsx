@@ -17,6 +17,7 @@ import {
   X,
   MessageSquare,
   Smartphone,
+  DatabaseBackup,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSwipeNav } from '@/hooks/useSwipeNav';
@@ -31,6 +32,7 @@ const navItems = [
   { path: '/admin/support', icon: MessageSquare, label: 'Support' },
   { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
   { path: '/admin/app-releases', icon: Smartphone, label: 'App Releases' },
+  { path: '/admin/backup', icon: DatabaseBackup, label: 'Backup' },
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
