@@ -96,6 +96,7 @@ export default function Restaurants() {
       .from('restaurants')
       .select('*')
       .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .order('name');
     if (data) {
       setRestaurants(data as Restaurant[]);
@@ -106,18 +107,28 @@ export default function Restaurants() {
 
   const fetchRatings = async (restaurantIds: string[]) => {
     if (!restaurantIds.length) return;
-    const results = await Promise.all(
-      restaurantIds.map(async (rid) => {
-        const { data } = await supabase.rpc('get_restaurant_rating_summary', {
-          _restaurant_id: rid,
-        });
-        const row = Array.isArray(data) ? data[0] : data;
-        return { rid, avg: Number(row?.avg_rating ?? 0), count: Number(row?.rating_count ?? 0) };
-      }),
-    );
+    // Single query: pull all ratings for these restaurants and aggregate client-side.
+    const { data } = await supabase
+      .from('ratings')
+      .select('restaurant_id, food_rating, restaurant_rating')
+      .in('restaurant_id', restaurantIds);
+
+    const agg: Record<string, { sum: number; n: number; count: number }> = {};
+    (data ?? []).forEach((row: any) => {
+      const parts: number[] = [];
+      if (row.food_rating != null) parts.push(Number(row.food_rating));
+      if (row.restaurant_rating != null) parts.push(Number(row.restaurant_rating));
+      if (!parts.length) return;
+      const avg = parts.reduce((a, b) => a + b, 0) / parts.length;
+      const cur = agg[row.restaurant_id] ?? { sum: 0, n: 0, count: 0 };
+      cur.sum += avg;
+      cur.n += 1;
+      cur.count += 1;
+      agg[row.restaurant_id] = cur;
+    });
     const map: Record<string, { avg: number; count: number }> = {};
-    results.forEach((r) => {
-      if (r.count > 0) map[r.rid] = { avg: r.avg, count: r.count };
+    Object.entries(agg).forEach(([rid, v]) => {
+      if (v.count > 0) map[rid] = { avg: v.sum / v.n, count: v.count };
     });
     setRatings(map);
   };
