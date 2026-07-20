@@ -511,6 +511,18 @@ export type Database = {
       }
       platform_settings: {
         Row: {
+          auto_backup_drive_enabled: boolean
+          auto_backup_drive_folder_id: string | null
+          auto_backup_enabled: boolean
+          auto_backup_github_branch: string | null
+          auto_backup_github_enabled: boolean
+          auto_backup_github_owner: string | null
+          auto_backup_github_path: string | null
+          auto_backup_github_repo: string | null
+          auto_backup_interval_minutes: number
+          auto_backup_last_result: Json | null
+          auto_backup_last_run_at: string | null
+          auto_backup_last_status: string | null
           base_distance_km: number
           base_fare: number
           closing_time: string
@@ -537,6 +549,18 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_backup_drive_enabled?: boolean
+          auto_backup_drive_folder_id?: string | null
+          auto_backup_enabled?: boolean
+          auto_backup_github_branch?: string | null
+          auto_backup_github_enabled?: boolean
+          auto_backup_github_owner?: string | null
+          auto_backup_github_path?: string | null
+          auto_backup_github_repo?: string | null
+          auto_backup_interval_minutes?: number
+          auto_backup_last_result?: Json | null
+          auto_backup_last_run_at?: string | null
+          auto_backup_last_status?: string | null
           base_distance_km?: number
           base_fare?: number
           closing_time?: string
@@ -563,6 +587,18 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_backup_drive_enabled?: boolean
+          auto_backup_drive_folder_id?: string | null
+          auto_backup_enabled?: boolean
+          auto_backup_github_branch?: string | null
+          auto_backup_github_enabled?: boolean
+          auto_backup_github_owner?: string | null
+          auto_backup_github_path?: string | null
+          auto_backup_github_repo?: string | null
+          auto_backup_interval_minutes?: number
+          auto_backup_last_result?: Json | null
+          auto_backup_last_run_at?: string | null
+          auto_backup_last_status?: string | null
           base_distance_km?: number
           base_fare?: number
           closing_time?: string

@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Download, Database, HardDrive, Loader2, ShieldCheck, Github, Cloud, ExternalLink } from 'lucide-react';
 import JSZip from 'jszip';
+import AutoBackupPanel from '@/components/admin/AutoBackupPanel';
 
 const TABLES = [
   'profiles', 'user_roles', 'restaurants', 'menu_categories', 'menu_items',
@@ -194,9 +195,12 @@ export default function AdminBackup() {
       <div>
         <h1 className="text-2xl font-bold">Backup Center</h1>
         <p className="text-muted-foreground text-sm">
-          Backup seedha Google Drive aur GitHub par upload hoga. Settings save ho jati hain.
+          Manual backup ya automatic background backup — dono Google Drive aur GitHub par upload honge.
         </p>
       </div>
+
+      <AutoBackupPanel />
+
 
       {/* Destinations */}
       <div className="grid md:grid-cols-2 gap-4">
