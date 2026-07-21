@@ -94,7 +94,7 @@ export default function Restaurants() {
   const fetchRestaurants = async () => {
     const { data } = await supabase
       .from('restaurants')
-      .select('*')
+      .select('id, name, description, image_url, cuisine_type, address, city, latitude, longitude, is_active, opening_time, closing_time, created_at, updated_at')
       .eq('is_active', true)
       .eq('approval_status', 'approved')
       .order('name');
@@ -496,9 +496,9 @@ export default function Restaurants() {
                       <Link to={`/restaurant/${item.restaurant_id}`} className="group block">
                         <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-orange-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                           {item.image_url ? (
-                            <img src={resolveImg(item.image_url)} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            <img src={resolveImg(item.image_url)} alt={item.name} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                           ) : item.restaurant_image ? (
-                            <img src={resolveImg(item.restaurant_image)} alt={item.restaurant_name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            <img src={resolveImg(item.restaurant_image)} alt={item.restaurant_name} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <Utensils className="w-10 h-10 text-primary/40" />
@@ -732,7 +732,7 @@ export default function Restaurants() {
                     <Link to={`/restaurant/${r.id}`} className="group block">
                       <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-yellow-500/10 to-primary/10 shadow-sm group-hover:shadow-2xl transition-all duration-500">
                         {r.image_url ? (
-                          <img src={resolveImg(r.image_url)} alt={r.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          <img src={resolveImg(r.image_url)} alt={r.name} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <Utensils className="w-10 h-10 text-primary/40" />
@@ -814,6 +814,8 @@ export default function Restaurants() {
                         <img
                           src={resolveImg(restaurant.image_url)}
                           alt={restaurant.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                       ) : (
