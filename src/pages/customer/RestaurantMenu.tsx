@@ -188,7 +188,7 @@ export default function RestaurantMenu() {
                 src={resolveImg(restaurant.image_url)}
                 alt={restaurant.name}
                 decoding="async"
-                fetchPriority="high"
+                fetchpriority="high"
                 className="w-full h-full object-cover"
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
