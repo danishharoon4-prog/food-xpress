@@ -26,6 +26,7 @@ export default function RestaurantMenu() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
   const [pickedSize, setPickedSize] = useState<string>('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -37,16 +38,37 @@ export default function RestaurantMenu() {
   }, [id]);
 
   const fetchData = async () => {
-    const [restaurantRes, menuRes, catRes] = await Promise.all([
-      supabase.from('restaurants').select('*').eq('id', id).single(),
-      supabase.from('menu_items').select('*').eq('restaurant_id', id).eq('is_available', true).order('is_featured', { ascending: false }),
-      supabase.from('menu_categories').select('id, name, display_order').eq('restaurant_id', id).order('display_order'),
-    ]);
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const [restaurantRes, menuRes, catRes] = await Promise.all([
+        supabase
+          .from('restaurants')
+          .select('id, name, description, image_url, cuisine_type, address, city, latitude, longitude, is_active, opening_time, closing_time, created_at, updated_at')
+          .eq('id', id)
+          .maybeSingle(),
+        supabase
+          .from('menu_items')
+          .select('id, restaurant_id, category_id, name, description, price, discount_price, is_deal, deal_label, image_url, is_available, is_featured, sizes, created_at, updated_at')
+          .eq('restaurant_id', id)
+          .eq('is_available', true)
+          .order('is_featured', { ascending: false }),
+        supabase
+          .from('menu_categories')
+          .select('id, name, display_order')
+          .eq('restaurant_id', id)
+          .order('display_order'),
+      ]);
 
-    if (restaurantRes.data) setRestaurant(restaurantRes.data as Restaurant);
-    if (menuRes.data) setMenuItems(menuRes.data as unknown as MenuItem[]);
-    if (catRes.data) setCategories(catRes.data as MenuCategory[]);
-    setLoading(false);
+      if (restaurantRes.error || menuRes.error || catRes.error) throw new Error('Menu request failed');
+      if (restaurantRes.data) setRestaurant(restaurantRes.data as Restaurant);
+      setMenuItems((menuRes.data ?? []) as unknown as MenuItem[]);
+      setCategories((catRes.data ?? []) as MenuCategory[]);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // (scroll-to-category removed — replaced with real filtering)
@@ -139,7 +161,8 @@ export default function RestaurantMenu() {
       <div className="min-h-screen bg-background">
         <CustomerHeader />
         <div className="container py-16 text-center">
-          <p className="text-muted-foreground">Restaurant not found</p>
+          <p className="text-muted-foreground">{loadError ? 'Menu could not load. Please try again.' : 'Restaurant not found'}</p>
+          {loadError && <Button className="mt-4 mr-2" onClick={fetchData}>Try Again</Button>}
           <Link to="/restaurants">
             <Button className="mt-4">Back to Restaurants</Button>
           </Link>
@@ -164,6 +187,7 @@ export default function RestaurantMenu() {
               <img
                 src={resolveImg(restaurant.image_url)}
                 alt={restaurant.name}
+                decoding="async"
                 className="w-full h-full object-cover"
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
@@ -229,6 +253,7 @@ export default function RestaurantMenu() {
                           src={resolveImg(item.image_url)}
                           alt={item.name}
                           loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             const img = e.currentTarget as HTMLImageElement;
