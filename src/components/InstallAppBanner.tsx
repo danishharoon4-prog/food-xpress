@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Download, X, Smartphone } from "lucide-react";
+import { startApkDownload } from "@/components/DownloadApkButton";
+import { toast } from "sonner";
 
-const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID as string;
-const DOWNLOAD_ENDPOINT = `https://${PROJECT_ID}.supabase.co/functions/v1/download-apk`;
 const DISMISS_KEY = "fx_apk_banner_dismissed_at";
 const DISMISS_MS = 1000 * 60 * 60 * 24 * 3; // 3 days
+
 
 const isCapacitor = () =>
   typeof window !== "undefined" &&
