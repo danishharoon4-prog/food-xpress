@@ -110,6 +110,7 @@ const App = () => (
         <TooltipProvider>
           <SplashOverlay />
           <MobileLiveUpdate />
+          <InstallAppBanner />
           <SwipeHintOverlay />
           <IdleTimeoutManager />
           <Toaster />
