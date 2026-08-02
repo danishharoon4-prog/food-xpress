@@ -15,6 +15,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { SwipeHintOverlay } from "@/components/SwipeHintOverlay";
 import LocationGate from "@/components/LocationGate";
 import MobileLiveUpdate from "@/components/MobileLiveUpdate";
+import InstallAppBanner from "@/components/InstallAppBanner";
 import SplashOverlay from "@/components/SplashOverlay";
 
 patchSonnerForBrowserNotifications();
