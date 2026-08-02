@@ -201,6 +201,10 @@ export default function AdminBackup() {
 
       <AutoBackupPanel />
 
+      <BackupRestorePanel />
+
+
+
 
       {/* Destinations */}
       <div className="grid md:grid-cols-2 gap-4">
