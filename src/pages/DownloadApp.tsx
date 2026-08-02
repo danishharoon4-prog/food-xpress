@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download, Share2, Smartphone, ShieldCheck } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { toast } from "sonner";
+import DownloadApkButton from "@/components/DownloadApkButton";
+
 
 type Release = {
   id: string;
@@ -94,11 +96,8 @@ export default function DownloadApp() {
               )}
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button size="lg" className="flex-1" asChild>
-                  <a href={DOWNLOAD_ENDPOINT}>
-                    <Download className="w-5 h-5 mr-2" /> Download APK
-                  </a>
-                </Button>
+                <DownloadApkButton size="lg" className="flex-1" label="Download APK" />
+
                 <Button size="lg" variant="outline" className="flex-1" onClick={share}>
                   <Share2 className="w-5 h-5 mr-2" /> Share
                 </Button>
