@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Download, Database, HardDrive, Loader2, ShieldCheck, Github, Cloud, ExternalLink } from 'lucide-react';
 import JSZip from 'jszip';
 import AutoBackupPanel from '@/components/admin/AutoBackupPanel';
+import BackupRestorePanel from '@/components/admin/BackupRestorePanel';
 
 const TABLES = [
   'profiles', 'user_roles', 'restaurants', 'menu_categories', 'menu_items',
@@ -200,6 +201,10 @@ export default function AdminBackup() {
       </div>
 
       <AutoBackupPanel />
+
+      <BackupRestorePanel />
+
+
 
 
       {/* Destinations */}
