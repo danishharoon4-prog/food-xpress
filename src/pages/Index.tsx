@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { UtensilsCrossed, Bike, Shield, ArrowRight, MapPin, Clock, Star, ShoppingCart } from 'lucide-react';
 import CustomerHeader from '@/components/CustomerHeader';
+import DownloadApkButton from '@/components/DownloadApkButton';
+
 
 export default function Index() {
   const { user, role } = useAuth();
@@ -60,6 +62,7 @@ export default function Index() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
+              <DownloadApkButton size="lg" variant="outline" className="w-full sm:w-auto" label="Download Android App" showVersion />
               {!user && (
                 <Link to="/auth?role=rider">
                   <Button size="lg" variant="outline" className="w-full sm:w-auto">
@@ -69,6 +72,10 @@ export default function Index() {
                 </Link>
               )}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Android APK seedha download hoga · <Link to="/download" className="underline">QR se share karein</Link>
+            </p>
+
           </div>
         </div>
       </section>

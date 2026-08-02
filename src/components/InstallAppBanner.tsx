@@ -74,11 +74,19 @@ export default function InstallAppBanner() {
             Tez ordering aur live tracking{version ? ` · v${version}` : ""}
           </p>
         </div>
-        <Button size="sm" asChild onClick={dismiss}>
-          <a href={DOWNLOAD_ENDPOINT}>
-            <Download className="w-4 h-4 mr-1" /> Install
-          </a>
+        <Button
+          size="sm"
+          onClick={() => {
+            startApkDownload();
+            toast.success("Download shuru ho gaya", {
+              description: "Notification panel se APK install karein.",
+            });
+            dismiss();
+          }}
+        >
+          <Download className="w-4 h-4 mr-1" /> Install
         </Button>
+
         <button
           aria-label="Band karein"
           onClick={dismiss}
