@@ -425,6 +425,73 @@ export default function AdminSupport() {
           </>
         )}
       </Card>
+
+      {/* New direct message */}
+      <Dialog open={newOpen} onOpenChange={setNewOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Message a user</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {targetUser ? (
+              <div className="flex items-center justify-between rounded-md border p-2 text-sm">
+                <span className="truncate">
+                  {targetUser.full_name || targetUser.email || "User"}
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => setTargetUser(null)}>
+                  Change
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Input
+                  value={userQuery}
+                  onChange={(e) => setUserQuery(e.target.value)}
+                  placeholder="Search by name, email or phone..."
+                />
+                <div className="max-h-56 overflow-y-auto border rounded-md divide-y">
+                  {searching && (
+                    <div className="p-3 flex justify-center">
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                  {!searching && userResults.length === 0 && (
+                    <p className="p-3 text-sm text-muted-foreground text-center">No users found.</p>
+                  )}
+                  {!searching &&
+                    userResults.map((u) => (
+                      <button
+                        key={u.id}
+                        onClick={() => setTargetUser(u)}
+                        className="w-full text-left p-2 hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="text-sm font-medium truncate">{u.full_name || "Unnamed"}</div>
+                        <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                      </button>
+                    ))}
+                </div>
+              </>
+            )}
+            <Textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              rows={4}
+              placeholder="Write your message..."
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={startConversation}
+              disabled={creating || !targetUser || !newMessage.trim()}
+            >
+              {creating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
+              Send
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
