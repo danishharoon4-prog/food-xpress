@@ -46,6 +46,102 @@ export default function AdminSupport() {
   const [filter, setFilter] = useState<"all" | "escalated" | "ai" | "resolved">("escalated");
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // New direct message to any user
+  const [newOpen, setNewOpen] = useState(false);
+  const [userQuery, setUserQuery] = useState("");
+  const [userResults, setUserResults] = useState<{ id: string; full_name: string | null; email: string | null }[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [targetUser, setTargetUser] = useState<{ id: string; full_name: string | null; email: string | null } | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    const q = userQuery.trim();
+    if (!newOpen) return;
+    let cancelled = false;
+    setSearching(true);
+    const t = setTimeout(async () => {
+      let query = supabase.from("profiles").select("id, full_name, email").limit(20);
+      if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
+      const { data } = await query;
+      if (!cancelled) {
+        setUserResults((data as any) ?? []);
+        setSearching(false);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [userQuery, newOpen]);
+
+  const startConversation = async () => {
+    if (!targetUser || !newMessage.trim() || !user) return;
+    setCreating(true);
+    try {
+      const content = newMessage.trim();
+      let convoId: string | null = null;
+
+      const { data: existing } = await supabase
+        .from("support_conversations")
+        .select("id")
+        .eq("user_id", targetUser.id)
+        .maybeSingle();
+
+      if (existing) {
+        convoId = existing.id;
+      } else {
+        const { data: created, error: cErr } = await supabase
+          .from("support_conversations")
+          .insert({ user_id: targetUser.id, status: "escalated", subject: "Message from admin" })
+          .select("id")
+          .single();
+        if (cErr) throw cErr;
+        convoId = created.id;
+      }
+
+      const { error: mErr } = await supabase.from("support_messages").insert({
+        conversation_id: convoId,
+        sender: "admin",
+        sender_user_id: user.id,
+        content,
+      });
+      if (mErr) throw mErr;
+
+      await supabase
+        .from("support_conversations")
+        .update({
+          status: "escalated",
+          last_message_at: new Date().toISOString(),
+          unread_user: true,
+          unread_admin: false,
+        })
+        .eq("id", convoId);
+
+      await supabase.from("notifications").insert({
+        user_id: targetUser.id,
+        title: "Message from support",
+        message: content.slice(0, 140),
+        type: "info",
+        data: { kind: "support_reply", conversation_id: convoId },
+      });
+
+      toast.success("Message sent");
+      setNewOpen(false);
+      setNewMessage("");
+      setTargetUser(null);
+      setUserQuery("");
+      setFilter("all");
+      await loadConvos();
+      setActiveId(convoId);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to send message");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+
   const loadConvos = async () => {
     const { data } = await supabase
       .from("support_conversations")
