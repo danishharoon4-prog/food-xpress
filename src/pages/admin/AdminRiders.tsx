@@ -326,7 +326,17 @@ export default function AdminRiders() {
                   <p className="text-warning">Rider ne abhi tak terms accept nahi kiye.</p>
                 )}
               </div>
+              <div className="mt-4">
+                <ReviewRemarks
+                  targetType="rider"
+                  targetId={docsRider.id}
+                  ownerUserId={docsRider.user_id}
+                  isAdmin
+                  title="Remarks to Rider"
+                />
+              </div>
             </>
+
           )}
         </DialogContent>
       </Dialog>

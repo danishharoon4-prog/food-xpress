@@ -261,6 +261,15 @@ export default function RestaurantProfile() {
 
       <StatusBanner />
 
+      {restaurant?.id && (
+        <ReviewRemarks
+          targetType="restaurant"
+          targetId={restaurant.id}
+          title="Admin Remarks & Your Feedback"
+        />
+      )}
+
+
       <Tabs defaultValue="restaurant">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="personal"><User className="w-4 h-4 mr-2" />Personal</TabsTrigger>

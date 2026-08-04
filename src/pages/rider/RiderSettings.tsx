@@ -296,6 +296,15 @@ export default function RiderSettings() {
         </Card>
       )}
 
+      {rider?.id && (
+        <ReviewRemarks
+          targetType="rider"
+          targetId={rider.id}
+          title="Admin Remarks & Your Feedback"
+        />
+      )}
+
+
       {/* Profile Photo */}
       <Card>
         <CardHeader>
