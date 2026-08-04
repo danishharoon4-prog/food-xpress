@@ -278,9 +278,15 @@ export default function AdminSupport() {
       {/* List */}
       <Card className="flex flex-col overflow-hidden">
         <div className="p-3 border-b space-y-2">
-          <h2 className="font-semibold flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" /> Conversations
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-semibold flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" /> Conversations
+            </h2>
+            <Button size="sm" className="h-7 text-xs" onClick={() => setNewOpen(true)}>
+              <PlusCircle className="w-3.5 h-3.5 mr-1" /> New
+            </Button>
+          </div>
+
           <div className="flex gap-1 flex-wrap">
             {(["escalated", "ai", "resolved", "all"] as const).map((f) => (
               <Button
