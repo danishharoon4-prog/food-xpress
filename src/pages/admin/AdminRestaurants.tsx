@@ -345,8 +345,16 @@ export default function AdminRestaurants() {
                   <Textarea id="reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={2} placeholder="Explain why this is being rejected..." />
                 </div>
               )}
+              <ReviewRemarks
+                targetType="restaurant"
+                targetId={reviewing.id}
+                ownerUserId={(reviewing as any).owner_id}
+                isAdmin
+                title="Remarks to Owner"
+              />
             </div>
           )}
+
           <DialogFooter className="gap-2 sm:gap-2">
             {reviewing && (reviewing as any).approval_status !== 'approved' && (
               <Button variant="outline" className="text-destructive" onClick={reject}>
