@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import ReviewRemarks from '@/components/ReviewRemarks';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
