@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import ReviewRemarks from '@/components/ReviewRemarks';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -325,7 +326,17 @@ export default function AdminRiders() {
                   <p className="text-warning">Rider ne abhi tak terms accept nahi kiye.</p>
                 )}
               </div>
+              <div className="mt-4">
+                <ReviewRemarks
+                  targetType="rider"
+                  targetId={docsRider.id}
+                  ownerUserId={docsRider.user_id}
+                  isAdmin
+                  title="Remarks to Rider"
+                />
+              </div>
             </>
+
           )}
         </DialogContent>
       </Dialog>

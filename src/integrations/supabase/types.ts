@@ -958,6 +958,39 @@ export type Database = {
         }
         Relationships: []
       }
+      review_remarks: {
+        Row: {
+          author_id: string
+          author_role: string
+          created_at: string
+          id: string
+          message: string
+          target_id: string
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          author_role: string
+          created_at?: string
+          id?: string
+          message: string
+          target_id: string
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          author_role?: string
+          created_at?: string
+          id?: string
+          message?: string
+          target_id?: string
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rider_earnings: {
         Row: {
           amount: number
@@ -1286,6 +1319,10 @@ export type Database = {
       }
       approve_restaurant: {
         Args: { _approve: boolean; _reason?: string; _restaurant_id: string }
+        Returns: boolean
+      }
+      can_access_review_target: {
+        Args: { _target_id: string; _target_type: string }
         Returns: boolean
       }
       cancel_order: {

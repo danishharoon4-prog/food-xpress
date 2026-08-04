@@ -3,13 +3,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { Bot, ShieldCheck, User, Send, CheckCircle2, Loader2, MessageSquare } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Bot, ShieldCheck, User, Send, CheckCircle2, Loader2, MessageSquare, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+
 
 type Convo = {
   id: string;
@@ -36,6 +45,102 @@ export default function AdminSupport() {
   const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState<"all" | "escalated" | "ai" | "resolved">("escalated");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // New direct message to any user
+  const [newOpen, setNewOpen] = useState(false);
+  const [userQuery, setUserQuery] = useState("");
+  const [userResults, setUserResults] = useState<{ id: string; full_name: string | null; email: string | null }[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [targetUser, setTargetUser] = useState<{ id: string; full_name: string | null; email: string | null } | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    const q = userQuery.trim();
+    if (!newOpen) return;
+    let cancelled = false;
+    setSearching(true);
+    const t = setTimeout(async () => {
+      let query = supabase.from("profiles").select("id, full_name, email").limit(20);
+      if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
+      const { data } = await query;
+      if (!cancelled) {
+        setUserResults((data as any) ?? []);
+        setSearching(false);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [userQuery, newOpen]);
+
+  const startConversation = async () => {
+    if (!targetUser || !newMessage.trim() || !user) return;
+    setCreating(true);
+    try {
+      const content = newMessage.trim();
+      let convoId: string | null = null;
+
+      const { data: existing } = await supabase
+        .from("support_conversations")
+        .select("id")
+        .eq("user_id", targetUser.id)
+        .maybeSingle();
+
+      if (existing) {
+        convoId = existing.id;
+      } else {
+        const { data: created, error: cErr } = await supabase
+          .from("support_conversations")
+          .insert({ user_id: targetUser.id, status: "escalated", subject: "Message from admin" })
+          .select("id")
+          .single();
+        if (cErr) throw cErr;
+        convoId = created.id;
+      }
+
+      const { error: mErr } = await supabase.from("support_messages").insert({
+        conversation_id: convoId,
+        sender: "admin",
+        sender_user_id: user.id,
+        content,
+      });
+      if (mErr) throw mErr;
+
+      await supabase
+        .from("support_conversations")
+        .update({
+          status: "escalated",
+          last_message_at: new Date().toISOString(),
+          unread_user: true,
+          unread_admin: false,
+        })
+        .eq("id", convoId);
+
+      await supabase.from("notifications").insert({
+        user_id: targetUser.id,
+        title: "Message from support",
+        message: content.slice(0, 140),
+        type: "info",
+        data: { kind: "support_reply", conversation_id: convoId },
+      });
+
+      toast.success("Message sent");
+      setNewOpen(false);
+      setNewMessage("");
+      setTargetUser(null);
+      setUserQuery("");
+      setFilter("all");
+      await loadConvos();
+      setActiveId(convoId);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to send message");
+    } finally {
+      setCreating(false);
+    }
+  };
+
 
   const loadConvos = async () => {
     const { data } = await supabase
@@ -173,9 +278,15 @@ export default function AdminSupport() {
       {/* List */}
       <Card className="flex flex-col overflow-hidden">
         <div className="p-3 border-b space-y-2">
-          <h2 className="font-semibold flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" /> Conversations
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-semibold flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" /> Conversations
+            </h2>
+            <Button size="sm" className="h-7 text-xs" onClick={() => setNewOpen(true)}>
+              <PlusCircle className="w-3.5 h-3.5 mr-1" /> New
+            </Button>
+          </div>
+
           <div className="flex gap-1 flex-wrap">
             {(["escalated", "ai", "resolved", "all"] as const).map((f) => (
               <Button
@@ -314,6 +425,73 @@ export default function AdminSupport() {
           </>
         )}
       </Card>
+
+      {/* New direct message */}
+      <Dialog open={newOpen} onOpenChange={setNewOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Message a user</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {targetUser ? (
+              <div className="flex items-center justify-between rounded-md border p-2 text-sm">
+                <span className="truncate">
+                  {targetUser.full_name || targetUser.email || "User"}
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => setTargetUser(null)}>
+                  Change
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Input
+                  value={userQuery}
+                  onChange={(e) => setUserQuery(e.target.value)}
+                  placeholder="Search by name, email or phone..."
+                />
+                <div className="max-h-56 overflow-y-auto border rounded-md divide-y">
+                  {searching && (
+                    <div className="p-3 flex justify-center">
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                  {!searching && userResults.length === 0 && (
+                    <p className="p-3 text-sm text-muted-foreground text-center">No users found.</p>
+                  )}
+                  {!searching &&
+                    userResults.map((u) => (
+                      <button
+                        key={u.id}
+                        onClick={() => setTargetUser(u)}
+                        className="w-full text-left p-2 hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="text-sm font-medium truncate">{u.full_name || "Unnamed"}</div>
+                        <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                      </button>
+                    ))}
+                </div>
+              </>
+            )}
+            <Textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              rows={4}
+              placeholder="Write your message..."
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={startConversation}
+              disabled={creating || !targetUser || !newMessage.trim()}
+            >
+              {creating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
+              Send
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }

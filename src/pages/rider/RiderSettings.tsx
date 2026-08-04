@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import ReviewRemarks from '@/components/ReviewRemarks';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -294,6 +295,15 @@ export default function RiderSettings() {
           </CardContent>
         </Card>
       )}
+
+      {rider?.id && (
+        <ReviewRemarks
+          targetType="rider"
+          targetId={rider.id}
+          title="Admin Remarks & Your Feedback"
+        />
+      )}
+
 
       {/* Profile Photo */}
       <Card>

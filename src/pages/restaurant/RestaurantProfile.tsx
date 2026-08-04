@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import ReviewRemarks from '@/components/ReviewRemarks';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -259,6 +260,15 @@ export default function RestaurantProfile() {
       </div>
 
       <StatusBanner />
+
+      {restaurant?.id && (
+        <ReviewRemarks
+          targetType="restaurant"
+          targetId={restaurant.id}
+          title="Admin Remarks & Your Feedback"
+        />
+      )}
+
 
       <Tabs defaultValue="restaurant">
         <TabsList className="grid w-full grid-cols-3">
