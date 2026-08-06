@@ -474,6 +474,7 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
 
+          {activeTab === 'login' && (
           <div data-auth-legal className="auth-legal">
             <p className="text-center text-xs text-muted-foreground leading-relaxed">
               By continuing you agree to our{' '}
