@@ -460,7 +460,7 @@ export default function Auth() {
 
 
 
-                <Button type="submit" className="w-full gradient-primary h-11" disabled={isLoading}>
+                <Button type="submit" className="w-full gradient-primary h-11" disabled={isLoading || !acceptedTerms}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
