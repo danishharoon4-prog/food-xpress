@@ -111,7 +111,12 @@ export default function Auth() {
       } else if (password && confirmPassword !== password) {
         newErrors.confirmPassword = 'Passwords do not match';
       }
+
+      if (!acceptedTerms) {
+        newErrors.terms = 'Please accept the Terms & Conditions and Privacy Policy to continue';
+      }
     }
+
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
