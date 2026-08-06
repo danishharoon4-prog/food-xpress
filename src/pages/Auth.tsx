@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
@@ -45,6 +46,7 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { signIn, signUp, user, role, isLoading: authLoading } = useAuth();
@@ -110,7 +112,12 @@ export default function Auth() {
       } else if (password && confirmPassword !== password) {
         newErrors.confirmPassword = 'Passwords do not match';
       }
+
+      if (!acceptedTerms) {
+        newErrors.terms = 'Please accept the Terms & Conditions and Privacy Policy to continue';
+      }
     }
+
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -419,6 +426,34 @@ export default function Auth() {
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
                   Service area: <span className="font-medium text-foreground">Mansehra</span>
                 </div>
+
+                <div className="space-y-1.5">
+                  <label className="flex items-start gap-2.5 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={acceptedTerms}
+                      onCheckedChange={(v) => {
+                        setAcceptedTerms(!!v);
+                        if (v) setErrors((prev) => ({ ...prev, terms: '' }));
+                      }}
+                      disabled={isLoading}
+                      className="mt-0.5"
+                      aria-label="Accept terms and conditions"
+                    />
+                    <span className="text-muted-foreground leading-relaxed">
+                      I have read and agree to the{' '}
+                      <Link to="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                        Terms &amp; Conditions
+                      </Link>{' '}
+                      and{' '}
+                      <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                        Privacy Policy
+                      </Link>
+                      .
+                    </span>
+                  </label>
+                  {errors.terms && <p className="text-sm text-destructive">{errors.terms}</p>}
+                </div>
+
 
                 <Button type="submit" className="w-full gradient-primary h-11" disabled={isLoading}>
                   {isLoading ? (
