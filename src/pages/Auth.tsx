@@ -428,7 +428,11 @@ export default function Auth() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-start gap-2.5 text-sm cursor-pointer">
+                  <label
+                    className={`flex items-start gap-3 rounded-lg border px-3 py-3 text-sm cursor-pointer transition-colors ${
+                      acceptedTerms ? 'border-primary bg-primary/5' : 'border-border bg-background'
+                    } ${errors.terms ? 'border-destructive' : ''}`}
+                  >
                     <Checkbox
                       checked={acceptedTerms}
                       onCheckedChange={(v) => {
@@ -436,7 +440,7 @@ export default function Auth() {
                         if (v) setErrors((prev) => ({ ...prev, terms: '' }));
                       }}
                       disabled={isLoading}
-                      className="mt-0.5"
+                      className="mt-0.5 h-5 w-5 rounded-[4px]"
                       aria-label="Accept terms and conditions"
                     />
                     <span className="text-muted-foreground leading-relaxed">
@@ -455,7 +459,8 @@ export default function Auth() {
                 </div>
 
 
-                <Button type="submit" className="w-full gradient-primary h-11" disabled={isLoading}>
+
+                <Button type="submit" className="w-full gradient-primary h-11" disabled={isLoading || !acceptedTerms}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -469,6 +474,7 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
 
+          {activeTab === 'login' && (
           <div data-auth-legal className="auth-legal">
             <p className="text-center text-xs text-muted-foreground leading-relaxed">
               By continuing you agree to our{' '}
@@ -482,6 +488,7 @@ export default function Auth() {
               .
             </p>
           </div>
+          )}
         </CardContent>
       </Card>
     </div>
