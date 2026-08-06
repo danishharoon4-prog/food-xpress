@@ -426,6 +426,34 @@ export default function Auth() {
                   Service area: <span className="font-medium text-foreground">Mansehra</span>
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="flex items-start gap-2.5 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={acceptedTerms}
+                      onCheckedChange={(v) => {
+                        setAcceptedTerms(!!v);
+                        if (v) setErrors((prev) => ({ ...prev, terms: '' }));
+                      }}
+                      disabled={isLoading}
+                      className="mt-0.5"
+                      aria-label="Accept terms and conditions"
+                    />
+                    <span className="text-muted-foreground leading-relaxed">
+                      I have read and agree to the{' '}
+                      <Link to="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                        Terms &amp; Conditions
+                      </Link>{' '}
+                      and{' '}
+                      <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                        Privacy Policy
+                      </Link>
+                      .
+                    </span>
+                  </label>
+                  {errors.terms && <p className="text-sm text-destructive">{errors.terms}</p>}
+                </div>
+
+
                 <Button type="submit" className="w-full gradient-primary h-11" disabled={isLoading}>
                   {isLoading ? (
                     <>
