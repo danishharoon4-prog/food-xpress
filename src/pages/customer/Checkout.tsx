@@ -93,11 +93,8 @@ export default function Checkout() {
   // Load which payment methods admin has enabled
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from('platform_settings')
-        .select('cod_enabled, easypaisa_enabled, jazzcash_enabled, stripe_enabled')
-        .eq('singleton', true)
-        .maybeSingle();
+      const { data: rows } = await supabase.rpc('get_public_platform_settings');
+      const data = Array.isArray(rows) ? rows[0] : null;
 
       const flags = (data ?? {
         cod_enabled: true,

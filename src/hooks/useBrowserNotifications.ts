@@ -38,11 +38,8 @@ export function useBrowserNotifications() {
 
     // Load global platform toggles
     (async () => {
-      const { data } = await supabase
-        .from('platform_settings')
-        .select('notifications_toast_enabled, notifications_push_enabled, notifications_sound_enabled')
-        .limit(1)
-        .maybeSingle();
+      const { data: rows } = await supabase.rpc('get_public_platform_settings');
+      const data = Array.isArray(rows) ? rows[0] : null;
       if (data) globalsRef.current = data as GlobalToggles;
     })();
 

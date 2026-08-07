@@ -1355,6 +1355,28 @@ export type Database = {
         Returns: string[]
       }
       get_owned_restaurant_id: { Args: { _user_id: string }; Returns: string[] }
+      get_public_platform_settings: {
+        Args: never
+        Returns: {
+          base_distance_km: number
+          base_fare: number
+          closing_time: string
+          cod_enabled: boolean
+          easypaisa_enabled: boolean
+          jazzcash_enabled: boolean
+          max_delivery_radius_km: number
+          notifications_push_enabled: boolean
+          notifications_sound_enabled: boolean
+          notifications_toast_enabled: boolean
+          opening_time: string
+          operating_city: string
+          per_km_rate: number
+          platform_name: string
+          stripe_enabled: boolean
+          support_email: string
+          support_phone: string
+        }[]
+      }
       get_restaurant_phone_for_order: {
         Args: { _order_id: string }
         Returns: string
