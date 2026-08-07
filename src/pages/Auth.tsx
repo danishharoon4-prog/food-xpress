@@ -166,6 +166,11 @@ export default function Auth() {
         title: 'Account Created!',
         description: 'Welcome! You can now start using the app.',
       });
+      pixelTrack('CompleteRegistration', {
+        value: 0,
+        currency: 'PKR',
+        role: selectedRole,
+      });
     }
   };
 
