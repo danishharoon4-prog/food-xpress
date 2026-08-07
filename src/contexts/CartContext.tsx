@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { pixelTrack } from '@/lib/metaPixel';
 import type { CartItem, MenuItem, MenuItemSize } from '@/types';
 
 interface CartContextType {
@@ -46,6 +47,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const selectedSize = options?.selectedSize || null;
     const specialInstructions = options?.specialInstructions;
     const cartKey = makeCartKey(menuItem.id, selectedSize?.name);
+    const unitPrice = selectedSize ? Number(selectedSize.price) : Number(menuItem.price);
+
+    pixelTrack('AddToCart', {
+      content_ids: [menuItem.id],
+      content_name: menuItem.name,
+      content_type: 'menu_item',
+      value: unitPrice * quantity,
+      currency: 'PKR',
+    });
+
 
     setItems((prev) => {
       // Different restaurant → replace cart

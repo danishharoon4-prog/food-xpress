@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { useLocation } from '@/hooks/useLocation';
+import { pixelTrack } from '@/lib/metaPixel';
 import { MapPin, CreditCard, Wallet, Banknote, Loader2, Truck, Clock } from 'lucide-react';
 import { JazzCashPaymentDialog } from '@/components/JazzCashPaymentDialog';
 import type { PaymentMethod } from '@/types';
@@ -289,6 +290,17 @@ export default function Checkout() {
 
       const placed = Array.isArray(rpcData) ? rpcData[0] : rpcData;
       if (!placed?.order_id) throw new Error('Order could not be created');
+
+      pixelTrack('Purchase', {
+        content_ids: items.map((item) => item.menuItem.id),
+        content_name: items.map((item) => item.menuItem.name).join(', '),
+        content_type: 'menu_item',
+        value: total,
+        currency: 'PKR',
+        order_id: placed.order_id,
+        order_number: placed.order_number,
+        payment_method: paymentMethod,
+      });
 
       clearCart();
 
