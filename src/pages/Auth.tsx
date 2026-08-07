@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { pixelTrack } from '@/lib/metaPixel';
 import { Loader2, UtensilsCrossed, Bike, Store, Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 import type { AppRole } from '@/types';

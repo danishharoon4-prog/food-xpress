@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LocationPicker } from '@/components/LocationPicker';
 import { DistanceDisplay } from '@/components/DistanceDisplay';
 import { useLocation } from '@/hooks/useLocation';
+import { pixelTrack } from '@/lib/metaPixel';
 import { MapPin, CreditCard, Wallet, Banknote, Loader2, Truck, Clock } from 'lucide-react';
 import { JazzCashPaymentDialog } from '@/components/JazzCashPaymentDialog';
 import type { PaymentMethod } from '@/types';

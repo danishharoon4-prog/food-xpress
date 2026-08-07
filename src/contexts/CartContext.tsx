@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { pixelTrack } from '@/lib/metaPixel';
 import type { CartItem, MenuItem, MenuItemSize } from '@/types';
 
 interface CartContextType {
