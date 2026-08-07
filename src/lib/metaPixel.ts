@@ -4,7 +4,7 @@
  * Paste your Pixel ID below (Events Manager → Data Sources → your pixel).
  * A Pixel ID is a public identifier, so it is safe to keep in the codebase.
  */
-export const META_PIXEL_ID = ""; // e.g. "1234567890123456"
+export const META_PIXEL_ID = "2232649293792234"; // e.g. "1234567890123456"
 
 declare global {
   interface Window {
