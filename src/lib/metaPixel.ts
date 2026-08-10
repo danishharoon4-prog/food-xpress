@@ -19,6 +19,9 @@ export function initMetaPixel(pixelId: string = META_PIXEL_ID) {
   if (initialized || !pixelId || typeof window === "undefined") return;
   initialized = true;
 
+  // Base code already loaded from index.html — nothing else to do.
+  if (window.fbq) return;
+
   /* eslint-disable */
   (function (f: any, b: Document, e: string, v: string) {
     if (f.fbq) return;
