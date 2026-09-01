@@ -6,6 +6,7 @@ import { Download, Share2, Smartphone, ShieldCheck } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { toast } from "sonner";
 import DownloadApkButton from "@/components/DownloadApkButton";
+import AddToHomeScreenButton, { isIOSDevice } from "@/components/AddToHomeScreenButton";
 
 
 type Release = {
@@ -96,7 +97,11 @@ export default function DownloadApp() {
               )}
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <DownloadApkButton size="lg" className="flex-1" label="Download APK" />
+                {isIOSDevice() ? (
+                  <AddToHomeScreenButton size="lg" className="flex-1" />
+                ) : (
+                  <DownloadApkButton size="lg" className="flex-1" label="Download APK" />
+                )}
 
                 <Button size="lg" variant="outline" className="flex-1" onClick={share}>
                   <Share2 className="w-5 h-5 mr-2" /> Share
