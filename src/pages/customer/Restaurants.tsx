@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import DownloadApkButton from '@/components/DownloadApkButton';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
