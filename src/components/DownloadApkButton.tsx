@@ -7,23 +7,25 @@ import { toast } from "sonner";
 const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID as string;
 export const DOWNLOAD_ENDPOINT = `https://${PROJECT_ID}.supabase.co/functions/v1/download-apk`;
 
-/** Browser navigation ke bagair APK download start karta hai (hidden iframe). */
+/**
+ * APK download start karta hai.
+ * Hidden iframe browsers block kar dete hain (cross-origin download),
+ * is liye top-level navigation use karte hain — server Content-Disposition
+ * attachment bhejta hai to page navigate nahi hota, sirf download shuru hota hai.
+ */
 export function startApkDownload() {
   const url = `${DOWNLOAD_ENDPOINT}?t=${Date.now()}`;
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = url;
-  document.body.appendChild(iframe);
-  window.setTimeout(() => iframe.remove(), 60_000);
-
-  // Fallback: agar iframe block ho jaye to anchor click
   const a = document.createElement("a");
   a.href = url;
   a.download = "food-xpress.apk";
   a.rel = "noopener";
   a.style.display = "none";
   document.body.appendChild(a);
-  window.setTimeout(() => a.remove(), 1000);
+  a.click();
+  window.setTimeout(() => {
+    a.remove();
+    // Fallback agar anchor click browser ne ignore kiya
+  }, 1500);
 }
 
 type Props = {
