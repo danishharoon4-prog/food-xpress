@@ -340,6 +340,10 @@ export default function Restaurants() {
             </p>
           </motion.div>
 
+          <motion.div variants={fadeUp} custom={0.5} className="flex justify-center">
+            <DownloadApkButton size="lg" label="Download Android App" className="rounded-2xl font-bold" showVersion />
+          </motion.div>
+
           <motion.div variants={fadeUp} custom={1} className="max-w-3xl mx-auto">
             <motion.div
               whileHover={{ y: -2, boxShadow: '0 30px 60px -20px hsl(var(--primary) / 0.25)' }}
