@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import DownloadApkButton from '@/components/DownloadApkButton';
+import InstallAppCta from '@/components/InstallAppCta';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -342,7 +342,7 @@ export default function Restaurants() {
           </motion.div>
 
           <motion.div variants={fadeUp} custom={0.5} className="flex justify-center">
-            <DownloadApkButton size="lg" label="Download Android App" className="rounded-2xl font-bold" showVersion />
+            <InstallAppCta size="lg" className="rounded-2xl font-bold" showVersion />
           </motion.div>
 
           <motion.div variants={fadeUp} custom={1} className="max-w-3xl mx-auto">
