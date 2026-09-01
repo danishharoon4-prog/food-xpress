@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import DownloadApkButton from '@/components/DownloadApkButton';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -338,6 +339,10 @@ export default function Restaurants() {
             <p className="text-muted-foreground text-lg md:text-xl font-medium">
               Delicious meals from your local favorites, delivered fast.
             </p>
+          </motion.div>
+
+          <motion.div variants={fadeUp} custom={0.5} className="flex justify-center">
+            <DownloadApkButton size="lg" label="Download Android App" className="rounded-2xl font-bold" showVersion />
           </motion.div>
 
           <motion.div variants={fadeUp} custom={1} className="max-w-3xl mx-auto">
