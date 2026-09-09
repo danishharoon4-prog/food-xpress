@@ -26,22 +26,65 @@ const ASPECTS: { label: string; value: number }[] = [
   { label: 'Portrait 3:4', value: 3 / 4 },
 ];
 
-async function getCroppedDataUrl(src: string, area: Area, mime = 'image/jpeg'): Promise<string> {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve();
+const MAX_OUTPUT = 1000; // longest side of the saved image
+const MAX_BYTES = 350 * 1024; // keep the saved payload small enough to upload reliably
+
+function dataUrlBytes(dataUrl: string) {
+  const i = dataUrl.indexOf(',');
+  return Math.round(((dataUrl.length - i - 1) * 3) / 4);
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Failed to load image. The remote URL may block cross-origin access — try uploading the file instead.'));
     img.src = src;
   });
+}
+
+/** Draw a source region onto a canvas, scaled down, and encode as a compact JPEG. */
+function encode(
+  img: HTMLImageElement,
+  sx: number, sy: number, sw: number, sh: number,
+): string {
+  const scale = Math.min(1, MAX_OUTPUT / Math.max(sw, sh));
+  const dw = Math.max(1, Math.round(sw * scale));
+  const dh = Math.max(1, Math.round(sh * scale));
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(area.width);
-  canvas.height = Math.round(area.height);
+  canvas.width = dw;
+  canvas.height = dh;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas not supported');
-  ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, area.width, area.height);
-  return canvas.toDataURL(mime, 0.9);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, dw, dh);
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
+
+  let quality = 0.82;
+  let out = canvas.toDataURL('image/jpeg', quality);
+  while (dataUrlBytes(out) > MAX_BYTES && quality > 0.4) {
+    quality -= 0.1;
+    out = canvas.toDataURL('image/jpeg', quality);
+  }
+  return out;
 }
+
+async function getCroppedDataUrl(src: string, area: Area): Promise<string> {
+  const img = await loadImage(src);
+  return encode(img, area.x, area.y, area.width, area.height);
+}
+
+/** Shrink a freshly picked file before it ever touches state / the database. */
+async function shrinkDataUrl(dataUrl: string): Promise<string> {
+  try {
+    const img = await loadImage(dataUrl);
+    return encode(img, 0, 0, img.naturalWidth, img.naturalHeight);
+  } catch {
+    return dataUrl;
+  }
+}
+
 
 export default function ImageCropInput({
   value,
@@ -77,13 +120,17 @@ export default function ImageCropInput({
 
   const onFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      const data = reader.result as string;
+    reader.onload = async () => {
+      const raw = reader.result as string;
+      // Shrink immediately so large phone photos never get saved at full size
+      const data = await shrinkDataUrl(raw);
       onChange(data);
       openCropper(data);
     };
+    reader.onerror = () => toast({ title: 'Could not read file', variant: 'destructive' });
     reader.readAsDataURL(file);
   };
+
 
   const pickFromDevice = async () => {
     try {
