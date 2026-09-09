@@ -120,13 +120,17 @@ export default function ImageCropInput({
 
   const onFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      const data = reader.result as string;
+    reader.onload = async () => {
+      const raw = reader.result as string;
+      // Shrink immediately so large phone photos never get saved at full size
+      const data = await shrinkDataUrl(raw);
       onChange(data);
       openCropper(data);
     };
+    reader.onerror = () => toast({ title: 'Could not read file', variant: 'destructive' });
     reader.readAsDataURL(file);
   };
+
 
   const pickFromDevice = async () => {
     try {
