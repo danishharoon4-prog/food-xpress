@@ -394,9 +394,21 @@ export default function RestaurantMenu() {
                       No items in this category.
                     </div>
                   ) : (
-                    <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
-                      {filteredItems.map(renderCard)}
-                    </div>
+                    <>
+                      <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {filteredItems.slice(0, visibleCount).map(renderCard)}
+                      </div>
+                      {filteredItems.length > visibleCount && (
+                        <div className="flex justify-center mt-5">
+                          <Button
+                            variant="outline"
+                            onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                          >
+                            Show more ({filteredItems.length - visibleCount} left)
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </section>
               </>
