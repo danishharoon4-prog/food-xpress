@@ -260,6 +260,9 @@ export default function RestaurantMenu() {
                           alt={item.name}
                           loading="lazy"
                           decoding="async"
+                          referrerPolicy="no-referrer"
+                          width={96}
+                          height={96}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             const img = e.currentTarget as HTMLImageElement;
