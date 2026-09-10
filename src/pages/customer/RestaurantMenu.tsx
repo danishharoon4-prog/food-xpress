@@ -30,6 +30,12 @@ export default function RestaurantMenu() {
   const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
   const [pickedSize, setPickedSize] = useState<string>('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const PAGE_SIZE = 18;
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeCategory]);
   const { items, addItem, removeItem, updateQuantity, getItemCount, getSubtotal, makeCartKey } = useCart();
   const { toast } = useToast();
 
@@ -254,6 +260,9 @@ export default function RestaurantMenu() {
                           alt={item.name}
                           loading="lazy"
                           decoding="async"
+                          referrerPolicy="no-referrer"
+                          width={96}
+                          height={96}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             const img = e.currentTarget as HTMLImageElement;
@@ -385,9 +394,21 @@ export default function RestaurantMenu() {
                       No items in this category.
                     </div>
                   ) : (
-                    <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
-                      {filteredItems.map(renderCard)}
-                    </div>
+                    <>
+                      <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {filteredItems.slice(0, visibleCount).map(renderCard)}
+                      </div>
+                      {filteredItems.length > visibleCount && (
+                        <div className="flex justify-center mt-5">
+                          <Button
+                            variant="outline"
+                            onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                          >
+                            Show more ({filteredItems.length - visibleCount} left)
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </section>
               </>
