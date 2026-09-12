@@ -23,6 +23,12 @@ const config: CapacitorConfig = {
   },
   
   plugins: {
+    SystemBars: {
+      insetsHandling: 'css',
+      style: 'DEFAULT',
+      hidden: false,
+      animation: 'NONE',
+    },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },

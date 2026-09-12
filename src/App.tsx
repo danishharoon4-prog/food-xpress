@@ -18,6 +18,7 @@ import LocationGate from "@/components/LocationGate";
 import MobileLiveUpdate from "@/components/MobileLiveUpdate";
 import InstallAppBanner from "@/components/InstallAppBanner";
 import SplashOverlay from "@/components/SplashOverlay";
+import MobileViewportManager from "@/components/MobileViewportManager";
 
 patchSonnerForBrowserNotifications();
 
@@ -111,6 +112,7 @@ const App = () => (
       <CartProvider>
         <TooltipProvider>
           <SplashOverlay />
+          <MobileViewportManager />
           <MobileLiveUpdate />
           <InstallAppBanner />
           <SwipeHintOverlay />

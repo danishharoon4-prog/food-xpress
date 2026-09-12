@@ -19,8 +19,8 @@ export default function CustomerBottomNav() {
   useSwipeNav(items.map(i => i.path));
   return (
     <>
-    <div className="md:hidden h-16" aria-hidden="true" />
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur border-t flex">
+    <div className="mobile-bottom-nav-spacer md:hidden" aria-hidden="true" />
+    <nav data-bottom-nav className="mobile-bottom-nav md:hidden fixed left-0 right-0 z-40 bg-card/95 backdrop-blur border-t flex">
       {items.map(({ path, label, icon: Icon, showBadge }) => {
         const active = location.pathname === path;
         return (
