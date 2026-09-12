@@ -461,6 +461,45 @@ html, body, #root {
   max-width: 100vw;
   overflow-x: hidden;
 }
+
+:root {
+  --app-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --app-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --mobile-nav-height: 4rem;
+}
+
+html.native-app body {
+  padding-top: var(--app-safe-top);
+  padding-bottom: var(--app-safe-bottom);
+}
+
+html.native-app,
+html.native-app body,
+html.native-app #root {
+  min-height: calc(100dvh - var(--app-safe-top) - var(--app-safe-bottom));
+}
+
+.mobile-bottom-nav {
+  bottom: var(--app-safe-bottom);
+  min-height: var(--mobile-nav-height);
+}
+
+.mobile-bottom-nav-spacer {
+  height: calc(var(--mobile-nav-height) + var(--app-safe-bottom));
+}
+
+@media (max-width: 1023px) {
+  .mobile-layout-content {
+    padding-bottom: calc(var(--mobile-nav-height) + var(--app-safe-bottom));
+  }
+}
+
+@media (max-width: 767px) {
+  html.mobile-keyboard-open .mobile-bottom-nav,
+  html.mobile-keyboard-open .mobile-bottom-nav-spacer {
+    display: none !important;
+  }
+}
 * { min-width: 0; }
 img, video, canvas, svg, iframe {
   max-width: 100%;

@@ -115,7 +115,7 @@ function RestaurantLayoutInner() {
 
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      <div className="flex-1 flex flex-col min-w-0 pb-16 lg:pb-0">
+      <div className="mobile-layout-content flex-1 flex flex-col min-w-0 lg:pb-0">
         <header className="h-14 lg:h-16 flex items-center gap-3 px-4 border-b bg-card lg:px-6 sticky top-0 z-30">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
@@ -166,7 +166,7 @@ function RestaurantLayoutInner() {
         </main>
 
         {/* Mobile bottom nav */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t flex">
+        <nav data-bottom-nav className="mobile-bottom-nav lg:hidden fixed left-0 right-0 z-40 bg-card border-t flex">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
@@ -32,6 +32,7 @@ export default function RestaurantMenu() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const PAGE_SIZE = 18;
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+  const [loadedImages, setLoadedImages] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -55,7 +56,7 @@ export default function RestaurantMenu() {
           .maybeSingle(),
         supabase
           .from('menu_items')
-          .select('id, restaurant_id, category_id, name, description, price, discount_price, is_deal, deal_label, image_url, is_available, is_featured, sizes, created_at, updated_at')
+          .select('id, restaurant_id, category_id, name, description, price, discount_price, is_deal, deal_label, is_available, is_featured, sizes, created_at, updated_at')
           .eq('restaurant_id', id)
           .eq('is_available', true)
           .order('is_featured', { ascending: false }),
@@ -70,12 +71,46 @@ export default function RestaurantMenu() {
       if (restaurantRes.data) setRestaurant(restaurantRes.data as Restaurant);
       setMenuItems((menuRes.data ?? []) as unknown as MenuItem[]);
       setCategories((catRes.data ?? []) as MenuCategory[]);
+      setLoadedImages({});
     } catch {
       setLoadError(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const visibleImageIds = useMemo(() => {
+    const categoryIds = new Set(categories.map((category) => category.id));
+    const filtered = activeCategory === 'all'
+      ? menuItems
+      : activeCategory === 'other'
+        ? menuItems.filter((item) => !item.category_id || !categoryIds.has(item.category_id))
+        : menuItems.filter((item) => item.category_id === activeCategory);
+    return filtered.slice(0, visibleCount).map((item) => item.id);
+  }, [activeCategory, categories, menuItems, visibleCount]);
+
+  useEffect(() => {
+    const missingIds = visibleImageIds.filter((itemId) => !(itemId in loadedImages));
+    if (missingIds.length === 0) return;
+    let cancelled = false;
+
+    const loadImages = async () => {
+      for (let start = 0; start < missingIds.length; start += 6) {
+        const ids = missingIds.slice(start, start + 6);
+        const { data } = await supabase.from('menu_items').select('id, image_url').in('id', ids);
+        if (cancelled) return;
+        setLoadedImages((current) => {
+          const next = { ...current };
+          ids.forEach((itemId) => { next[itemId] = null; });
+          (data ?? []).forEach((row) => { next[row.id] = row.image_url; });
+          return next;
+        });
+      }
+    };
+
+    void loadImages();
+    return () => { cancelled = true; };
+  }, [visibleImageIds]);
 
   // (scroll-to-category removed — replaced with real filtering)
 
@@ -254,9 +289,9 @@ export default function RestaurantMenu() {
                 <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="flex gap-3 p-2.5 sm:p-3">
                     <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                      {item.image_url ? (
+                       {loadedImages[item.id] ? (
                         <img
-                          src={resolveImg(item.image_url)}
+                           src={resolveImg(loadedImages[item.id])}
                           alt={item.name}
                           loading="lazy"
                           decoding="async"
@@ -274,7 +309,7 @@ export default function RestaurantMenu() {
                       ) : null}
                       <div
                         className="w-full h-full items-center justify-center text-xl font-bold text-primary/30"
-                        style={{ display: item.image_url ? 'none' : 'flex' }}
+                         style={{ display: loadedImages[item.id] ? 'none' : 'flex' }}
                       >
                         {item.name.charAt(0)}
                       </div>
@@ -451,7 +486,7 @@ export default function RestaurantMenu() {
       </Dialog>
 
       {itemCount > 0 && (
-        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 p-3 md:p-4 bg-card border-t shadow-soft-xl z-40">
+         <div className="fixed bottom-[calc(4rem+var(--app-safe-bottom))] md:bottom-0 left-0 right-0 p-3 md:p-4 bg-card border-t shadow-soft-xl z-40">
           <div className="container">
             <Link to="/cart">
               <Button className="w-full gradient-primary h-12 md:h-14 text-sm md:text-base">
