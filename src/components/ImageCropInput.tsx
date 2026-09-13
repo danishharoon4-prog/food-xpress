@@ -224,8 +224,15 @@ export default function ImageCropInput({
           src={value}
           alt="Preview"
           className={previewClassName}
-          onError={(e) => ((e.target as HTMLImageElement).style.opacity = '0.3')}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.opacity = '0.3';
+            checkImageLink(value);
+          }}
+          onLoad={(e) => ((e.target as HTMLImageElement).style.opacity = '1')}
         />
+      )}
+      {linkError && (
+        <p className="text-xs text-destructive">{linkError}</p>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
