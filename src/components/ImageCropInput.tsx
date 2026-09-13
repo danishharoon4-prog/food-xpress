@@ -176,7 +176,15 @@ export default function ImageCropInput({
       setOpen(false);
       toast({ title: 'Image cropped' });
     } catch (e: any) {
-      toast({ title: 'Crop failed', description: e.message, variant: 'destructive' });
+      // Remote URLs often block cross-origin canvas access. Instead of failing,
+      // keep the original link so the picture still updates.
+      if (/^https?:\/\//i.test(src)) {
+        onChange(src);
+        setOpen(false);
+        toast({ title: 'Link saved', description: 'Crop is link par available nahi, original image use ho rahi hai.' });
+      } else {
+        toast({ title: 'Crop failed', description: e.message, variant: 'destructive' });
+      }
     } finally {
       setSaving(false);
     }
