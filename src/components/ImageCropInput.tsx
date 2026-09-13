@@ -104,6 +104,20 @@ export default function ImageCropInput({
   const [aspect, setAspect] = useState<number>(defaultAspect);
   const [area, setArea] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  // Validate pasted links: only accept URLs that actually load as an image.
+  const checkImageLink = (url: string) => {
+    setLinkError(null);
+    const trimmed = url.trim();
+    if (!trimmed || trimmed.startsWith('data:')) return;
+    if (!/^https?:\/\//i.test(trimmed)) return;
+    const img = new Image();
+    img.onload = () => setLinkError(null);
+    img.onerror = () =>
+      setLinkError('Yeh link direct image nahi hai ya block hai. Image par right-click karke "Copy image address" wala link use karein, ya file upload karein.');
+    img.src = trimmed;
+  };
 
   const openCropper = (initial: string) => {
     if (!initial) {
@@ -162,7 +176,15 @@ export default function ImageCropInput({
       setOpen(false);
       toast({ title: 'Image cropped' });
     } catch (e: any) {
-      toast({ title: 'Crop failed', description: e.message, variant: 'destructive' });
+      // Remote URLs often block cross-origin canvas access. Instead of failing,
+      // keep the original link so the picture still updates.
+      if (/^https?:\/\//i.test(src)) {
+        onChange(src);
+        setOpen(false);
+        toast({ title: 'Link saved', description: 'Crop is link par available nahi, original image use ho rahi hai.' });
+      } else {
+        toast({ title: 'Crop failed', description: e.message, variant: 'destructive' });
+      }
     } finally {
       setSaving(false);
     }
@@ -174,7 +196,8 @@ export default function ImageCropInput({
       <div className="flex gap-2">
         <Input
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => { onChange(e.target.value); checkImageLink(e.target.value); }}
+          onBlur={() => value && checkImageLink(value)}
           placeholder={placeholder}
         />
         <input
@@ -201,8 +224,15 @@ export default function ImageCropInput({
           src={value}
           alt="Preview"
           className={previewClassName}
-          onError={(e) => ((e.target as HTMLImageElement).style.opacity = '0.3')}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.opacity = '0.3';
+            checkImageLink(value);
+          }}
+          onLoad={(e) => ((e.target as HTMLImageElement).style.opacity = '1')}
         />
+      )}
+      {linkError && (
+        <p className="text-xs text-destructive">{linkError}</p>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
