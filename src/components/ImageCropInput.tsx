@@ -196,7 +196,8 @@ export default function ImageCropInput({
       <div className="flex gap-2">
         <Input
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => { onChange(e.target.value); checkImageLink(e.target.value); }}
+          onBlur={() => value && checkImageLink(value)}
           placeholder={placeholder}
         />
         <input
