@@ -22,6 +22,8 @@ export default function AdminMenu() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [filterRestaurant, setFilterRestaurant] = useState<string>('all');
+  const [search, setSearch] = useState('');
   const { toast } = useToast();
 
   // Form state
