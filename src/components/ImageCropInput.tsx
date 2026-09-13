@@ -104,6 +104,20 @@ export default function ImageCropInput({
   const [aspect, setAspect] = useState<number>(defaultAspect);
   const [area, setArea] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  // Validate pasted links: only accept URLs that actually load as an image.
+  const checkImageLink = (url: string) => {
+    setLinkError(null);
+    const trimmed = url.trim();
+    if (!trimmed || trimmed.startsWith('data:')) return;
+    if (!/^https?:\/\//i.test(trimmed)) return;
+    const img = new Image();
+    img.onload = () => setLinkError(null);
+    img.onerror = () =>
+      setLinkError('Yeh link direct image nahi hai ya block hai. Image par right-click karke "Copy image address" wala link use karein, ya file upload karein.');
+    img.src = trimmed;
+  };
 
   const openCropper = (initial: string) => {
     if (!initial) {
