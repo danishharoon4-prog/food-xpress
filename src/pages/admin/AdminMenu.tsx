@@ -22,6 +22,8 @@ export default function AdminMenu() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [filterRestaurant, setFilterRestaurant] = useState<string>('all');
+  const [search, setSearch] = useState('');
   const { toast } = useToast();
 
   // Form state
@@ -166,6 +168,108 @@ export default function AdminMenu() {
   if (loading) {
     return <div className="animate-pulse text-muted-foreground">Loading menu...</div>;
   }
+
+  // Filter + group items restaurant-wise
+  const searchLower = search.trim().toLowerCase();
+  const filteredItems = menuItems.filter((item) => {
+    if (filterRestaurant !== 'all' && item.restaurant_id !== filterRestaurant) return false;
+    if (searchLower && !item.name.toLowerCase().includes(searchLower)) return false;
+    return true;
+  });
+
+  const grouped = new Map<string, { name: string; items: MenuItem[] }>();
+  for (const item of filteredItems) {
+    const key = item.restaurant_id || 'other';
+    if (!grouped.has(key)) {
+      const rName = restaurants.find((r) => r.id === item.restaurant_id)?.name
+        || (item as any).restaurant?.name
+        || 'Other';
+      grouped.set(key, { name: rName, items: [] });
+    }
+    grouped.get(key)!.items.push(item);
+  }
+  const groups = Array.from(grouped.entries())
+    .map(([key, g]) => ({ key, ...g }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const renderItemCard = (item: MenuItem) => (
+    <Card key={item.id} className="overflow-hidden">
+      {item.image_url && (
+        <div className="h-28 overflow-hidden">
+          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+        </div>
+      )}
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between mb-1.5 gap-2">
+          <h3 className="font-semibold text-sm truncate">{item.name}</h3>
+          <span className="font-bold text-primary text-sm whitespace-nowrap">PKR {Number(item.price).toLocaleString()}</span>
+        </div>
+        <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{item.description}</p>
+        <div className="flex gap-1.5 mb-2 flex-wrap">
+          {item.is_featured && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">Featured</span>
+          )}
+          {item.is_deal && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium">Deal</span>
+          )}
+          <span className={`text-[10px] px-2 py-0.5 rounded-full ${item.is_available ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
+            {item.is_available ? 'Available' : 'Unavailable'}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openDialog(item)}>
+            <Pencil className="w-3 h-3 mr-1" /> Edit
+          </Button>
+          <Button variant="outline" size="sm" className="h-7 text-xs text-destructive" onClick={() => handleDelete(item.id)}>
+            <Trash2 className="w-3 h-3 mr-1" /> Delete
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderItemRow = (item: MenuItem) => (
+    <TableRow key={item.id}>
+      <TableCell>
+        {item.image_url ? (
+          <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded object-cover" loading="lazy" />
+        ) : (
+          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+            <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
+          </div>
+        )}
+      </TableCell>
+      <TableCell className="font-medium">{item.name}</TableCell>
+      <TableCell className="max-w-[240px] truncate text-muted-foreground" title={item.description || ''}>
+        {item.description || '—'}
+      </TableCell>
+      <TableCell className="text-right">PKR {Number(item.price).toLocaleString()}</TableCell>
+      <TableCell className="text-right">
+        {item.discount_price ? `PKR ${Number(item.discount_price).toLocaleString()}` : '—'}
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {item.is_featured && <Badge variant="secondary">Featured</Badge>}
+          {item.is_deal && <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Deal</Badge>}
+        </div>
+      </TableCell>
+      <TableCell>
+        <Badge className={item.is_available ? 'bg-success/10 text-success hover:bg-success/10' : 'bg-muted text-muted-foreground hover:bg-muted'}>
+          {item.is_available ? 'Yes' : 'No'}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="inline-flex gap-1">
+          <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
 
   return (
     <div className="space-y-6">
@@ -324,6 +428,30 @@ export default function AdminMenu() {
         </div>
       </div>
 
+      {/* Restaurant filter + search */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+        <Select value={filterRestaurant} onValueChange={setFilterRestaurant}>
+          <SelectTrigger className="w-full sm:w-64">
+            <SelectValue placeholder="Filter by restaurant" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Restaurants</SelectItem>
+            {restaurants.map((r) => (
+              <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search items..."
+          className="w-full sm:w-64"
+        />
+        <span className="text-sm text-muted-foreground sm:ml-auto">
+          {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
       {menuItems.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center">
@@ -331,114 +459,49 @@ export default function AdminMenu() {
             <p className="text-muted-foreground">No menu items yet. Add your first item!</p>
           </CardContent>
         </Card>
-      ) : viewMode === 'list' ? (
+      ) : groups.length === 0 ? (
         <Card>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Restaurant</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
-                  <TableHead className="text-right">Discount</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead>Available</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {menuItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      {item.image_url ? (
-                        <img src={item.image_url} alt={item.name} className="w-12 h-12 rounded object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
-                          <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{(item as any).restaurant?.name || '—'}</TableCell>
-                    <TableCell className="max-w-[240px] truncate text-muted-foreground" title={item.description || ''}>
-                      {item.description || '—'}
-                    </TableCell>
-                    <TableCell className="text-right">PKR {Number(item.price).toLocaleString()}</TableCell>
-                    <TableCell className="text-right">
-                      {item.discount_price ? `PKR ${Number(item.discount_price).toLocaleString()}` : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {item.is_featured && <Badge variant="secondary">Featured</Badge>}
-                        {item.is_deal && <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Deal</Badge>}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={item.is_available ? 'bg-success/10 text-success hover:bg-success/10' : 'bg-muted text-muted-foreground hover:bg-muted'}>
-                        {item.is_available ? 'Yes' : 'No'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="inline-flex gap-1">
-                        <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="py-10 text-center">
+            <p className="text-muted-foreground">No items match this filter.</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {menuItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden">
-              {item.image_url && (
-                <div className="h-32 overflow-hidden">
-                  <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                </div>
-              )}
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {(item as any).restaurant?.name || 'Unknown restaurant'}
-                    </p>
-                  </div>
-                  <span className="font-bold text-primary">PKR {Number(item.price).toLocaleString()}</span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.description}</p>
-                <div className="flex gap-2 mb-3 flex-wrap">
-                  {item.is_featured && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">Featured</span>
-                  )}
-                  {item.is_deal && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive font-medium">Deal -{Math.round(((item.price - (item.discount_price || 0)) / item.price) * 100)}%</span>
-                  )}
-                  <span className={`text-xs px-2 py-1 rounded-full ${item.is_available ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
-                    {item.is_available ? 'Available' : 'Unavailable'}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
-                    <Pencil className="w-4 h-4 mr-1" /> Edit
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)} className="text-destructive">
-                    <Trash2 className="w-4 h-4 mr-1" /> Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        groups.map((group) => (
+          <div key={group.key} className="space-y-3">
+            <div className="flex items-center gap-2 border-b pb-2">
+              <UtensilsCrossed className="w-4 h-4 text-primary" />
+              <h3 className="font-semibold">{group.name}</h3>
+              <Badge variant="secondary">{group.items.length}</Badge>
+            </div>
+            {viewMode === 'list' ? (
+              <Card>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Image</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
+                        <TableHead className="text-right">Discount</TableHead>
+                        <TableHead>Tags</TableHead>
+                        <TableHead>Available</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {group.items.map(renderItemRow)}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {group.items.map(renderItemCard)}
+              </div>
+            )}
+          </div>
+        ))
       )}
     </div>
   );
