@@ -169,6 +169,108 @@ export default function AdminMenu() {
     return <div className="animate-pulse text-muted-foreground">Loading menu...</div>;
   }
 
+  // Filter + group items restaurant-wise
+  const searchLower = search.trim().toLowerCase();
+  const filteredItems = menuItems.filter((item) => {
+    if (filterRestaurant !== 'all' && item.restaurant_id !== filterRestaurant) return false;
+    if (searchLower && !item.name.toLowerCase().includes(searchLower)) return false;
+    return true;
+  });
+
+  const grouped = new Map<string, { name: string; items: MenuItem[] }>();
+  for (const item of filteredItems) {
+    const key = item.restaurant_id || 'other';
+    if (!grouped.has(key)) {
+      const rName = restaurants.find((r) => r.id === item.restaurant_id)?.name
+        || (item as any).restaurant?.name
+        || 'Other';
+      grouped.set(key, { name: rName, items: [] });
+    }
+    grouped.get(key)!.items.push(item);
+  }
+  const groups = Array.from(grouped.entries())
+    .map(([key, g]) => ({ key, ...g }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const renderItemCard = (item: MenuItem) => (
+    <Card key={item.id} className="overflow-hidden">
+      {item.image_url && (
+        <div className="h-28 overflow-hidden">
+          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+        </div>
+      )}
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between mb-1.5 gap-2">
+          <h3 className="font-semibold text-sm truncate">{item.name}</h3>
+          <span className="font-bold text-primary text-sm whitespace-nowrap">PKR {Number(item.price).toLocaleString()}</span>
+        </div>
+        <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{item.description}</p>
+        <div className="flex gap-1.5 mb-2 flex-wrap">
+          {item.is_featured && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">Featured</span>
+          )}
+          {item.is_deal && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium">Deal</span>
+          )}
+          <span className={`text-[10px] px-2 py-0.5 rounded-full ${item.is_available ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
+            {item.is_available ? 'Available' : 'Unavailable'}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openDialog(item)}>
+            <Pencil className="w-3 h-3 mr-1" /> Edit
+          </Button>
+          <Button variant="outline" size="sm" className="h-7 text-xs text-destructive" onClick={() => handleDelete(item.id)}>
+            <Trash2 className="w-3 h-3 mr-1" /> Delete
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderItemRow = (item: MenuItem) => (
+    <TableRow key={item.id}>
+      <TableCell>
+        {item.image_url ? (
+          <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded object-cover" loading="lazy" />
+        ) : (
+          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+            <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
+          </div>
+        )}
+      </TableCell>
+      <TableCell className="font-medium">{item.name}</TableCell>
+      <TableCell className="max-w-[240px] truncate text-muted-foreground" title={item.description || ''}>
+        {item.description || '—'}
+      </TableCell>
+      <TableCell className="text-right">PKR {Number(item.price).toLocaleString()}</TableCell>
+      <TableCell className="text-right">
+        {item.discount_price ? `PKR ${Number(item.discount_price).toLocaleString()}` : '—'}
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {item.is_featured && <Badge variant="secondary">Featured</Badge>}
+          {item.is_deal && <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Deal</Badge>}
+        </div>
+      </TableCell>
+      <TableCell>
+        <Badge className={item.is_available ? 'bg-success/10 text-success hover:bg-success/10' : 'bg-muted text-muted-foreground hover:bg-muted'}>
+          {item.is_available ? 'Yes' : 'No'}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="inline-flex gap-1">
+          <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
