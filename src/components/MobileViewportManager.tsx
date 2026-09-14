@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 
 const KEYBOARD_THRESHOLD = 140;
+const MOBILE_LAYOUT_MAX_WIDTH = 1023;
 
 export default function MobileViewportManager() {
   useEffect(() => {
@@ -20,7 +21,13 @@ export default function MobileViewportManager() {
         (active instanceof HTMLElement && active.isContentEditable);
 
       root.style.setProperty('--app-visible-height', `${visibleHeight}px`);
-      root.classList.toggle('mobile-keyboard-open', isEditable && keyboardHeight > KEYBOARD_THRESHOLD);
+
+      // Android WebView can resize both window.innerHeight and visualViewport,
+      // which makes keyboardHeight report zero. On mobile layouts, focused
+      // editable fields are therefore the reliable fallback signal.
+      const isMobileLayout = window.innerWidth <= MOBILE_LAYOUT_MAX_WIDTH;
+      const keyboardOpen = isEditable && (keyboardHeight > KEYBOARD_THRESHOLD || isMobileLayout);
+      root.classList.toggle('mobile-keyboard-open', keyboardOpen);
     };
 
     const onFocusChange = () => window.setTimeout(updateViewport, 50);
