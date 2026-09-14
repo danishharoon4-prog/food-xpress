@@ -4,8 +4,8 @@
 // Invoked by DB trigger on public.notifications insert.
 
 // deno-lint-ignore-file no-explicit-any
-import webpush from "https://esm.sh/web-push@3.6.7?target=deno";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import webpush from "npm:web-push@3.6.7";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
@@ -262,7 +262,11 @@ Deno.serve(async (req) => {
           webSent++;
         } catch (err: any) {
           const code = err?.statusCode;
-          if (code === 404 || code === 410) stale.push(s.id);
+          if (code === 404 || code === 410) {
+            stale.push(s.id);
+          } else {
+            console.error("web-push failed", code, err?.body || String(err));
+          }
         }
       }),
     );
