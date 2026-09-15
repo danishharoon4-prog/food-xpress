@@ -522,6 +522,18 @@ input, textarea, select, button { max-width: 100%; }
   }
 }
 
+/* Keep dense app screens proportionate on common 380–420px phones. */
+@media (max-width: 480px) {
+  html {
+    font-size: 15px;
+  }
+
+  .container {
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+}
+
 /* Tighten paddings on very small phones (<360px like older Androids) */
 @media (max-width: 360px) {
   .container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }

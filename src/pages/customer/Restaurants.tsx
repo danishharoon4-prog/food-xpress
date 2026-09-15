@@ -316,16 +316,16 @@ export default function Restaurants() {
     <div className="min-h-screen bg-background">
       <CustomerHeader />
 
-      <main className="container max-w-6xl py-10 md:py-16 space-y-14">
+      <main className="browse-page container max-w-6xl px-3 py-5 space-y-8 sm:px-4 sm:py-8 sm:space-y-10 md:py-16 md:space-y-14">
         {/* Hero */}
         <motion.section
-          className="text-center space-y-8"
+          className="text-center space-y-4 sm:space-y-6 md:space-y-8"
           initial="hidden"
           animate="show"
           variants={fadeUp}
         >
           <motion.div variants={fadeUp} custom={0} className="space-y-3 max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05]">
+            <h1 className="text-2xl sm:text-3xl md:text-6xl font-extrabold tracking-normal leading-tight">
               Find your{' '}
               <motion.span
                 className="inline-block text-primary"
@@ -336,7 +336,7 @@ export default function Restaurants() {
               </motion.span>{' '}
               flavors
             </h1>
-            <p className="text-muted-foreground text-lg md:text-xl font-medium">
+            <p className="text-muted-foreground text-sm sm:text-base md:text-xl font-medium">
               Delicious meals from your local favorites, delivered fast.
             </p>
           </motion.div>
@@ -349,7 +349,7 @@ export default function Restaurants() {
             <motion.div
               whileHover={{ y: -2, boxShadow: '0 30px 60px -20px hsl(var(--primary) / 0.25)' }}
               transition={{ duration: 0.3 }}
-              className="rounded-3xl border border-border/60 bg-card p-2 md:p-3 shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.15)] focus-within:ring-4 focus-within:ring-primary/10"
+              className="rounded-2xl md:rounded-3xl border border-border/60 bg-card p-1.5 md:p-3 shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.15)] focus-within:ring-4 focus-within:ring-primary/10"
             >
               <GlobalSearch placeholder="Search for restaurants, cuisines, or dishes..." />
             </motion.div>
@@ -361,7 +361,7 @@ export default function Restaurants() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+          className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4"
         >
           {['all', ...cuisines].map((c, idx) => {
             const active = cuisine === c;
@@ -374,7 +374,7 @@ export default function Restaurants() {
                 transition={{ duration: 0.35, delay: 0.2 + idx * 0.04 }}
                 whileHover={{ y: -2, scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
-                className={`relative flex-none px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-colors ${
+                className={`relative flex-none px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors ${
                   active
                     ? 'text-primary-foreground shadow-lg shadow-primary/25'
                     : 'bg-card text-muted-foreground border border-border/60 hover:border-primary/40'
@@ -396,7 +396,7 @@ export default function Restaurants() {
             <>
               <div className="h-6 w-px bg-border shrink-0 mx-1" />
               <Select value={city} onValueChange={setCity}>
-                <SelectTrigger className="flex-none h-11 w-auto min-w-[160px] rounded-2xl bg-card border-border/60 font-bold text-sm">
+                <SelectTrigger className="flex-none h-9 sm:h-11 w-auto min-w-[135px] sm:min-w-[160px] rounded-xl sm:rounded-2xl bg-card border-border/60 font-bold text-xs sm:text-sm">
                   <MapPin className="w-4 h-4 mr-1.5 text-primary" />
                   <SelectValue placeholder="All cities" />
                 </SelectTrigger>
@@ -412,7 +412,7 @@ export default function Restaurants() {
 
           <button
             onClick={() => setOpenNow((v) => !v)}
-            className={`flex-none h-11 px-4 rounded-2xl text-sm font-bold border transition-colors inline-flex items-center gap-1.5 ${
+            className={`flex-none h-9 sm:h-11 px-3 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold border transition-colors inline-flex items-center gap-1.5 ${
               openNow
                 ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                 : 'bg-card text-muted-foreground border-border/60 hover:border-primary/40'
@@ -429,7 +429,7 @@ export default function Restaurants() {
               }
               setFavOnly((v) => !v);
             }}
-            className={`flex-none h-11 px-4 rounded-2xl text-sm font-bold border transition-colors inline-flex items-center gap-1.5 ${
+            className={`flex-none h-9 sm:h-11 px-3 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold border transition-colors inline-flex items-center gap-1.5 ${
               favOnly
                 ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                 : 'bg-card text-muted-foreground border-border/60 hover:border-primary/40'
@@ -439,7 +439,7 @@ export default function Restaurants() {
           </button>
 
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
-            <SelectTrigger className="flex-none h-11 w-auto min-w-[170px] rounded-2xl bg-card border-border/60 font-bold text-sm">
+            <SelectTrigger className="flex-none h-9 sm:h-11 w-auto min-w-[145px] sm:min-w-[170px] rounded-xl sm:rounded-2xl bg-card border-border/60 font-bold text-xs sm:text-sm">
               <ArrowUpDown className="w-4 h-4 mr-1.5 text-primary" />
               <SelectValue />
             </SelectTrigger>
@@ -564,7 +564,7 @@ export default function Restaurants() {
         )}
 
         {/* Fresh Deals Section */}
-        <section className="space-y-6">
+        <section className="space-y-3 sm:space-y-5 md:space-y-6">
           <div className="flex items-end justify-between px-2">
             <div>
               <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Fresh Deals</h2>
@@ -770,7 +770,7 @@ export default function Restaurants() {
         <section className="space-y-6">
           <div className="flex items-end justify-between px-2">
             <div>
-              <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Nearby Favorites</h2>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-normal">Nearby Favorites</h2>
               {!loading && (
                 <p className="text-sm text-muted-foreground mt-1">
                   <span className="font-semibold text-foreground">{filteredRestaurants.length}</span>{' '}
@@ -782,12 +782,14 @@ export default function Restaurants() {
           </div>
 
           {loading ? (
-            <div className="grid gap-5 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="flex flex-col gap-2.5 md:grid md:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="aspect-[1.4] bg-muted rounded-2xl mb-3" />
-                  <div className="h-4 w-32 bg-muted rounded mb-2" />
-                  <div className="h-3 w-20 bg-muted rounded" />
+                <div key={i} className="animate-pulse flex gap-3 rounded-xl border border-border/60 bg-card p-2 md:block md:border-0 md:bg-transparent md:p-0">
+                  <div className="h-24 w-28 shrink-0 bg-muted rounded-lg md:w-full md:h-auto md:aspect-[1.4] md:rounded-2xl md:mb-3" />
+                  <div className="flex-1 py-1">
+                    <div className="h-4 w-32 max-w-full bg-muted rounded mb-2" />
+                    <div className="h-3 w-20 bg-muted rounded" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -800,7 +802,7 @@ export default function Restaurants() {
               <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
             </div>
           ) : (
-            <div className="grid gap-5 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="flex flex-col gap-2.5 md:grid md:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {filteredRestaurants.map((restaurant, idx) => {
                 const r = ratings[restaurant.id];
                 const isFav = favoriteIds.has(restaurant.id);
@@ -811,10 +813,11 @@ export default function Restaurants() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: '-40px' }}
                     transition={{ duration: 0.5, delay: (idx % 6) * 0.06, ease: [0.22, 1, 0.36, 1] }}
-                    whileHover={{ y: -8 }}
+                    whileHover={{ y: -4 }}
+                    className="rounded-xl border border-border/60 bg-card p-2 shadow-sm md:rounded-none md:border-0 md:bg-transparent md:p-0 md:shadow-none"
                   >
-                  <Link to={`/restaurant/${restaurant.id}`} className="group block">
-                    <div className="relative overflow-hidden rounded-2xl aspect-[1.4] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
+                  <Link to={`/restaurant/${restaurant.id}`} className="group flex min-h-24 gap-3 md:block md:min-h-0">
+                    <div className="relative h-24 w-28 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm transition-all duration-500 group-hover:shadow-xl md:mb-3 md:h-auto md:w-full md:aspect-[1.4] md:rounded-2xl">
                       {restaurant.image_url ? (
                         <img
                           src={resolveImg(restaurant.image_url)}
@@ -825,14 +828,14 @@ export default function Restaurants() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-4xl sm:text-5xl font-extrabold text-primary/40">
+                          <span className="text-2xl md:text-5xl font-extrabold text-primary/40">
                             {restaurant.name.charAt(0)}
                           </span>
                         </div>
                       )}
 
                       {/* Rating pill */}
-                      <div className="absolute top-2.5 right-2.5 bg-card/95 backdrop-blur-md px-2 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                      <div className="absolute bottom-1.5 right-1.5 bg-card/95 backdrop-blur-md px-1.5 py-0.5 rounded-md shadow-sm flex items-center gap-1 md:bottom-auto md:top-2.5 md:right-2.5 md:px-2 md:py-1 md:rounded-lg">
                         <span className="text-xs font-extrabold">
                           {r ? r.avg.toFixed(1) : 'New'}
                         </span>
@@ -844,7 +847,7 @@ export default function Restaurants() {
                         onClick={(e) => toggleFavorite(e, restaurant.id)}
                         whileHover={{ scale: 1.12 }}
                         whileTap={{ scale: 0.85 }}
-                        className="absolute top-2.5 left-2.5 h-8 w-8 rounded-full bg-card/95 backdrop-blur-md hover:bg-card shadow-sm inline-flex items-center justify-center"
+                        className="absolute top-1.5 left-1.5 h-7 w-7 rounded-full bg-card/95 backdrop-blur-md hover:bg-card shadow-sm inline-flex items-center justify-center md:top-2.5 md:left-2.5 md:h-8 md:w-8"
                         aria-label="Toggle favorite"
                       >
                         <motion.span
@@ -862,7 +865,7 @@ export default function Restaurants() {
                       </motion.button>
 
                       {/* Bottom chips */}
-                      <div className="absolute bottom-2.5 left-2.5 flex gap-1.5">
+                      <div className="hidden md:flex absolute bottom-2.5 left-2.5 gap-1.5">
                         {restaurant.cuisine_type && (
                           <span className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider">
                             {restaurant.cuisine_type}
@@ -877,26 +880,26 @@ export default function Restaurants() {
                       </div>
                     </div>
 
-                    <div className="px-1">
+                    <div className="min-w-0 flex-1 px-0.5 py-1 md:px-1 md:py-0">
                       <div className="flex justify-between items-start gap-2">
-                        <h3 className="text-sm sm:text-base font-extrabold group-hover:text-primary transition-colors leading-tight line-clamp-1">
+                        <h3 className="text-sm sm:text-base font-extrabold group-hover:text-primary transition-colors leading-tight line-clamp-2 md:line-clamp-1">
                           {restaurant.name}
                         </h3>
                         {r && (
-                          <span className="text-muted-foreground text-[10px] font-bold shrink-0 mt-0.5">
+                          <span className="hidden md:inline text-muted-foreground text-[10px] font-bold shrink-0 mt-0.5">
                             ({r.count})
                           </span>
                         )}
                       </div>
                       {restaurant.cuisine_type && (
-                        <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 font-medium truncate">
+                        <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 font-medium truncate">
                           {restaurant.cuisine_type}
                         </p>
                       )}
                       {restaurant.address && (
-                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border/50">
+                        <div className="flex items-center gap-1 mt-1.5 md:mt-2 md:pt-2 md:border-t md:border-border/50">
                           <MapPin className="w-3 h-3 text-primary shrink-0" />
-                          <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground truncate">
+                          <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground line-clamp-1">
                             {restaurant.address}
                           </span>
                         </div>
