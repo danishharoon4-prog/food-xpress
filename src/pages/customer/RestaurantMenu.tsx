@@ -86,7 +86,10 @@ export default function RestaurantMenu() {
       : activeCategory === 'other'
         ? menuItems.filter((item) => !item.category_id || !categoryIds.has(item.category_id))
         : menuItems.filter((item) => item.category_id === activeCategory);
-    return filtered.slice(0, visibleCount).map((item) => item.id);
+    // In grouped "all" view every item is rendered, so load all images
+    return activeCategory === 'all'
+      ? filtered.map((item) => item.id)
+      : filtered.slice(0, visibleCount).map((item) => item.id);
   }, [activeCategory, categories, menuItems, visibleCount]);
 
   useEffect(() => {
