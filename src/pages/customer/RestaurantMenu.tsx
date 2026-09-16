@@ -86,7 +86,10 @@ export default function RestaurantMenu() {
       : activeCategory === 'other'
         ? menuItems.filter((item) => !item.category_id || !categoryIds.has(item.category_id))
         : menuItems.filter((item) => item.category_id === activeCategory);
-    return filtered.slice(0, visibleCount).map((item) => item.id);
+    // In grouped "all" view every item is rendered, so load all images
+    return activeCategory === 'all'
+      ? filtered.map((item) => item.id)
+      : filtered.slice(0, visibleCount).map((item) => item.id);
   }, [activeCategory, categories, menuItems, visibleCount]);
 
   useEffect(() => {
@@ -419,6 +422,35 @@ export default function RestaurantMenu() {
                   </div>
                 )}
 
+                {activeCategory === 'all' && showTabs ? (
+                  <>
+                    {orderedCats.map((c) => {
+                      const items = grouped.get(c.id)!;
+                      return (
+                        <section key={c.id} className="mb-6">
+                          <div className="flex items-baseline justify-between mb-3">
+                            <h2 className="text-lg md:text-2xl font-bold">{c.name}</h2>
+                            <span className="text-xs text-muted-foreground">{items.length} items</span>
+                          </div>
+                          <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {items.map(renderCard)}
+                          </div>
+                        </section>
+                      );
+                    })}
+                    {uncategorized.length > 0 && (
+                      <section className="mb-6">
+                        <div className="flex items-baseline justify-between mb-3">
+                          <h2 className="text-lg md:text-2xl font-bold">Other</h2>
+                          <span className="text-xs text-muted-foreground">{uncategorized.length} items</span>
+                        </div>
+                        <div className="grid gap-2.5 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
+                          {uncategorized.map(renderCard)}
+                        </div>
+                      </section>
+                    )}
+                  </>
+                ) : (
                 <section>
                   <div className="flex items-baseline justify-between mb-3">
                     <h2 className="text-lg md:text-2xl font-bold">{activeCatName}</h2>
@@ -446,6 +478,7 @@ export default function RestaurantMenu() {
                     </>
                   )}
                 </section>
+                )}
               </>
             );
           })()
