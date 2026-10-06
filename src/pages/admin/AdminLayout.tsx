@@ -42,7 +42,6 @@ function AdminLayoutInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  useSwipeNav;
 
 
 

@@ -13,7 +13,6 @@ import { patchSonnerForBrowserNotifications } from "@/lib/browserNotify";
 import { PageTransition } from "@/components/PageTransition";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
-import { SwipeHintOverlay } from "@/components/SwipeHintOverlay";
 import LocationGate from "@/components/LocationGate";
 import MobileLiveUpdate from "@/components/MobileLiveUpdate";
 import InstallAppBanner from "@/components/InstallAppBanner";
@@ -115,7 +114,6 @@ const App = () => (
           <MobileViewportManager />
           <MobileLiveUpdate />
           <InstallAppBanner />
-          <SwipeHintOverlay />
           <IdleTimeoutManager />
           <Toaster />
 
