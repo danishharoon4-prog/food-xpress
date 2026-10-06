@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSwipeNav } from '@/hooks/useSwipeNav';
 
 const navItems = [
   { path: '/rider', icon: LayoutDashboard, label: 'Dashboard' },
@@ -39,7 +38,6 @@ function RiderLayoutInner() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
-  useSwipeNav(navItems.map(i => i.path));
 
 
   // Check verification status
