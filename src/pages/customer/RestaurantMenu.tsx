@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, MapPin, Clock, Star, Plus, Minus, ShoppingCart } from 'lucide-react';
 import type { Restaurant, MenuItem, MenuItemSize } from '@/types';
 import { resolveImg } from '@/lib/img';
+import InviteFriendsButton from '@/components/InviteFriendsButton';
 
 type MenuCategory = { id: string; name: string; display_order: number };
 
