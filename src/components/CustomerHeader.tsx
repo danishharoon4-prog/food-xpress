@@ -53,6 +53,7 @@ export default function CustomerHeader() {
 
           {/* Mobile right actions */}
           <div className="flex md:hidden items-center gap-1">
+            <InviteFriendsButton label="Invite friends" iconOnly className="h-9 w-9" />
             <ThemeToggle />
             {user ? (
               <>

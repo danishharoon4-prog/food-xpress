@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, MapPin, Clock, Star, Plus, Minus, ShoppingCart } from 'lucide-react';
 import type { Restaurant, MenuItem, MenuItemSize } from '@/types';
 import { resolveImg } from '@/lib/img';
+import InviteFriendsButton from '@/components/InviteFriendsButton';
 
 type MenuCategory = { id: string; name: string; display_order: number };
 
@@ -260,6 +261,18 @@ export default function RestaurantMenu() {
               )}
             </div>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 rounded-xl border bg-card px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Yeh restaurant kisi dost ko batayein — share karein aur unhein signup karwayein.
+          </p>
+          <InviteFriendsButton
+            label="Share Restaurant"
+            size="sm"
+            path={`/restaurant/${restaurant.id}`}
+            text={`${restaurant.name} Food Xpress par — menu dekhein aur abhi order karein:`}
+          />
         </div>
 
         {menuItems.length === 0 ? (

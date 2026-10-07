@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ComponentProps } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Share2, Copy, MessageCircle, Facebook, Send, Twitter } from 'lucide-react';
@@ -7,22 +8,54 @@ import { toast } from 'sonner';
 
 const SITE = 'https://food-xpress.lovable.app';
 
-export default function InviteFriendsButton({ className, label = 'Invite Friends' }: { className?: string; label?: string }) {
+type InviteFriendsButtonProps = {
+  className?: string;
+  label?: string;
+  /** Page to share, e.g. "/restaurant/<id>" or "/auth?mode=signup" */
+  path?: string;
+  /** Message shown with the link */
+  text?: string;
+  variant?: ComponentProps<typeof Button>['variant'];
+  size?: ComponentProps<typeof Button>['size'];
+  /** Icon-only button (for tight mobile headers) */
+  iconOnly?: boolean;
+};
+
+export default function InviteFriendsButton({
+  className,
+  label = 'Invite Friends',
+  path = '/auth?mode=signup',
+  text = 'Food Xpress par apne shehr ke behtareen restaurants se khana order karein! Abhi signup karein:',
+  variant = 'outline',
+  size = 'default',
+  iconOnly = false,
+}: InviteFriendsButtonProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const link = `${SITE}/auth?mode=signup${user ? `&ref=${user.id.slice(0, 8)}` : ''}`;
-  const text = 'Food Xpress par apne shehr ke behtareen restaurants se khana order karein! Abhi signup karein:';
+
+  const sep = path.includes('?') ? '&' : '?';
+  const link = `${SITE}${path}${user ? `${sep}ref=${user.id.slice(0, 8)}` : ''}`;
   const enc = encodeURIComponent;
 
   const nativeShare = async () => {
     if (navigator.share) {
-      try { await navigator.share({ title: 'Food Xpress', text, url: link }); } catch {}
-    } else setOpen(true);
+      try {
+        await navigator.share({ title: 'Food Xpress', text, url: link });
+      } catch {
+        /* user dismissed the share sheet */
+      }
+    } else {
+      setOpen(true);
+    }
   };
 
   const copy = async () => {
-    await navigator.clipboard.writeText(`${text} ${link}`);
-    toast.success('Invite link copy ho gaya');
+    try {
+      await navigator.clipboard.writeText(`${text} ${link}`);
+      toast.success('Invite link copy ho gaya');
+    } catch {
+      toast.error('Copy nahi ho saka, link manually copy karein');
+    }
   };
 
   const items = [
@@ -36,21 +69,45 @@ export default function InviteFriendsButton({ className, label = 'Invite Friends
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className={className} onClick={(e) => { if (navigator.share) { e.preventDefault(); nativeShare(); } }}>
-          <Share2 className="h-4 w-4 mr-2" />{label}
+        <Button
+          variant={variant}
+          size={iconOnly ? 'icon' : size}
+          className={className}
+          aria-label={label}
+          onClick={(e) => {
+            if (navigator.share) {
+              e.preventDefault();
+              nativeShare();
+            }
+          }}
+        >
+          <Share2 className={iconOnly ? 'h-4 w-4' : 'h-4 w-4 mr-2'} />
+          {!iconOnly && label}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
-        <DialogHeader><DialogTitle>Doston ko invite karein</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Doston ko invite karein</DialogTitle>
+        </DialogHeader>
         <div className="grid grid-cols-3 gap-3">
           {items.map(({ name, icon: Icon, href }) => (
-            <a key={name} href={href} target="_blank" rel="noopener noreferrer"
-               className="flex flex-col items-center gap-1 p-3 rounded-xl border hover:bg-secondary text-xs">
-              <Icon className="h-5 w-5 text-primary" />{name}
+            <a
+              key={name}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-1 p-3 rounded-xl border hover:bg-secondary text-xs"
+            >
+              <Icon className="h-5 w-5 text-primary" />
+              {name}
             </a>
           ))}
-          <button onClick={copy} className="flex flex-col items-center gap-1 p-3 rounded-xl border hover:bg-secondary text-xs">
-            <Copy className="h-5 w-5 text-primary" />Copy Link
+          <button
+            onClick={copy}
+            className="flex flex-col items-center gap-1 p-3 rounded-xl border hover:bg-secondary text-xs"
+          >
+            <Copy className="h-5 w-5 text-primary" />
+            Copy Link
           </button>
         </div>
         <p className="text-xs text-muted-foreground break-all">{link}</p>

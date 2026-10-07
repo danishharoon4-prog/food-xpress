@@ -16,6 +16,7 @@ import { NotificationSettings } from '@/components/NotificationSettings';
 import { MotionSettings } from '@/components/MotionSettings';
 import { NavigationSettings } from '@/components/NavigationSettings';
 import AvatarUploader from '@/components/AvatarUploader';
+import InviteFriendsButton from '@/components/InviteFriendsButton';
 
 
 interface FavoriteRestaurant {
@@ -225,6 +226,19 @@ export default function UserProfile() {
                 email={email}
                 onChanged={() => refreshProfile()}
               />
+            </CardContent>
+          </Card>
+
+          {/* Invite Friends */}
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">Invite Friends</p>
+                <p className="text-sm text-muted-foreground">
+                  Apne doston ko Food Xpress par invite karein — link WhatsApp, Facebook ya SMS par share karein.
+                </p>
+              </div>
+              <InviteFriendsButton className="w-full sm:w-auto shrink-0 gradient-primary text-primary-foreground border-0" />
             </CardContent>
           </Card>
 
