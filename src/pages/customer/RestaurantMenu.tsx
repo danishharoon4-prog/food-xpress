@@ -262,6 +262,18 @@ export default function RestaurantMenu() {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 rounded-xl border bg-card px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Yeh restaurant kisi dost ko batayein — share karein aur unhein signup karwayein.
+          </p>
+          <InviteFriendsButton
+            label="Share Restaurant"
+            size="sm"
+            path={`/restaurant/${restaurant.id}`}
+            text={`${restaurant.name} Food Xpress par — menu dekhein aur abhi order karein:`}
+          />
+        </div>
+
         {menuItems.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground">No menu items available yet.</p>
