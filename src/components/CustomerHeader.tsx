@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { UtensilsCrossed, ShoppingCart, User, LogOut, LayoutDashboard, Headphones } from 'lucide-react';
 import CustomerBottomNav from './CustomerBottomNav';
 import ThemeToggle from './ThemeToggle';
+import InviteFriendsButton from './InviteFriendsButton';
 
 export default function CustomerHeader() {
   const { user, signOut } = useAuth();
@@ -35,6 +36,7 @@ export default function CustomerHeader() {
                 )}
               </Button>
             </Link>
+            <InviteFriendsButton label="Invite" className="h-9" />
             <ThemeToggle />
             {user ? (
               <>

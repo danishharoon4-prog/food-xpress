@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { UtensilsCrossed, Bike, Shield, ArrowRight, MapPin, Clock, Star, ShoppingCart } from 'lucide-react';
 import CustomerHeader from '@/components/CustomerHeader';
 import DownloadApkButton from '@/components/DownloadApkButton';
+import InviteFriendsButton from '@/components/InviteFriendsButton';
 
 
 export default function Index() {
@@ -63,6 +64,7 @@ export default function Index() {
                 </Button>
               </Link>
               <DownloadApkButton size="lg" variant="outline" className="w-full sm:w-auto" label="Download Android App" showVersion />
+              <InviteFriendsButton className="w-full sm:w-auto h-11" />
               {!user && (
                 <Link to="/auth?role=rider">
                   <Button size="lg" variant="outline" className="w-full sm:w-auto">
