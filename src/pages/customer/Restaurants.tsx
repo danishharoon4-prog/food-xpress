@@ -571,9 +571,12 @@ export default function Restaurants() {
               <p className="text-sm text-muted-foreground mt-1">Limited-time discounts from top spots</p>
             </div>
             {deals.length > 0 && (
-              <span className="text-primary text-sm font-bold hover:underline underline-offset-4 cursor-default">
+              <Link
+                to="/deals"
+                className="text-primary text-sm font-bold hover:underline underline-offset-4"
+              >
                 Top Discounts
-              </span>
+              </Link>
             )}
           </div>
 

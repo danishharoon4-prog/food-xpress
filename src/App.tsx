@@ -77,6 +77,7 @@ const RestaurantSupport = lazy(() => import("./pages/restaurant/RestaurantSuppor
 const Dashboard = lazy(() => import("./pages/customer/Dashboard"));
 const Restaurants = lazy(() => import("./pages/customer/Restaurants"));
 const RestaurantMenu = lazy(() => import("./pages/customer/RestaurantMenu"));
+const AllDeals = lazy(() => import("./pages/customer/AllDeals"));
 const Cart = lazy(() => import("./pages/customer/Cart"));
 const Checkout = lazy(() => import("./pages/customer/Checkout"));
 const OrderTracking = lazy(() => import("./pages/customer/OrderTracking"));
@@ -141,7 +142,8 @@ const App = () => (
               {/* Customer Routes — public browsing stays open; account routes gated by RoleGuard */}
               <Route path="/dashboard" element={<RoleGuard allow="customer"><Dashboard /></RoleGuard>} />
               <Route path="/restaurants" element={<Restaurants />} />
-              <Route path="/restaurant/:id" element={<RestaurantMenu />} />
+<Route path="/restaurant/:id" element={<RestaurantMenu />} />
+              <Route path="/deals" element={<AllDeals />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<RoleGuard allow="customer"><Checkout /></RoleGuard>} />
               <Route path="/order/:id" element={<RoleGuard allow={["customer","admin","rider"]}><OrderTracking /></RoleGuard>} />
