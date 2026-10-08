@@ -26,8 +26,11 @@ const CART_STORAGE_KEY = 'food_delivery_cart_v2';
 const makeCartKey = (menuItemId: string, sizeName?: string | null) =>
   `${menuItemId}::${sizeName || ''}`;
 
+const baseItemPrice = (m: MenuItem) =>
+  m.discount_price && Number(m.discount_price) > 0 ? Number(m.discount_price) : Number(m.price);
+
 const unitPrice = (item: CartItem) =>
-  item.selectedSize ? Number(item.selectedSize.price) : Number(item.menuItem.price);
+  item.selectedSize ? Number(item.selectedSize.price) : baseItemPrice(item.menuItem);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -47,7 +50,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const selectedSize = options?.selectedSize || null;
     const specialInstructions = options?.specialInstructions;
     const cartKey = makeCartKey(menuItem.id, selectedSize?.name);
-    const unitPrice = selectedSize ? Number(selectedSize.price) : Number(menuItem.price);
+    const unitPrice = selectedSize ? Number(selectedSize.price) : baseItemPrice(menuItem);
 
     pixelTrack('AddToCart', {
       content_ids: [menuItem.id],

@@ -468,7 +468,7 @@ export default function Checkout() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {items.map((item) => {
-                  const unit = item.selectedSize ? Number(item.selectedSize.price) : Number(item.menuItem.price);
+                  const unit = item.selectedSize ? Number(item.selectedSize.price) : (item.menuItem.discount_price && Number(item.menuItem.discount_price) > 0 ? Number(item.menuItem.discount_price) : Number(item.menuItem.price));
                   return (
                   <div key={item.cartKey} className="flex justify-between text-sm">
                     <span>
