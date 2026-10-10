@@ -8,6 +8,13 @@
       "when": 1791380816072,
       "tag": "0000_deal_discount_pricing",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791641174128,
+      "tag": "0001_migration",
+      "breakpoints": true
     }
   ]
 }
