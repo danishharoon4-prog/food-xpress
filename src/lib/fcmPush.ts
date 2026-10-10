@@ -9,7 +9,11 @@ let registered = false;
 // to be present in the native project. Without them, PushNotifications.register()
 // causes a NATIVE crash (Java-level, uncatchable in JS). Enable via env flag only
 // after Firebase is properly configured in the native project.
-const FCM_ENABLED = import.meta.env.VITE_FCM_ENABLED === 'true';
+// APKs built with google-services.json append "FXPushReady" to the user agent
+// (see .github/workflows/main.yml), so the live website knows it is safe.
+const FCM_ENABLED =
+  import.meta.env.VITE_FCM_ENABLED === 'true' ||
+  (typeof navigator !== 'undefined' && navigator.userAgent.includes('FXPushReady'));
 
 export async function registerFcmForCurrentUser(userId: string): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;

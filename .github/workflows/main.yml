@@ -43,11 +43,17 @@ jobs:
           echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
 
       - name: Inject Firebase google-services.json (optional)
-        if: env.GOOGLE_SERVICES_JSON != ''
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "GOOGLE_SERVICES_JSON secret not set - push notifications disabled in this APK."
+            exit 0
+          fi
           echo "$GOOGLE_SERVICES_JSON" | base64 -d > android/app/google-services.json
+          # Mark this APK as Firebase-ready so the web code enables native push safely.
+          CFG=android/app/src/main/assets/capacitor.config.json
+          node -e "const f=require('fs');const p='$CFG';const c=JSON.parse(f.readFileSync(p));c.appendUserAgent=((c.appendUserAgent||'')+' FXPushReady').trim();f.writeFileSync(p,JSON.stringify(c,null,2));"
           echo "Firebase config injected."
 
       - name: Generate App Icons and Splash Screens
