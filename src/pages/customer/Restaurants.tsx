@@ -78,13 +78,46 @@ export default function Restaurants() {
   const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
   const [sizePickerRestaurant, setSizePickerRestaurant] = useState<string>('');
   const [pickedSize, setPickedSize] = useState<string>('');
+  const [categories, setCategories] = useState<{ name: string; image: string | null; count: number }[]>([]);
+  const [itemsByCategory, setItemsByCategory] = useState<Record<string, DealItem[]>>({});
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRestaurants();
     fetchDeals();
     fetchTopItems();
     fetchTopRated();
+    fetchCategories();
   }, []);
+
+  // Group all available menu items by their category name (Burgers, Pizza, Rolls, ...)
+  const fetchCategories = async () => {
+    const { data } = await supabase
+      .from('menu_items')
+      .select('*, category:menu_categories!inner(name), restaurant:restaurants!inner(id, name, image_url, is_active, approval_status)')
+      .eq('is_available', true)
+      .eq('restaurant.is_active', true)
+      .eq('restaurant.approval_status', 'approved')
+      .limit(600);
+    if (!data) return;
+    const grouped: Record<string, DealItem[]> = {};
+    (data as unknown as DealItem[]).forEach((item: any) => {
+      const catName = (item.category?.name || '').trim();
+      if (!catName) return;
+      const key = catName.toLowerCase();
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(item);
+    });
+    const cats = Object.entries(grouped)
+      .map(([key, items]) => ({
+        name: items[0] ? (items[0] as any).category.name.trim() : key,
+        image: items.find((i) => i.image_url)?.image_url || null,
+        count: items.length,
+      }))
+      .sort((a, b) => b.count - a.count);
+    setCategories(cats);
+    setItemsByCategory(grouped);
+  };
 
   useEffect(() => {
     if (profile?.city && city === 'all') {
