@@ -10,8 +10,9 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import ImageCropInput from '@/components/ImageCropInput';
+import type { MenuItemSize } from '@/types';
 
 export default function RestaurantMenu() {
   const { restaurant } = useOutletContext<{ restaurant: any }>();
@@ -22,7 +23,8 @@ export default function RestaurantMenu() {
   const [catOpen, setCatOpen] = useState(false);
   const [newCat, setNewCat] = useState('');
   const [editing, setEditing] = useState<any | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', price: '', discount_price: '', is_deal: false, deal_label: '', image_url: '', category_id: '', is_available: true });
+  const emptyForm = { name: '', description: '', price: '', discount_price: '', is_deal: false, deal_label: '', image_url: '', category_id: '', is_available: true, is_featured: false, sizes: [] as MenuItemSize[] };
+  const [form, setForm] = useState(emptyForm);
 
   const load = async () => {
     if (!restaurant?.id) return;
@@ -34,16 +36,27 @@ export default function RestaurantMenu() {
   };
   useEffect(() => { load(); }, [restaurant?.id]);
 
-  const reset = () => { setEditing(null); setForm({ name: '', description: '', price: '', discount_price: '', is_deal: false, deal_label: '', image_url: '', category_id: '', is_available: true }); };
+  const reset = () => { setEditing(null); setForm(emptyForm); };
 
   const save = async () => {
     if (!form.name.trim() || !form.price) return toast({ title: 'Name and price required', variant: 'destructive' });
+    const cleanSizes = form.sizes
+      .map((s) => ({ name: s.name.trim(), price: Number(s.price) }))
+      .filter((s) => s.name.length > 0);
+    if (cleanSizes.some((s) => !Number.isFinite(s.price) || s.price <= 0)) {
+      return toast({ title: 'Invalid size price', description: 'Each size must have a price greater than 0.', variant: 'destructive' });
+    }
+    if (new Set(cleanSizes.map((s) => s.name.toLowerCase())).size !== cleanSizes.length) {
+      return toast({ title: 'Duplicate size', description: 'Size names must be unique.', variant: 'destructive' });
+    }
     const payload: any = {
       restaurant_id: restaurant.id, name: form.name, description: form.description || null,
       price: Number(form.price), discount_price: form.discount_price ? Number(form.discount_price) : null,
       is_deal: form.is_deal, deal_label: form.deal_label || null,
       image_url: form.image_url || null,
       category_id: form.category_id || null, is_available: form.is_available,
+      is_featured: form.is_featured,
+      sizes: cleanSizes.length > 0 ? cleanSizes : null,
     };
     const { error } = editing
       ? await supabase.from('menu_items').update(payload).eq('id', editing.id)
