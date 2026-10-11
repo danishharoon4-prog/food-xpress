@@ -943,6 +943,52 @@ export default function Restaurants() {
           <Card><CardContent>hidden</CardContent></Card>
         </div>
       </main>
+
+      {/* Item detail / size picker popup */}
+      <Dialog open={!!sizePickerItem} onOpenChange={(open) => !open && setSizePickerItem(null)}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{sizePickerItem?.name}</DialogTitle>
+            <DialogDescription>
+              {sizePickerRestaurant ? `${sizePickerRestaurant} — ` : ''}pick which size you'd like to add.
+            </DialogDescription>
+          </DialogHeader>
+          {sizePickerItem?.image_url && (
+            <img
+              src={resolveImg(sizePickerItem.image_url)}
+              alt={sizePickerItem.name}
+              className="w-full h-40 object-cover rounded-lg"
+              loading="lazy"
+            />
+          )}
+          {sizePickerItem?.description && (
+            <p className="text-sm text-muted-foreground">{sizePickerItem.description}</p>
+          )}
+          {sizePickerItem?.is_deal && sizePickerItem?.deal_label && (
+            <Badge variant="destructive" className="w-fit">{sizePickerItem.deal_label}</Badge>
+          )}
+          <div className="space-y-2">
+            {sizePickerItem?.sizes?.map((s) => (
+              <button
+                key={s.name}
+                type="button"
+                onClick={() => setPickedSize(s.name)}
+                className={`w-full text-left flex items-center justify-between rounded-lg border px-4 py-3 transition ${
+                  pickedSize === s.name
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/40'
+                }`}
+              >
+                <span className="font-medium">{s.name}</span>
+                <span className="font-bold text-primary">PKR {Number(s.price).toLocaleString()}</span>
+              </button>
+            ))}
+          </div>
+          <Button className="w-full gradient-primary" onClick={confirmSizeAdd} disabled={!pickedSize}>
+            Add to Cart
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
