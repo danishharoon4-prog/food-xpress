@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy, Plus, Check, ArrowUpDown } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
@@ -74,6 +75,9 @@ export default function Restaurants() {
   const [favOnly, setFavOnly] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [ratings, setRatings] = useState<Record<string, { avg: number; count: number }>>({});
+  const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
+  const [sizePickerRestaurant, setSizePickerRestaurant] = useState<string>('');
+  const [pickedSize, setPickedSize] = useState<string>('');
 
   useEffect(() => {
     fetchRestaurants();
@@ -206,68 +210,85 @@ export default function Restaurants() {
     e.preventDefault();
     e.stopPropagation();
 
-    // If this item has size variants, redirect to the restaurant menu to pick a size
-    const { data: sizesRow } = await supabase
+    // Fetch full item (sizes, description, deal info) so we can show a detail popup
+    const { data: fullRow } = await supabase
       .from('menu_items')
-      .select('sizes')
+      .select('id, restaurant_id, category_id, name, description, price, discount_price, is_deal, deal_label, image_url, is_available, is_featured, sizes, created_at, updated_at')
       .eq('id', payload.id)
       .maybeSingle();
-    const sizesArr = (sizesRow?.sizes as unknown as { name: string; price: number }[] | null) || null;
-    if (sizesArr && Array.isArray(sizesArr) && sizesArr.length > 0) {
-      toast({
-        title: 'Choose a size',
-        description: `${payload.name} has multiple sizes — please pick one.`,
-      });
-      navigate(`/restaurant/${payload.restaurant_id}`);
+
+    const menuItem: MenuItem = fullRow
+      ? (fullRow as unknown as MenuItem)
+      : {
+          id: payload.id,
+          restaurant_id: payload.restaurant_id,
+          category_id: null,
+          name: payload.name,
+          description: null,
+          price: Number(payload.price),
+          discount_price: payload.discount_price != null ? Number(payload.discount_price) : null,
+          is_deal: payload.discount_price != null,
+          deal_label: null,
+          image_url: payload.image_url,
+          is_available: true,
+          is_featured: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+    // If this item has size variants, open the detail/size popup instead of adding directly
+    if (Array.isArray(menuItem.sizes) && menuItem.sizes.length > 0) {
+      setPickedSize(menuItem.sizes[0].name);
+      setSizePickerRestaurant(payload.restaurant_name || '');
+      setSizePickerItem(menuItem);
       return;
     }
 
+    doAddToCart(menuItem, payload.restaurant_name);
+  };
+
+  const doAddToCart = (
+    menuItem: MenuItem,
+    restaurantName?: string,
+    selectedSize?: { name: string; price: number }
+  ) => {
     const currentRestaurantId = getRestaurantId();
     const switching =
-      currentRestaurantId && currentRestaurantId !== payload.restaurant_id && cartItems.length > 0;
+      currentRestaurantId && currentRestaurantId !== menuItem.restaurant_id && cartItems.length > 0;
 
-    const menuItem: MenuItem = {
-      id: payload.id,
-      restaurant_id: payload.restaurant_id,
-      category_id: null,
-      name: payload.name,
-      description: null,
-      price: Number(payload.price),
-      discount_price: payload.discount_price != null ? Number(payload.discount_price) : null,
-      is_deal: payload.discount_price != null,
-      deal_label: null,
-      image_url: payload.image_url,
-      is_available: true,
-      is_featured: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    addItem(menuItem, 1);
+    addItem(menuItem, 1, selectedSize ? { selectedSize } : undefined);
 
     // Visual "added" feedback
-    setAddedIds((prev) => new Set(prev).add(payload.id));
+    setAddedIds((prev) => new Set(prev).add(menuItem.id));
     setTimeout(() => {
       setAddedIds((prev) => {
         const n = new Set(prev);
-        n.delete(payload.id);
+        n.delete(menuItem.id);
         return n;
       });
     }, 1400);
 
+    const label = selectedSize ? `${menuItem.name} (${selectedSize.name})` : menuItem.name;
     if (switching) {
       toast({
         title: 'Cart replaced',
-        description: `Started a new cart with ${payload.name}${
-          payload.restaurant_name ? ` from ${payload.restaurant_name}` : ''
-        }.`,
+        description: `Started a new cart with ${label}${restaurantName ? ` from ${restaurantName}` : ''}.`,
       });
     } else {
       toast({
         title: 'Added to cart',
-        description: `${payload.name} added to your cart.`,
+        description: `${label} added to your cart.`,
       });
     }
+  };
+
+  const confirmSizeAdd = () => {
+    if (!sizePickerItem) return;
+    const size = sizePickerItem.sizes!.find((s) => s.name === pickedSize);
+    if (!size) return;
+    doAddToCart(sizePickerItem, sizePickerRestaurant, size);
+    setSizePickerItem(null);
+    setPickedSize('');
   };
 
   const cities = Array.from(
@@ -922,6 +943,52 @@ export default function Restaurants() {
           <Card><CardContent>hidden</CardContent></Card>
         </div>
       </main>
+
+      {/* Item detail / size picker popup */}
+      <Dialog open={!!sizePickerItem} onOpenChange={(open) => !open && setSizePickerItem(null)}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{sizePickerItem?.name}</DialogTitle>
+            <DialogDescription>
+              {sizePickerRestaurant ? `${sizePickerRestaurant} — ` : ''}pick which size you'd like to add.
+            </DialogDescription>
+          </DialogHeader>
+          {sizePickerItem?.image_url && (
+            <img
+              src={resolveImg(sizePickerItem.image_url)}
+              alt={sizePickerItem.name}
+              className="w-full h-40 object-cover rounded-lg"
+              loading="lazy"
+            />
+          )}
+          {sizePickerItem?.description && (
+            <p className="text-sm text-muted-foreground">{sizePickerItem.description}</p>
+          )}
+          {sizePickerItem?.is_deal && sizePickerItem?.deal_label && (
+            <Badge variant="destructive" className="w-fit">{sizePickerItem.deal_label}</Badge>
+          )}
+          <div className="space-y-2">
+            {sizePickerItem?.sizes?.map((s) => (
+              <button
+                key={s.name}
+                type="button"
+                onClick={() => setPickedSize(s.name)}
+                className={`w-full text-left flex items-center justify-between rounded-lg border px-4 py-3 transition ${
+                  pickedSize === s.name
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/40'
+                }`}
+              >
+                <span className="font-medium">{s.name}</span>
+                <span className="font-bold text-primary">PKR {Number(s.price).toLocaleString()}</span>
+              </button>
+            ))}
+          </div>
+          <Button className="w-full gradient-primary" onClick={confirmSizeAdd} disabled={!pickedSize}>
+            Add to Cart
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
