@@ -107,7 +107,9 @@ export default function RestaurantMenu() {
                 <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} /></div>
                 <div><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} rows={2} /></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Price (PKR)</Label><Input type="number" value={form.price} onChange={(e) => setForm({...form, price: e.target.value})} /></div>
+                  <div><Label>Base Price (PKR)</Label><Input type="number" value={form.price} onChange={(e) => setForm({...form, price: e.target.value})} />
+                    <p className="text-[11px] text-muted-foreground mt-1">Used when no sizes are configured. If you add sizes below, customers must pick a size and its price will apply.</p>
+                  </div>
                   <div><Label>Category</Label>
                     <Select value={form.category_id || 'none'} onValueChange={(v) => setForm({...form, category_id: v === 'none' ? '' : v})}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
@@ -117,6 +119,34 @@ export default function RestaurantMenu() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div className="space-y-2 p-3 rounded bg-muted">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Size Variants (optional)</Label>
+                      <p className="text-[11px] text-muted-foreground">Add sizes like Small / Medium / Large with separate prices (useful for pizzas, drinks, etc.)</p>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, sizes: [...form.sizes, { name: '', price: 0 }] })}>
+                      <Plus className="w-3 h-3 mr-1" />Add Size
+                    </Button>
+                  </div>
+                  {form.sizes.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No sizes — single-price item.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {form.sizes.map((s, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Input placeholder="Size name (e.g. Large)" value={s.name}
+                            onChange={(e) => setForm({ ...form, sizes: form.sizes.map((x, i) => i === idx ? { ...x, name: e.target.value } : x) })} />
+                          <Input type="number" placeholder="Price" className="w-28" value={s.price || ''}
+                            onChange={(e) => setForm({ ...form, sizes: form.sizes.map((x, i) => i === idx ? { ...x, price: Number(e.target.value) } : x) })} />
+                          <Button type="button" size="icon" variant="ghost" onClick={() => setForm({ ...form, sizes: form.sizes.filter((_, i) => i !== idx) })}>
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center justify-between p-3 rounded bg-muted">
                   <Label>Fresh Deal</Label>
@@ -129,6 +159,10 @@ export default function RestaurantMenu() {
                   </>
                 )}
                 <ImageCropInput label="Item Image" value={form.image_url} onChange={(v) => setForm({...form, image_url: v})} aspect={1} previewClassName="w-full h-40 object-cover rounded-md border" />
+                <div className="flex items-center justify-between p-3 rounded bg-muted">
+                  <Label>Featured</Label>
+                  <Switch checked={form.is_featured} onCheckedChange={(v) => setForm({...form, is_featured: v})} />
+                </div>
                 <div className="flex items-center justify-between p-3 rounded bg-muted">
                   <Label>Available</Label>
                   <Switch checked={form.is_available} onCheckedChange={(v) => setForm({...form, is_available: v})} />
@@ -162,7 +196,7 @@ export default function RestaurantMenu() {
                 <div className="flex gap-1">
                   <Button size="icon" variant="ghost" onClick={() => {
                     setEditing(it);
-                    setForm({ name: it.name, description: it.description || '', price: String(it.price), discount_price: it.discount_price ? String(it.discount_price) : '', is_deal: it.is_deal || false, deal_label: it.deal_label || '', image_url: it.image_url || '', category_id: it.category_id || '', is_available: it.is_available });
+                    setForm({ name: it.name, description: it.description || '', price: String(it.price), discount_price: it.discount_price ? String(it.discount_price) : '', is_deal: it.is_deal || false, deal_label: it.deal_label || '', image_url: it.image_url || '', category_id: it.category_id || '', is_available: it.is_available, is_featured: it.is_featured || false, sizes: Array.isArray(it.sizes) ? it.sizes : [] });
                     setOpen(true);
                   }}><Pencil className="w-4 h-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => del(it.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
