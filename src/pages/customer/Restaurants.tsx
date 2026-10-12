@@ -1121,6 +1121,18 @@ export default function Restaurants() {
           </Button>
         </DialogContent>
       </Dialog>
+
+      {/* Deal detail popup — shows what's inside the deal, then add to cart */}
+      <DealDetailDialog
+        item={dealDetailItem}
+        onOpenChange={(open) => {
+          if (!open) setDealDetailItem(null);
+        }}
+        onAdd={(item, size) => {
+          doAddToCart(item as unknown as MenuItem, item.restaurant_name, size);
+          setDealDetailItem(null);
+        }}
+      />
     </div>
   );
 }
