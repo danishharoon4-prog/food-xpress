@@ -102,7 +102,7 @@ export default function AllDeals() {
         discount_price: item.discount_price,
         image_url: item.image_url,
         restaurant_id: item.restaurant_id,
-        restaurant_name: item.restaurant_name ?? item.restaurant?.name,
+        restaurant_name: item.restaurant_name ?? (detailItem?.restaurant?.name ?? item.restaurant_name),
         sizes: item.sizes,
       } as any,
       1,
