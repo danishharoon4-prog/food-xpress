@@ -516,6 +516,42 @@ export default function Restaurants() {
           )}
         </motion.section>
 
+        {/* Browse by Category */}
+        {categories.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-end justify-between px-2">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                  <Utensils className="w-6 h-6 text-primary" /> Browse by Category
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">Burgers, Pizza, Rolls — find what you're craving</p>
+              </div>
+            </div>
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 scrollbar-hide -mx-4 px-4">
+              {categories.map((cat) => (
+                <button
+                  key={cat.name}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.name.toLowerCase())}
+                  className="flex-none w-28 sm:w-32 text-left group"
+                >
+                  <div className="h-20 sm:h-24 rounded-2xl overflow-hidden bg-muted border border-border/60 group-hover:border-primary/50 transition-colors">
+                    {cat.image ? (
+                      <img src={resolveImg(cat.image)} alt={cat.name} className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Utensils className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 text-sm font-bold truncate">{cat.name}</p>
+                  <p className="text-[11px] text-muted-foreground">{cat.count} items</p>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Top Selling Items */}
         {(topItemsLoading || topItems.length > 0) && (
           <section className="space-y-6">
