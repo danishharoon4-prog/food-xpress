@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy, Plus, Check, ArrowUpDown } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
+import DealDetailDialog from '@/components/DealDetailDialog';
 import type { Restaurant, MenuItem } from '@/types';
 import { motion } from 'framer-motion';
 import { resolveImg } from '@/lib/img';
@@ -714,7 +715,14 @@ export default function Restaurants() {
                   whileHover={{ y: -6 }}
                   className="min-w-[160px] max-w-[160px] sm:min-w-[190px] sm:max-w-[190px] flex-shrink-0"
                 >
-                  <Link to={`/restaurant/${deal.restaurant_id}`} className="group block">
+                  <Link
+                    to={`/restaurant/${deal.restaurant_id}`}
+                    className="group block"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setDealDetailItem(deal);
+                    }}
+                  >
                   <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                     {deal.image_url ? (
                       <img
