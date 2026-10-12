@@ -16,6 +16,7 @@ export interface DealLike {
   image_url?: string | null;
   restaurant_id: string;
   restaurant_name?: string;
+  restaurant?: { id: string; name: string; image_url?: string | null } | null;
   sizes?: { name: string; price: number }[] | null;
 }
 
