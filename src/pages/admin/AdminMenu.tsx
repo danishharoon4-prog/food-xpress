@@ -38,6 +38,8 @@ export default function AdminMenu() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [sizes, setSizes] = useState<MenuItemSize[]>([]);
+  const [categoryId, setCategoryId] = useState('');
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -66,8 +68,26 @@ export default function AdminMenu() {
     setIsAvailable(true);
     setIsFeatured(false);
     setSizes([]);
+    setCategoryId('');
     setEditingItem(null);
   };
+
+  // Load categories for the selected restaurant
+  useEffect(() => {
+    const loadCats = async () => {
+      if (!restaurantId) {
+        setCategories([]);
+        return;
+      }
+      const { data } = await supabase
+        .from('menu_categories')
+        .select('id, name')
+        .eq('restaurant_id', restaurantId)
+        .order('display_order');
+      setCategories((data as any) || []);
+    };
+    loadCats();
+  }, [restaurantId]);
 
   const openDialog = (item?: MenuItem) => {
     if (item) {
@@ -83,6 +103,7 @@ export default function AdminMenu() {
       setIsAvailable(item.is_available);
       setIsFeatured(item.is_featured);
       setSizes(Array.isArray(item.sizes) ? item.sizes : []);
+      setCategoryId(item.category_id || '');
     } else {
       resetForm();
     }
@@ -122,6 +143,7 @@ export default function AdminMenu() {
       image_url: imageUrl || null,
       is_available: isAvailable,
       is_featured: isFeatured,
+      category_id: categoryId || null,
       sizes: cleanSizes.length > 0 ? cleanSizes : null,
     };
 
@@ -298,7 +320,7 @@ export default function AdminMenu() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label>Restaurant *</Label>
-                <Select value={restaurantId} onValueChange={setRestaurantId} required>
+                <Select value={restaurantId} onValueChange={(v) => { setRestaurantId(v); setCategoryId(''); }} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select restaurant" />
                   </SelectTrigger>
