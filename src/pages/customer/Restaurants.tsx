@@ -79,6 +79,7 @@ export default function Restaurants() {
   const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
   const [sizePickerRestaurant, setSizePickerRestaurant] = useState<string>('');
   const [pickedSize, setPickedSize] = useState<string>('');
+  const [dealDetailItem, setDealDetailItem] = useState<DealItem | null>(null);
   const [categories, setCategories] = useState<{ name: string; image: string | null; count: number }[]>([]);
   const [itemsByCategory, setItemsByCategory] = useState<Record<string, DealItem[]>>({});
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
