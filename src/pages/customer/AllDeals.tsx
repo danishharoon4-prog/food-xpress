@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Utensils, Plus, Check, Flame, LayoutGrid, Store, ArrowLeft } from 'lucide-react';
 import type { MenuItem } from '@/types';
 import { motion } from 'framer-motion';
+import DealDetailDialog, { type DealLike } from '@/components/DealDetailDialog';
 import { resolveImg } from '@/lib/img';
 
 type DealItem = Omit<MenuItem, 'restaurant'> & {
@@ -24,6 +25,7 @@ export default function AllDeals() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'restaurant' | 'item'>('restaurant');
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const [detailItem, setDetailItem] = useState<DealItem | null>(null);
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -91,7 +93,14 @@ export default function AllDeals() {
       transition={{ duration: 0.35, delay: Math.min(idx, 6) * 0.04 }}
       whileHover={{ y: -6 }}
     >
-      <Link to={`/restaurant/${deal.restaurant_id}`} className="group block">
+      <Link
+        to={`/restaurant/${deal.restaurant_id}`}
+        className="group block"
+        onClick={(e) => {
+          e.preventDefault();
+          setDetailItem(deal);
+        }}
+      >
         <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
           {deal.image_url ? (
             <img
