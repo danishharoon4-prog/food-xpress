@@ -86,13 +86,13 @@ export default function DealDetailDialog({ item, onOpenChange, onAdd }: DealDeta
 
         <div className="flex items-center gap-2 flex-wrap">
           {item.deal_label && <Badge variant="destructive" className="w-fit">{item.deal_label}</Badge>}
-          {item.restaurant_name && (
+          {item.restaurant?.name && (
             <Link
               to={`/restaurant/${item.restaurant_id}`}
               onClick={() => onOpenChange(false)}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors"
             >
-              <Store className="w-3.5 h-3.5" /> {item.restaurant_name}
+              <Store className="w-3.5 h-3.5" /> {item.restaurant.name}
             </Link>
           )}
         </div>
