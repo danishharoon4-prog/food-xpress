@@ -84,6 +84,35 @@ export default function AllDeals() {
     toast({ title: 'Added to cart', description: deal.name });
   };
 
+  const handleDetailAdd = (item: DealLike, size?: { name: string; price: number }) => {
+    const currentRestaurantId = getRestaurantId();
+    if (currentRestaurantId && currentRestaurantId !== item.restaurant_id) {
+      toast({
+        title: 'Different restaurant',
+        description: 'Your cart has items from another restaurant. Clear it first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    addItem(
+      {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        discount_price: item.discount_price,
+        image_url: item.image_url,
+        restaurant_id: item.restaurant_id,
+        restaurant_name: item.restaurant_name ?? item.restaurant?.name,
+        sizes: item.sizes,
+      } as any,
+      1,
+      size ? { selectedSize: size as any } : undefined
+    );
+    setAddedIds((prev) => new Set(prev).add(item.id));
+    toast({ title: 'Added to cart', description: size ? `${item.name} (${size.name})` : item.name });
+    setDetailItem(null);
+  };
+
   const renderCard = (deal: DealItem, idx: number) => (
     <motion.div
       key={deal.id}
@@ -265,6 +294,14 @@ export default function AllDeals() {
           </div>
         )}
       </main>
+
+      <DealDetailDialog
+        item={detailItem}
+        onOpenChange={(open) => {
+          if (!open) setDetailItem(null);
+        }}
+        onAdd={handleDetailAdd}
+      />
     </div>
   );
 }
