@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Utensils, Plus, Check, Flame, LayoutGrid, Store, ArrowLeft } from 'lucide-react';
 import type { MenuItem } from '@/types';
 import { motion } from 'framer-motion';
+import DealDetailDialog, { type DealLike } from '@/components/DealDetailDialog';
 import { resolveImg } from '@/lib/img';
 
 type DealItem = Omit<MenuItem, 'restaurant'> & {
@@ -24,6 +25,7 @@ export default function AllDeals() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'restaurant' | 'item'>('restaurant');
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const [detailItem, setDetailItem] = useState<DealItem | null>(null);
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -82,6 +84,35 @@ export default function AllDeals() {
     toast({ title: 'Added to cart', description: deal.name });
   };
 
+  const handleDetailAdd = (item: DealLike, size?: { name: string; price: number }) => {
+    const currentRestaurantId = getRestaurantId();
+    if (currentRestaurantId && currentRestaurantId !== item.restaurant_id) {
+      toast({
+        title: 'Different restaurant',
+        description: 'Your cart has items from another restaurant. Clear it first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    addItem(
+      {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        discount_price: item.discount_price,
+        image_url: item.image_url,
+        restaurant_id: item.restaurant_id,
+        restaurant_name: item.restaurant_name ?? item.restaurant?.name,
+        sizes: item.sizes,
+      } as any,
+      1,
+      size ? { selectedSize: size as any } : undefined
+    );
+    setAddedIds((prev) => new Set(prev).add(item.id));
+    toast({ title: 'Added to cart', description: size ? `${item.name} (${size.name})` : item.name });
+    setDetailItem(null);
+  };
+
   const renderCard = (deal: DealItem, idx: number) => (
     <motion.div
       key={deal.id}
@@ -91,7 +122,14 @@ export default function AllDeals() {
       transition={{ duration: 0.35, delay: Math.min(idx, 6) * 0.04 }}
       whileHover={{ y: -6 }}
     >
-      <Link to={`/restaurant/${deal.restaurant_id}`} className="group block">
+      <Link
+        to={`/restaurant/${deal.restaurant_id}`}
+        className="group block"
+        onClick={(e) => {
+          e.preventDefault();
+          setDetailItem(deal);
+        }}
+      >
         <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
           {deal.image_url ? (
             <img
@@ -256,6 +294,14 @@ export default function AllDeals() {
           </div>
         )}
       </main>
+
+      <DealDetailDialog
+        item={detailItem}
+        onOpenChange={(open) => {
+          if (!open) setDetailItem(null);
+        }}
+        onAdd={handleDetailAdd}
+      />
     </div>
   );
 }

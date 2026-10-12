@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, Star, Heart, Utensils, Tag, Flame, Trophy, Plus, Check, ArrowUpDown } from 'lucide-react';
 import GlobalSearch from '@/components/GlobalSearch';
+import DealDetailDialog from '@/components/DealDetailDialog';
 import type { Restaurant, MenuItem } from '@/types';
 import { motion } from 'framer-motion';
 import { resolveImg } from '@/lib/img';
@@ -78,6 +79,7 @@ export default function Restaurants() {
   const [sizePickerItem, setSizePickerItem] = useState<MenuItem | null>(null);
   const [sizePickerRestaurant, setSizePickerRestaurant] = useState<string>('');
   const [pickedSize, setPickedSize] = useState<string>('');
+  const [dealDetailItem, setDealDetailItem] = useState<DealItem | null>(null);
   const [categories, setCategories] = useState<{ name: string; image: string | null; count: number }[]>([]);
   const [itemsByCategory, setItemsByCategory] = useState<Record<string, DealItem[]>>({});
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -714,7 +716,14 @@ export default function Restaurants() {
                   whileHover={{ y: -6 }}
                   className="min-w-[160px] max-w-[160px] sm:min-w-[190px] sm:max-w-[190px] flex-shrink-0"
                 >
-                  <Link to={`/restaurant/${deal.restaurant_id}`} className="group block">
+                  <Link
+                    to={`/restaurant/${deal.restaurant_id}`}
+                    className="group block"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setDealDetailItem(deal);
+                    }}
+                  >
                   <div className="relative overflow-hidden rounded-3xl aspect-[4/3] mb-3 bg-gradient-to-br from-primary/10 to-accent/40 shadow-sm group-hover:shadow-2xl group-hover:shadow-primary/10 transition-all duration-500">
                     {deal.image_url ? (
                       <img
@@ -1112,6 +1121,18 @@ export default function Restaurants() {
           </Button>
         </DialogContent>
       </Dialog>
+
+      {/* Deal detail popup — shows what's inside the deal, then add to cart */}
+      <DealDetailDialog
+        item={dealDetailItem}
+        onOpenChange={(open) => {
+          if (!open) setDealDetailItem(null);
+        }}
+        onAdd={(item, size) => {
+          doAddToCart(item as unknown as MenuItem, item.restaurant_name, size);
+          setDealDetailItem(null);
+        }}
+      />
     </div>
   );
 }
