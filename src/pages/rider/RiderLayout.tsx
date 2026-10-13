@@ -95,7 +95,7 @@ function RiderLayoutInner() {
     location.pathname === '/rider/settings' || location.pathname === '/rider/support';
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -171,7 +171,7 @@ function RiderLayoutInner() {
           </h1>
         </header>
 
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 min-h-0 p-4 lg:p-6 overflow-y-auto overflow-x-hidden">
           {!isVerified && !allowedWhenUnverified ? (
             <div className="max-w-xl mx-auto mt-10">
               <Card className="border-warning">
