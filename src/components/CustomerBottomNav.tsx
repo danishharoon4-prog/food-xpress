@@ -19,7 +19,7 @@ export default function CustomerBottomNav() {
   return (
     <>
     <div className="mobile-bottom-nav-spacer md:hidden" aria-hidden="true" />
-    <nav data-bottom-nav className="mobile-bottom-nav md:hidden fixed left-0 right-0 z-40 bg-card/95 backdrop-blur border-t flex">
+    <nav data-bottom-nav className="mobile-bottom-nav md:hidden fixed left-0 right-0 z-40 bg-card border-t flex">
       {items.map(({ path, label, icon: Icon, showBadge }) => {
         const active = location.pathname === path;
         return (

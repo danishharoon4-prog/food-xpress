@@ -480,8 +480,19 @@ html.native-app #root {
 }
 
 .mobile-bottom-nav {
-  bottom: var(--app-safe-bottom);
+  bottom: 0;
   min-height: var(--mobile-nav-height);
+  /* Cover the safe-area strip too so page content can never show
+     through/behind the bottom menu while scrolling */
+  padding-bottom: var(--app-safe-bottom);
+}
+
+/* Stop the page itself from rubber-banding and revealing content
+   behind the fixed bottom nav on mobile */
+@media (max-width: 1023px) {
+  html, body {
+    overscroll-behavior-y: none;
+  }
 }
 
 .mobile-bottom-nav-spacer {

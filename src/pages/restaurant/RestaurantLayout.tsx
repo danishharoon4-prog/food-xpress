@@ -63,7 +63,7 @@ function RestaurantLayoutInner() {
   const rejected = restaurant?.approval_status === 'rejected';
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-hidden">
       <aside className={cn(
         "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -125,7 +125,7 @@ function RestaurantLayoutInner() {
           </h1>
         </header>
 
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 min-h-0 p-4 lg:p-6 overflow-y-auto overflow-x-hidden">
           {needsSetup && location.pathname !== '/restaurant/profile' ? (
             <div className="max-w-xl mx-auto mt-10">
               <Card className="border-warning">
