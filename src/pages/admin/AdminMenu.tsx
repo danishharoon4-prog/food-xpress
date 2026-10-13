@@ -355,6 +355,24 @@ export default function AdminMenu() {
                 </p>
               </div>
 
+              <div>
+                <Label>Category</Label>
+                <Select value={categoryId || 'none'} onValueChange={(v) => setCategoryId(v === 'none' ? '' : v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Uncategorized</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Categories belong to the selected restaurant. Pick "Uncategorized" if the item doesn't fit any.
+                </p>
+              </div>
+
               <div className="rounded-md border p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div>
