@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import ImageCropInput from '@/components/ImageCropInput';
+import CategoryManager from '@/components/CategoryManager';
 import type { MenuItemSize } from '@/types';
 
 export default function RestaurantMenu() {
@@ -89,14 +90,7 @@ export default function RestaurantMenu() {
             <DialogTrigger asChild><Button variant="outline" size="sm">Categories</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Categories</DialogTitle></DialogHeader>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {cats.map(c => <div key={c.id} className="p-2 rounded bg-muted text-sm">{c.name}</div>)}
-                {cats.length === 0 && <p className="text-sm text-muted-foreground">No categories yet</p>}
-              </div>
-              <div className="flex gap-2">
-                <Input value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="New category" />
-                <Button onClick={addCategory}>Add</Button>
-              </div>
+              <CategoryManager restaurantId={restaurant?.id} onChanged={load} />
             </DialogContent>
           </Dialog>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
