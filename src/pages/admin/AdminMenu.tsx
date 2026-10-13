@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, UtensilsCrossed, LayoutGrid, List, X } from 'lucide-react';
 import type { MenuItem, MenuItemSize, Restaurant } from '@/types';
 import ImageCropInput from '@/components/ImageCropInput';
+import CategoryManager from '@/components/CategoryManager';
 
 export default function AdminMenu() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -40,6 +41,7 @@ export default function AdminMenu() {
   const [sizes, setSizes] = useState<MenuItemSize[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [catsVersion, setCatsVersion] = useState(0);
 
   useEffect(() => {
     fetchData();
@@ -87,7 +89,7 @@ export default function AdminMenu() {
       setCategories((data as any) || []);
     };
     loadCats();
-  }, [restaurantId]);
+  }, [restaurantId, catsVersion]);
 
   const openDialog = (item?: MenuItem) => {
     if (item) {
@@ -371,6 +373,12 @@ export default function AdminMenu() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Categories belong to the selected restaurant. Pick "Uncategorized" if the item doesn't fit any.
                 </p>
+                <details className="mt-2 p-3 rounded bg-muted/50">
+                  <summary className="text-sm font-medium cursor-pointer">Manage categories (add / remove)</summary>
+                  <div className="mt-2">
+                    <CategoryManager restaurantId={restaurantId} onChanged={() => setCatsVersion((v) => v + 1)} />
+                  </div>
+                </details>
               </div>
 
               <div className="rounded-md border p-3 space-y-2">
