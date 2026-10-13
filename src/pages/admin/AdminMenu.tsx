@@ -41,6 +41,7 @@ export default function AdminMenu() {
   const [sizes, setSizes] = useState<MenuItemSize[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [catsVersion, setCatsVersion] = useState(0);
 
   useEffect(() => {
     fetchData();
