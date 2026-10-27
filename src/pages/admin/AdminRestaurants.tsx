@@ -11,10 +11,11 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Store, Eye, CheckCircle2, XCircle, Clock, LayoutGrid, List } from 'lucide-react';
+import { Plus, Pencil, Trash2, Store, Eye, CheckCircle2, XCircle, Clock, LayoutGrid, List, UserCog } from 'lucide-react';
 import type { Restaurant } from '@/types';
 import LocationChangeRequests from '@/components/admin/LocationChangeRequests';
 import ImageCropInput from '@/components/ImageCropInput';
+import AssignOwnerDialog from '@/components/admin/AssignOwnerDialog';
 
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
@@ -28,6 +29,7 @@ export default function AdminRestaurants() {
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [ownerFor, setOwnerFor] = useState<Restaurant | null>(null);
   const { toast } = useToast();
 
   const [name, setName] = useState('');
@@ -248,6 +250,9 @@ export default function AdminRestaurants() {
                               <Button variant="outline" size="sm" onClick={() => openReview(restaurant)}>
                                 <Eye className="w-4 h-4" />
                               </Button>
+<Button variant="outline" size="sm" title="Assign owner" onClick={() => setOwnerFor(restaurant)}>
+<UserCog className="w-4 h-4" />
+</Button>
                               <Button variant="outline" size="sm" onClick={() => openDialog(restaurant)}>
                                 <Pencil className="w-4 h-4" />
                               </Button>
@@ -294,6 +299,9 @@ export default function AdminRestaurants() {
                       </Button>
                     ) : (
                       <>
+<Button variant="outline" size="sm" title="Assign owner" onClick={() => setOwnerFor(restaurant)}>
+<UserCog className="w-4 h-4 mr-1" />Owner
+</Button>
                         <Button variant="outline" size="sm" onClick={() => openDialog(restaurant)}>
                           <Pencil className="w-4 h-4 mr-1" />Edit
                         </Button>
@@ -311,6 +319,12 @@ export default function AdminRestaurants() {
             );
           })}
         </div>
+      )}
+
+      {ownerFor && (
+        <AssignOwnerDialog open={!!ownerFor} onOpenChange={(v) => !v && setOwnerFor(null)}
+          restaurantId={ownerFor.id} restaurantName={ownerFor.name}
+          currentOwnerId={(ownerFor as any).owner_id ?? null} onDone={fetchRestaurants} />
       )}
 
       {/* Review dialog */}
