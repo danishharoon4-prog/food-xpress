@@ -1302,6 +1302,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_assign_restaurant_owner: {
+        Args: { _restaurant_id: string; _user_id: string }
+        Returns: boolean
+      }
       admin_set_user_ban: {
         Args: { _banned: boolean; _reason?: string; _user_id: string }
         Returns: boolean
