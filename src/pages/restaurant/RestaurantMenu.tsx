@@ -168,39 +168,63 @@ export default function RestaurantMenu() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {items.map((it) => (
-          <Card key={it.id}>
-            <CardContent className="p-3">
-              {it.image_url && <img src={it.image_url} className="w-full h-32 object-cover rounded mb-2" alt={it.name} />}
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="font-semibold truncate">{it.name}</p>
-                  {it.is_deal && it.discount_price ? (
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm text-primary font-bold">PKR {Number(it.discount_price).toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground line-through">PKR {Number(it.price).toLocaleString()}</p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-primary font-bold">PKR {Number(it.price).toLocaleString()}</p>
-                  )}
-                  {it.is_deal && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive">Deal</span>}
-                  {!it.is_available && <span className="text-xs text-muted-foreground">Unavailable</span>}
+      {(() => {
+        const groups = new Map<string, { name: string; items: any[] }>();
+        for (const c of cats) groups.set(c.id, { name: c.name, items: [] });
+        groups.set('uncategorized', { name: 'Uncategorized', items: [] });
+        for (const it of items) {
+          const key = it.category_id && groups.has(it.category_id) ? it.category_id : 'uncategorized';
+          groups.get(key)!.items.push(it);
+        }
+        const rendered = [...groups.values()].filter((g) => g.items.length > 0);
+        if (rendered.length === 0) {
+          return <p className="text-sm text-muted-foreground text-center py-8">No menu items yet. Add your first item.</p>;
+        }
+        return (
+          <div className="space-y-6">
+            {rendered.map((g) => (
+              <div key={g.name}>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold">{g.name}</h3>
+                  <span className="text-xs text-muted-foreground">({g.items.length})</span>
                 </div>
-                <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => {
-                    setEditing(it);
-                    setForm({ name: it.name, description: it.description || '', price: String(it.price), discount_price: it.discount_price ? String(it.discount_price) : '', is_deal: it.is_deal || false, deal_label: it.deal_label || '', image_url: it.image_url || '', category_id: it.category_id || '', is_available: it.is_available, is_featured: it.is_featured || false, sizes: Array.isArray(it.sizes) ? it.sizes : [] });
-                    setOpen(true);
-                  }}><Pencil className="w-4 h-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => del(it.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {g.items.map((it) => (
+                    <Card key={it.id}>
+                      <CardContent className="p-3">
+                        {it.image_url && <img src={it.image_url} className="w-full h-32 object-cover rounded mb-2" alt={it.name} />}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-semibold truncate">{it.name}</p>
+                            {it.is_deal && it.discount_price ? (
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm text-primary font-bold">PKR {Number(it.discount_price).toLocaleString()}</p>
+                                <p className="text-xs text-muted-foreground line-through">PKR {Number(it.price).toLocaleString()}</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-primary font-bold">PKR {Number(it.price).toLocaleString()}</p>
+                            )}
+                            {it.is_deal && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive">Deal</span>}
+                            {!it.is_available && <span className="text-xs text-muted-foreground">Unavailable</span>}
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" onClick={() => {
+                              setEditing(it);
+                              setForm({ name: it.name, description: it.description || '', price: String(it.price), discount_price: it.discount_price ? String(it.discount_price) : '', is_deal: it.is_deal || false, deal_label: it.deal_label || '', image_url: it.image_url || '', category_id: it.category_id || '', is_available: it.is_available, is_featured: it.is_featured || false, sizes: Array.isArray(it.sizes) ? it.sizes : [] });
+                              setOpen(true);
+                            }}><Pencil className="w-4 h-4" /></Button>
+                            <Button size="icon" variant="ghost" onClick={() => del(it.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-        {items.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-8">No menu items yet. Add your first item.</p>}
-      </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }
