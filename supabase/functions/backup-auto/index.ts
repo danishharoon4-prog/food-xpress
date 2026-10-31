@@ -11,7 +11,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 const GATEWAY = 'https://connector-gateway.lovable.dev';
 
 const TABLES = [
-  'profiles', 'user_roles', 'restaurants', 'menu_categories', 'menu_items',
+  'profiles', 'user_roles', 'restaurants', 'menu_categories', 'shared_menu_categories', 'menu_items',
   'orders', 'order_items', 'payments', 'riders', 'rider_wallets',
   'rider_earnings', 'rider_withdrawals', 'ratings', 'addresses',
   'favorite_restaurants', 'notifications', 'notification_preferences',

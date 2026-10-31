@@ -306,7 +306,7 @@ export type Database = {
             foreignKeyName: "menu_items_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
-            referencedRelation: "menu_categories"
+            referencedRelation: "shared_menu_categories"
             referencedColumns: ["id"]
           },
           {
@@ -1205,6 +1205,27 @@ export type Database = {
           vehicle_doc_url?: string | null
           vehicle_number?: string | null
           vehicle_type?: string | null
+        }
+        Relationships: []
+      }
+      shared_menu_categories: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
         }
         Relationships: []
       }

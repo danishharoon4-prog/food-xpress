@@ -1,53 +1,49 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { addSharedCategory, categoryNameKey, loadSharedCategories, removeSharedCategory } from '@/lib/menuCategories';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface Props {
-  restaurantId: string;
   onChanged?: () => void;
 }
 
-export default function CategoryManager({ restaurantId, onChanged }: Props) {
+export default function CategoryManager({ onChanged }: Props) {
   const { toast } = useToast();
   const [cats, setCats] = useState<{ id: string; name: string }[]>([]);
   const [newCat, setNewCat] = useState('');
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    if (!restaurantId) return setCats([]);
-    const { data } = await supabase.from('menu_categories').select('id, name').eq('restaurant_id', restaurantId).order('display_order');
+    const { data, error } = await loadSharedCategories();
+    if (error) return toast({ title: 'Categories could not load', description: error.message, variant: 'destructive' });
     setCats(data || []);
   };
-  useEffect(() => { load(); }, [restaurantId]);
+  useEffect(() => { load(); }, []);
 
   const add = async () => {
     const name = newCat.trim();
     if (!name) return;
-    if (cats.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
+    if (cats.some((c) => categoryNameKey(c.name) === categoryNameKey(name))) {
       return toast({ title: 'Category already exists', variant: 'destructive' });
     }
     setBusy(true);
-    const { error } = await supabase.from('menu_categories').insert({ restaurant_id: restaurantId, name, display_order: cats.length });
+    const { error } = await addSharedCategory(name, cats.length);
     setBusy(false);
     if (error) return toast({ title: 'Failed', description: error.message, variant: 'destructive' });
     setNewCat(''); await load(); onChanged?.();
   };
 
   const remove = async (id: string, name: string) => {
-    if (!confirm(`Delete category "${name}"? Its items will become Uncategorized.`)) return;
+    if (!confirm(`Delete shared category "${name}" for ALL restaurants? Its menu items will stay, but become Uncategorized.`)) return;
     setBusy(true);
-    const u = await supabase.from('menu_items').update({ category_id: null }).eq('category_id', id);
-    const d = u.error ? u : await supabase.from('menu_categories').delete().eq('id', id);
+    const d = await removeSharedCategory(id);
     setBusy(false);
     if (d.error) return toast({ title: 'Delete failed', description: d.error.message, variant: 'destructive' });
     toast({ title: 'Category deleted' });
     await load(); onChanged?.();
   };
-
-  if (!restaurantId) return <p className="text-xs text-muted-foreground">Select a restaurant first.</p>;
 
   return (
     <div className="space-y-2">

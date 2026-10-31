@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import ImageCropInput from '@/components/ImageCropInput';
 import CategoryManager from '@/components/CategoryManager';
+import { loadSharedCategories } from '@/lib/menuCategories';
 import type { MenuItemSize } from '@/types';
 
 export default function RestaurantMenu() {
@@ -22,7 +23,6 @@ export default function RestaurantMenu() {
   const [cats, setCats] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
-  const [newCat, setNewCat] = useState('');
   const [editing, setEditing] = useState<any | null>(null);
   const emptyForm = { name: '', description: '', price: '', discount_price: '', is_deal: false, deal_label: '', image_url: '', category_id: '', is_available: true, is_featured: false, sizes: [] as MenuItemSize[] };
   const [form, setForm] = useState(emptyForm);
@@ -31,9 +31,10 @@ export default function RestaurantMenu() {
     if (!restaurant?.id) return;
     const [i, c] = await Promise.all([
       supabase.from('menu_items').select('*').eq('restaurant_id', restaurant.id).order('created_at', { ascending: false }),
-      supabase.from('menu_categories').select('*').eq('restaurant_id', restaurant.id).order('display_order'),
+      loadSharedCategories(),
     ]);
     setItems(i.data || []); setCats(c.data || []);
+    setForm((current) => ({ ...current, category_id: c.data?.some((cat) => cat.id === current.category_id) ? current.category_id : '' }));
   };
   useEffect(() => { load(); }, [restaurant?.id]);
 
@@ -74,13 +75,6 @@ export default function RestaurantMenu() {
     load();
   };
 
-  const addCategory = async () => {
-    if (!newCat.trim()) return;
-    const { error } = await supabase.from('menu_categories').insert({ restaurant_id: restaurant.id, name: newCat, display_order: cats.length });
-    if (error) return toast({ title: 'Failed', description: error.message, variant: 'destructive' });
-    setNewCat(''); setCatOpen(false); load();
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -89,8 +83,8 @@ export default function RestaurantMenu() {
           <Dialog open={catOpen} onOpenChange={setCatOpen}>
             <DialogTrigger asChild><Button variant="outline" size="sm">Categories</Button></DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Categories</DialogTitle></DialogHeader>
-              <CategoryManager restaurantId={restaurant?.id} onChanged={load} />
+              <DialogHeader><DialogTitle>Shared Categories</DialogTitle></DialogHeader>
+              <CategoryManager onChanged={load} />
             </DialogContent>
           </Dialog>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
