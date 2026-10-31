@@ -15,6 +15,7 @@ import { Plus, Pencil, Trash2, UtensilsCrossed, LayoutGrid, List, X } from 'luci
 import type { MenuItem, MenuItemSize, Restaurant } from '@/types';
 import ImageCropInput from '@/components/ImageCropInput';
 import CategoryManager from '@/components/CategoryManager';
+import { loadSharedCategories } from '@/lib/menuCategories';
 
 export default function AdminMenu() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -74,22 +75,16 @@ export default function AdminMenu() {
     setEditingItem(null);
   };
 
-  // Load categories for the selected restaurant
+  // Every restaurant uses the same catalogue.
   useEffect(() => {
     const loadCats = async () => {
-      if (!restaurantId) {
-        setCategories([]);
-        return;
-      }
-      const { data } = await supabase
-        .from('menu_categories')
-        .select('id, name')
-        .eq('restaurant_id', restaurantId)
-        .order('display_order');
-      setCategories((data as any) || []);
+      const { data, error } = await loadSharedCategories();
+      if (error) return toast({ title: 'Categories could not load', description: error.message, variant: 'destructive' });
+      setCategories(data || []);
+      setCategoryId((current) => data?.some((c) => c.id === current) ? current : '');
     };
     loadCats();
-  }, [restaurantId, catsVersion]);
+  }, [catsVersion, dialogOpen]);
 
   const openDialog = (item?: MenuItem) => {
     if (item) {
@@ -322,7 +317,7 @@ export default function AdminMenu() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label>Restaurant *</Label>
-                <Select value={restaurantId} onValueChange={(v) => { setRestaurantId(v); setCategoryId(''); }} required>
+                <Select value={restaurantId} onValueChange={setRestaurantId} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select restaurant" />
                   </SelectTrigger>
@@ -371,12 +366,12 @@ export default function AdminMenu() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Categories belong to the selected restaurant. Pick "Uncategorized" if the item doesn't fit any.
+                  Shared categories
                 </p>
                 <details className="mt-2 p-3 rounded bg-muted/50">
                   <summary className="text-sm font-medium cursor-pointer">Manage categories (add / remove)</summary>
                   <div className="mt-2">
-                    <CategoryManager restaurantId={restaurantId} onChanged={() => setCatsVersion((v) => v + 1)} />
+                    <CategoryManager onChanged={() => setCatsVersion((v) => v + 1)} />
                   </div>
                 </details>
               </div>

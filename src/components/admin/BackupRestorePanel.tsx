@@ -12,7 +12,7 @@ import { Upload, Loader2, RotateCcw, AlertTriangle, CheckCircle2, FileArchive } 
 
 // Dependency-safe order (must match the edge function's allow-list)
 const RESTORE_ORDER = [
-  'profiles', 'user_roles', 'restaurants', 'menu_categories', 'menu_items',
+  'profiles', 'user_roles', 'restaurants', 'menu_categories', 'shared_menu_categories', 'menu_items',
   'riders', 'rider_wallets', 'addresses', 'favorite_restaurants',
   'orders', 'order_items', 'payments', 'rider_earnings', 'rider_withdrawals',
   'ratings', 'notifications', 'notification_preferences', 'platform_settings',

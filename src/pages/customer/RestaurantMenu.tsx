@@ -18,6 +18,7 @@ import { ArrowLeft, MapPin, Clock, Star, Plus, Minus, ShoppingCart } from 'lucid
 import type { Restaurant, MenuItem, MenuItemSize } from '@/types';
 import { resolveImg } from '@/lib/img';
 import InviteFriendsButton from '@/components/InviteFriendsButton';
+import { loadSharedCategories } from '@/lib/menuCategories';
 
 type MenuCategory = { id: string; name: string; display_order: number };
 
@@ -61,11 +62,7 @@ export default function RestaurantMenu() {
           .eq('restaurant_id', id)
           .eq('is_available', true)
           .order('is_featured', { ascending: false }),
-        supabase
-          .from('menu_categories')
-          .select('id, name, display_order')
-          .eq('restaurant_id', id)
-          .order('display_order'),
+        loadSharedCategories(),
       ]);
 
       if (restaurantRes.error || menuRes.error || catRes.error) throw new Error('Menu request failed');

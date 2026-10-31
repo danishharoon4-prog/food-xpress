@@ -13,7 +13,7 @@ import AutoBackupPanel from '@/components/admin/AutoBackupPanel';
 import BackupRestorePanel from '@/components/admin/BackupRestorePanel';
 
 const TABLES = [
-  'profiles', 'user_roles', 'restaurants', 'menu_categories', 'menu_items',
+  'profiles', 'user_roles', 'restaurants', 'menu_categories', 'shared_menu_categories', 'menu_items',
   'orders', 'order_items', 'payments', 'riders', 'rider_wallets',
   'rider_earnings', 'rider_withdrawals', 'ratings', 'addresses',
   'favorite_restaurants', 'notifications', 'notification_preferences',
@@ -120,7 +120,7 @@ export default function AdminBackup() {
       zip.file('manifest.json', JSON.stringify(manifest, null, 2));
       zip.file(
         'RESTORE_INSTRUCTIONS.txt',
-        'Food Express Backup — restore order: profiles -> user_roles -> restaurants -> menu_categories -> menu_items -> riders -> rider_wallets -> orders -> order_items -> payments -> baqi.\n'
+        'Food Express Backup — restore order: profiles -> user_roles -> restaurants -> menu_categories (legacy) -> shared_menu_categories -> menu_items -> riders -> rider_wallets -> orders -> order_items -> payments -> baqi.\n'
       );
 
       setProgress('Compressing ZIP...');

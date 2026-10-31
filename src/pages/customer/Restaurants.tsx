@@ -96,7 +96,7 @@ export default function Restaurants() {
   const fetchCategories = async () => {
     const { data } = await supabase
       .from('menu_items')
-      .select('*, category:menu_categories!inner(name), restaurant:restaurants!inner(id, name, image_url, is_active, approval_status)')
+      .select('*, category:shared_menu_categories!inner(name), restaurant:restaurants!inner(id, name, image_url, is_active, approval_status)')
       .eq('is_available', true)
       .eq('restaurant.is_active', true)
       .eq('restaurant.approval_status', 'approved')

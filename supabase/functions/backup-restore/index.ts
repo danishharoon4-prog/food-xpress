@@ -10,6 +10,7 @@ export const RESTORE_ORDER = [
   'user_roles',
   'restaurants',
   'menu_categories',
+  'shared_menu_categories',
   'menu_items',
   'riders',
   'rider_wallets',
