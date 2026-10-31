@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import InstallAppCta from '@/components/InstallAppCta';
+import ShareAppDownloadButton from '@/components/ShareAppDownloadButton';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -397,8 +398,9 @@ export default function Restaurants() {
             </p>
           </motion.div>
 
-          <motion.div variants={fadeUp} custom={0.5} className="flex justify-center">
+          <motion.div variants={fadeUp} custom={0.5} className="flex flex-wrap justify-center gap-3">
             <InstallAppCta size="lg" className="rounded-2xl font-bold" showVersion />
+            <ShareAppDownloadButton size="lg" className="rounded-2xl font-bold" label="QR / Share App Link" />
           </motion.div>
 
           <motion.div variants={fadeUp} custom={1} className="max-w-3xl mx-auto">
