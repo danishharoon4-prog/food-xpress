@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { canApplyMobileUpdate } from '@/lib/mobileUpdateSafety';
 
 const PUBLISHED_ORIGIN = "https://food-xpress.lovable.app";
 const RELOAD_GUARD_KEY = "fx-mobile-live-reload-at";
@@ -51,8 +52,7 @@ function refreshCurrentRoute() {
 
 async function checkForPublishedUpdate() {
   if (!Capacitor.isNativePlatform()) return;
-  if (document.visibilityState === "hidden") return;
-  if (isTypingNow() || wasRecentlyReloaded()) return;
+  if (!canApplyMobileUpdate(window.location.pathname, isTypingNow(), document.visibilityState === 'hidden') || wasRecentlyReloaded()) return;
 
   const currentSignature = getAssetSignatureFromDocument(document);
 
@@ -78,6 +78,7 @@ async function checkForPublishedUpdate() {
     const latestSignature = getAssetSignatureFromDocument(latestDoc);
 
     if (isBundledAppOrigin || !currentSignature || (latestSignature && latestSignature !== currentSignature)) {
+      if (!canApplyMobileUpdate(window.location.pathname, isTypingNow(), document.visibilityState === 'hidden') || wasRecentlyReloaded()) return;
       refreshCurrentRoute();
     }
   } catch {

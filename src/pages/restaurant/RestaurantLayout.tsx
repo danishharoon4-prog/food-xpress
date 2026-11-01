@@ -45,7 +45,7 @@ function RestaurantLayoutInner() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.id]);
 
   if (restaurant === undefined) {
     return (

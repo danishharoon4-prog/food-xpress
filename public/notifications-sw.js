@@ -21,7 +21,7 @@ self.addEventListener("push", (event) => {
   const opts = {
     body: payload.body || "",
     icon: "/icon-192.png",
-    badge: "/icon-192.png",
+    badge: "/notification-badge.png",
     tag: payload.tag,
     data: { url: payload.url || "/", ...(payload.data || {}) },
     vibrate: [120, 60, 120],

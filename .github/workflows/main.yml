@@ -59,8 +59,27 @@ jobs:
       - name: Generate App Icons and Splash Screens
         run: npx @capacitor/assets generate --android
 
-
-
+      - name: Install Food Express notification icons
+        run: |
+          for dpi in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            mkdir -p "android/app/src/main/res/drawable-$dpi"
+            cp "resources/android-notification-icon/drawable-$dpi/ic_stat_notification.png" "android/app/src/main/res/drawable-$dpi/ic_stat_notification.png"
+          done
+          cp resources/icon-only.png android/app/src/main/res/drawable/food_express_logo.png
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          path = 'android/app/src/main/AndroidManifest.xml'
+          ns = 'http://schemas.android.com/apk/res/android'
+          ET.register_namespace('android', ns)
+          tree = ET.parse(path)
+          app = tree.getroot().find('application')
+          key = 'com.google.firebase.messaging.default_notification_icon'
+          for node in list(app.findall('meta-data')):
+              if node.get(f'{{{ns}}}name') == key:
+                  app.remove(node)
+          ET.SubElement(app, 'meta-data', {f'{{{ns}}}name': key, f'{{{ns}}}resource': '@drawable/ic_stat_notification'})
+          tree.write(path, encoding='utf-8', xml_declaration=True)
+          PY
 
       - name: Build Android APK
         run: |
