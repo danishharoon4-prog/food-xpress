@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReviewRemarks from '@/components/ReviewRemarks';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,9 +51,13 @@ export default function RestaurantProfile() {
   const [submittingChange, setSubmittingChange] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<any>(null);
   const [viewImage, setViewImage] = useState<string | null>(null);
+  const hydratedRestaurant = useRef<string | null>(null);
+  const hydratedProfile = useRef<string | null>(null);
 
   useEffect(() => {
     if (restaurant) {
+      if (hydratedRestaurant.current === restaurant.id) return;
+      hydratedRestaurant.current = restaurant.id;
       setForm({
         name: restaurant.name || '',
         description: restaurant.description || '',
@@ -85,6 +89,8 @@ export default function RestaurantProfile() {
 
   useEffect(() => {
     if (profile) {
+      if (hydratedProfile.current === profile.id) return;
+      hydratedProfile.current = profile.id;
       setPersonal({
         full_name: profile.full_name || '',
         phone: profile.phone || '',
@@ -108,7 +114,7 @@ export default function RestaurantProfile() {
   const canSubmit = missing.length === 0 && !personalIncomplete;
 
   const save = async (submitForReview = false) => {
-    if (locked) return;
+    if (locked || !user) return;
     if (submitForReview && !canSubmit) {
       const missingBits = [
         ...(personalIncomplete ? ['Full name & phone (Personal tab)'] : []),
@@ -128,7 +134,7 @@ export default function RestaurantProfile() {
       const { error: pErr } = await supabase
         .from('profiles')
         .update({ full_name: personal.full_name, phone: personal.phone })
-        .eq('id', user!.id);
+        .eq('id', user.id);
       if (pErr) {
         setSaving(false);
         return toast({ title: 'Failed to save personal info', description: pErr.message, variant: 'destructive' });
@@ -159,7 +165,7 @@ export default function RestaurantProfile() {
     } else {
       const { error } = await supabase.from('restaurants').insert({
         ...form,
-        owner_id: user!.id,
+        owner_id: user.id,
         city: profile?.city || 'Mansehra',
         approval_status: 'pending',
         is_active: false,
@@ -172,6 +178,7 @@ export default function RestaurantProfile() {
   };
 
   const savePersonal = async () => {
+    if (!user) return;
     if (!personal.full_name.trim()) {
       toast({ title: 'Name required', variant: 'destructive' });
       return;
@@ -180,7 +187,7 @@ export default function RestaurantProfile() {
     const { error } = await supabase
       .from('profiles')
       .update({ full_name: personal.full_name, phone: personal.phone })
-      .eq('id', user!.id);
+      .eq('id', user.id);
     setSavingPersonal(false);
     if (error) return toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
     toast({ title: 'Personal info updated' });
@@ -336,7 +343,7 @@ export default function RestaurantProfile() {
                     <ImageCropInput
                       label=""
                       value={form.logo_url}
-                      onChange={(v) => setForm({ ...form, logo_url: v })}
+                      onChange={(v) => setForm((current) => ({ ...current, logo_url: v }))}
                       aspect={1}
                       previewClassName="hidden"
                     />
@@ -416,7 +423,7 @@ export default function RestaurantProfile() {
                       </button>
                     )}
                   </Label>
-                  <ImageCropInput label="" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} aspect={16/9} previewClassName="w-full h-32 object-cover rounded-md border cursor-pointer hover:opacity-90 transition-opacity" />
+                  <ImageCropInput label="" value={form.image_url} onChange={(v) => setForm((current) => ({ ...current, image_url: v }))} aspect={16/9} previewClassName="w-full h-32 object-cover rounded-md border cursor-pointer hover:opacity-90 transition-opacity" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label>{req('Opens')}</Label><Input type="time" value={form.opening_time} onChange={(e) => setForm({ ...form, opening_time: e.target.value })} /></div>

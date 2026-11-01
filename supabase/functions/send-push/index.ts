@@ -129,7 +129,7 @@ async function sendFcm(
                 notification: {
                   title: payload.title,
                   body: payload.body,
-                  image: "https://food-xpress.lovable.app/__l5e/assets-v1/98cff877-3e57-45a6-ae8e-040ad7a6599b/notification-icon.png",
+                  image: "https://food-xpress.lovable.app/icon-192.png",
                 },
                 data: payload.data,
                 android: {
@@ -138,7 +138,7 @@ async function sendFcm(
                     sound: "default",
                     icon: "ic_stat_notification",
                     color: "#FF6F00",
-                    image: "https://food-xpress.lovable.app/__l5e/assets-v1/98cff877-3e57-45a6-ae8e-040ad7a6599b/notification-icon.png",
+                    image: "https://food-xpress.lovable.app/icon-192.png",
                   },
                 },
               },

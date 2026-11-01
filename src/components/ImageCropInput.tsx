@@ -38,6 +38,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
+    img.referrerPolicy = 'no-referrer';
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Failed to load image. The remote URL may block cross-origin access — try uploading the file instead.'));
     img.src = src;
@@ -77,12 +78,8 @@ async function getCroppedDataUrl(src: string, area: Area): Promise<string> {
 
 /** Shrink a freshly picked file before it ever touches state / the database. */
 async function shrinkDataUrl(dataUrl: string): Promise<string> {
-  try {
-    const img = await loadImage(dataUrl);
-    return encode(img, 0, 0, img.naturalWidth, img.naturalHeight);
-  } catch {
-    return dataUrl;
-  }
+  const img = await loadImage(dataUrl);
+  return encode(img, 0, 0, img.naturalWidth, img.naturalHeight);
 }
 
 
@@ -105,17 +102,21 @@ export default function ImageCropInput({
   const [area, setArea] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
+  const linkCheck = useRef(0);
+  const [processing, setProcessing] = useState(false);
 
   // Validate pasted links: only accept URLs that actually load as an image.
   const checkImageLink = (url: string) => {
+    const check = ++linkCheck.current;
     setLinkError(null);
     const trimmed = url.trim();
     if (!trimmed || trimmed.startsWith('data:')) return;
     if (!/^https?:\/\//i.test(trimmed)) return;
     const img = new Image();
-    img.onload = () => setLinkError(null);
+    img.referrerPolicy = 'no-referrer';
+    img.onload = () => { if (check === linkCheck.current) setLinkError(null); };
     img.onerror = () =>
-      setLinkError('Yeh link direct image nahi hai ya block hai. Image par right-click karke "Copy image address" wala link use karein, ya file upload karein.');
+      { if (check === linkCheck.current) setLinkError('Yeh link direct image nahi hai ya block hai. Image par right-click karke "Copy image address" wala link use karein, ya file upload karein.'); };
     img.src = trimmed;
   };
 
@@ -133,15 +134,31 @@ export default function ImageCropInput({
   };
 
   const onFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Please choose an image file', variant: 'destructive' });
+      return;
+    }
+    setProcessing(true);
     const reader = new FileReader();
     reader.onload = async () => {
-      const raw = reader.result as string;
-      // Shrink immediately so large phone photos never get saved at full size
-      const data = await shrinkDataUrl(raw);
-      onChange(data);
-      openCropper(data);
+      try {
+        const raw = reader.result;
+        if (typeof raw !== 'string') throw new Error('Could not read image');
+        const data = await shrinkDataUrl(raw);
+        ++linkCheck.current;
+        setLinkError(null);
+        onChange(data);
+        openCropper(data);
+      } catch {
+        toast({ title: 'Could not open image', description: 'Please choose a JPG, PNG or WebP photo.', variant: 'destructive' });
+      } finally {
+        setProcessing(false);
+      }
     };
-    reader.onerror = () => toast({ title: 'Could not read file', variant: 'destructive' });
+    reader.onerror = () => {
+      setProcessing(false);
+      toast({ title: 'Could not read file', variant: 'destructive' });
+    };
     reader.readAsDataURL(file);
   };
 
@@ -196,8 +213,8 @@ export default function ImageCropInput({
       <div className="flex gap-2">
         <Input
           value={value}
-          onChange={(e) => { onChange(e.target.value); checkImageLink(e.target.value); }}
-          onBlur={() => value && checkImageLink(value)}
+          onChange={(e) => { ++linkCheck.current; setLinkError(null); onChange(e.target.value.trim()); }}
+          onBlur={() => checkImageLink(value)}
           placeholder={placeholder}
         />
         <input
@@ -207,7 +224,7 @@ export default function ImageCropInput({
           className="hidden"
           onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])}
         />
-        <Button type="button" variant="outline" size="icon" onClick={pickFromDevice} title="Upload / Camera">
+        <Button type="button" variant="outline" size="icon" onClick={pickFromDevice} title="Upload / Camera" disabled={processing}>
           <Upload className="w-4 h-4" />
         </Button>
         <Button type="button" variant="outline" size="icon" onClick={() => openCropper(value)} title="Crop & adjust" disabled={!value}>
@@ -222,6 +239,7 @@ export default function ImageCropInput({
       {value && (
         <img
           src={value}
+          referrerPolicy="no-referrer"
           alt="Preview"
           className={previewClassName}
           onError={(e) => {
@@ -277,8 +295,8 @@ export default function ImageCropInput({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={applyCrop} disabled={saving}>{saving ? 'Applying...' : 'Apply crop'}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="button" onClick={applyCrop} disabled={saving}>{saving ? 'Applying...' : 'Apply crop'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

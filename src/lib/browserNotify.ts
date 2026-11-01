@@ -97,6 +97,7 @@ async function fireNativeNotification(title: string, body: string) {
           body: body || '',
           schedule: { at: new Date(Date.now() + 100) },
           smallIcon: 'ic_stat_notification',
+          largeIcon: 'food_express_logo',
           channelId: HIGH_CHANNEL_ID,
         },
       ],
@@ -136,7 +137,7 @@ export function fireBrowserNotification(
   const notifOpts: NotificationOptions = {
     body: b || undefined,
     icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    badge: '/notification-badge.png',
     tag: opts?.tag,
     silent: opts?.silent,
     data: { url: opts?.url || window.location.pathname },
