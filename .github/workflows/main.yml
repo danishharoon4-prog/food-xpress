@@ -56,6 +56,23 @@ jobs:
           node -e "const f=require('fs');const p='$CFG';const c=JSON.parse(f.readFileSync(p));c.appendUserAgent=((c.appendUserAgent||'')+' FXPushReady').trim();f.writeFileSync(p,JSON.stringify(c,null,2));"
           echo "Firebase config injected."
 
+      - name: Set Android release version
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          node --input-type=commonjs <<'JS'
+          const fs = require('fs');
+          const versionCode = 1000 + Number(process.env.BUILD_NUMBER);
+          const version = `0.0.${process.env.BUILD_NUMBER}`;
+          if (!Number.isSafeInteger(versionCode) || versionCode > 2100000000) throw new Error('Invalid Android versionCode');
+          const path = 'android/app/build.gradle';
+          let gradle = fs.readFileSync(path, 'utf8');
+          if (!/versionCode\s+\d+/.test(gradle) || !/versionName\s+"[^"]+"/.test(gradle)) throw new Error('Android version fields not found');
+          gradle = gradle.replace(/versionCode\s+\d+/, `versionCode ${versionCode}`).replace(/versionName\s+"[^"]+"/, `versionName "${version}"`);
+          fs.writeFileSync(path, gradle);
+          fs.writeFileSync('app-version.json', JSON.stringify({version, version_code: versionCode}, null, 2));
+          JS
+
       - name: Generate App Icons and Splash Screens
         run: npx @capacitor/assets generate --android
 
@@ -92,4 +109,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            app-version.json

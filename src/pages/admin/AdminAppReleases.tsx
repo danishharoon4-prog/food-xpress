@@ -15,6 +15,7 @@ import { QRCodeCanvas } from "qrcode.react";
 type Release = {
   id: string;
   version: string;
+  version_code: number | null;
   file_path: string;
   file_size: number | null;
   release_notes: string | null;
@@ -34,6 +35,7 @@ export default function AdminAppReleases() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [version, setVersion] = useState("");
+  const [versionCode, setVersionCode] = useState("");
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [shareOpen, setShareOpen] = useState<Release | null>(null);
@@ -64,6 +66,15 @@ export default function AdminAppReleases() {
       toast.error("Sirf .apk file allowed hai");
       return;
     }
+    const code = Number(versionCode);
+    if (!/^\d+$/.test(versionCode) || !Number.isSafeInteger(code) || code <= 0 || code > 2100000000) {
+      toast.error('APK ka valid Build Code zaroori hai');
+      return;
+    }
+    if (releases.some(release => release.version_code !== null && release.version_code >= code)) {
+      toast.error('Naye APK ka Build Code purani releases se bara hona chahiye');
+      return;
+    }
     setUploading(true);
     try {
       const path = `releases/${Date.now()}-${version.trim()}.apk`;
@@ -74,6 +85,7 @@ export default function AdminAppReleases() {
 
       const { error: insErr } = await supabase.from("app_releases").insert({
         version: version.trim(),
+        version_code: code,
         file_path: path,
         file_size: file.size,
         release_notes: notes.trim() || null,
@@ -84,6 +96,7 @@ export default function AdminAppReleases() {
 
       toast.success("APK upload ho gayi");
       setVersion("");
+      setVersionCode("");
       setNotes("");
       setFile(null);
       (document.getElementById("apk-input") as HTMLInputElement | null)?.value &&
@@ -97,6 +110,11 @@ export default function AdminAppReleases() {
   };
 
   const setActive = async (r: Release) => {
+    if (r.version_code === null) return toast.error('Is purani APK ka Build Code maloom nahi; naya APK upload karein');
+    if (releases.some(release => release.is_active && (release.version_code ?? 0) > r.version_code)) {
+      return toast.error('Purane Build Code wali APK active nahi kar sakte');
+    }
+    if (!confirm(`v${r.version} active karein? Purane Android apps ko lazmi update karna hoga.`)) return;
     const { error: e1 } = await supabase.from("app_releases").update({ is_active: false }).neq("id", r.id);
     if (e1) return toast.error(e1.message);
     const { error: e2 } = await supabase.from("app_releases").update({ is_active: true }).eq("id", r.id);
@@ -106,6 +124,7 @@ export default function AdminAppReleases() {
   };
 
   const remove = async (r: Release) => {
+    if (r.is_active) return toast.error('Active APK delete nahi kar sakte; pehle naya version active karein');
     if (!confirm(`Delete v${r.version}?`)) return;
     await supabase.storage.from("app-releases").remove([r.file_path]);
     const { error } = await supabase.from("app_releases").delete().eq("id", r.id);
@@ -131,6 +150,11 @@ export default function AdminAppReleases() {
           <div className="grid gap-2">
             <Label>Version (e.g. 1.2.0)</Label>
             <Input value={version} onChange={(e) => setVersion(e.target.value)} placeholder="1.0.0" />
+          </div>
+          <div className="grid gap-2">
+            <Label>Android Build Code</Label>
+            <Input type="number" min={1} max={2100000000} value={versionCode} onChange={e => setVersionCode(e.target.value)} />
+            <p className="text-xs text-muted-foreground">GitHub ke app-version.json mein diya gaya version aur build code bilkul wohi likhein. Set Active ke baad purane Android apps ko lazmi update karna hoga.</p>
           </div>
           <div className="grid gap-2">
             <Label>Release Notes (optional)</Label>
@@ -168,6 +192,7 @@ export default function AdminAppReleases() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">v{r.version}</span>
+                      {r.version_code !== null && <span className="text-xs text-muted-foreground">Build {r.version_code}</span>}
                       {r.is_active && <Badge variant="default"><CheckCircle2 className="w-3 h-3 mr-1" />Active</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground">

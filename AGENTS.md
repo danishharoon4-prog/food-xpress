@@ -4,3 +4,4 @@
 - Native live updates must not reload restaurant profile creation/editing, and must recheck safety after fetching deployment metadata, so camera/gallery resumes cannot discard edits.
 - Restaurant profile fields hydrate once per identity, not on realtime row refreshes, to preserve unsaved edits; asynchronous photo callbacks use functional updates.
 - Android builds package notification drawables and a Firebase default icon; use monochrome small icons and separate branded large icons because Android masks status-bar icons.
+- Mandatory Android updates compare App.getInfo().build against the active app_releases.version_code, never display-version strings; unverified legacy releases cannot block users. CI exports matching APK version metadata for admin uploads.

@@ -15,6 +15,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 
 import LocationGate from "@/components/LocationGate";
 import MobileLiveUpdate from "@/components/MobileLiveUpdate";
+import MandatoryAppUpdate from "@/components/MandatoryAppUpdate";
 import InstallAppBanner from "@/components/InstallAppBanner";
 import SplashOverlay from "@/components/SplashOverlay";
 import MobileViewportManager from "@/components/MobileViewportManager";
@@ -114,6 +115,7 @@ const App = () => (
           <SplashOverlay />
           <MobileViewportManager />
           <MobileLiveUpdate />
+          <MandatoryAppUpdate />
           <InstallAppBanner />
           <IdleTimeoutManager />
           <Toaster />
