@@ -1,5 +1,6 @@
 # Shared menu categories
-- [ ] Add mandatory Android version update notice with active APK downloads and version-comparison tests.
+- [x] Add mandatory Android version update notice with active APK downloads and version-comparison tests; 7 tests pass, website unaffected.
+- [ ] Verify actual Android update installation — blocked: no Android device; publish website and upload/activate rebuilt APK with its app-version.json build code (legacy release has no verified code).
 - [x] Stop live-update reloads on restaurant profile and preserve form/photo edits; regression tests pass.
 - [x] Wire Food Express notification branding into Android builds and web notifications; local logo loading verified.
 - [ ] Verify restaurant creation on a signed-in phone and notification appearance in rebuilt APK — blocked: no matching preview account or Android device session.
