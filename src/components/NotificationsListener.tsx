@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useBrowserNotifications } from '@/hooks/useBrowserNotifications';
 import { useAuth } from '@/contexts/AuthContext';
-import { registerFcmForCurrentUser } from '@/lib/fcmPush';
+import { registerFcmForCurrentUser, unregisterFcmToken } from '@/lib/fcmPush';
 
 export function NotificationsListener() {
   useBrowserNotifications();
@@ -10,6 +10,8 @@ export function NotificationsListener() {
   useEffect(() => {
     if (user?.id) {
       registerFcmForCurrentUser(user.id);
+    } else {
+      unregisterFcmToken();
     }
   }, [user?.id]);
 
