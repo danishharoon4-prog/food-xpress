@@ -1511,6 +1511,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      register_device_push_token: {
+        Args: { _platform: string; _token: string }
+        Returns: undefined
+      }
       set_restaurant_open: {
         Args: { _is_open: boolean; _restaurant_id: string }
         Returns: boolean

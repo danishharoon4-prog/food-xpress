@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { unregisterFcmToken } from '@/lib/fcmPush';
 import type { AppRole, Profile } from '@/types';
 
 interface AuthContextType {
@@ -176,6 +177,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   const signOut = async () => {
+    // Detach this phone while the current account can still delete its token.
+    await unregisterFcmToken();
     // 1) Revoke the session on the server (scope: 'global' also invalidates
     //    any other tabs/devices for the same user).
     try {
