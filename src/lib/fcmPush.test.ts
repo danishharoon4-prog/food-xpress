@@ -58,18 +58,27 @@ describe('native push account switching', () => {
   });
 
   it('registers the same token for the next account and ignores the old listener', async () => {
+    const owners = new Map<string, string>();
+    mocks.rpc.mockImplementation(async (_name: string, args: { _token: string }) => {
+      owners.set(args._token, mocks.session.user.id);
+      return { error: null };
+    });
     const { registerFcmForCurrentUser } = await import('./fcmPush');
     await registerFcmForCurrentUser('account-a');
     await flushWrites();
+    expect(owners.get('same-phone-token')).toBe('account-a');
     const oldCallback = mocks.callbacks.get('registration');
     mocks.session = { user: { id: 'account-b' } };
     await registerFcmForCurrentUser('account-b');
     await flushWrites();
     expect(mocks.rpc).toHaveBeenCalledTimes(2);
+    expect(owners.get('same-phone-token')).toBe('account-b');
+    expect([...owners.values()]).not.toContain('account-a');
     expect(mocks.removed).toHaveBeenCalledTimes(4);
     oldCallback?.({ value: 'stale-account-token' });
     await flushWrites();
     expect(mocks.rpc).toHaveBeenCalledTimes(2);
+    expect(owners.size).toBe(1);
   });
 
   it('detaches only this phone from the signed-in account on logout', async () => {

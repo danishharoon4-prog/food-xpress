@@ -1,5 +1,6 @@
 # Shared menu categories
-- [ ] Fix native push registration on account switching; verify ownership transfer and logout cleanup with regression tests.
+- [x] Fix native push account switching with caller-scoped token transfer, logout cleanup, and listener race guards; regression tests pass and live function/grants verified.
+- [ ] Verify push delivery after switching accounts on an actual phone — blocked: native device unavailable; publish web changes and test two accounts on the same installed APK.
 - [x] Add mandatory Android version update notice with active APK downloads and version-comparison tests; 7 tests pass, website unaffected.
 - [ ] Verify actual Android update installation — blocked: no Android device; publish website and upload/activate rebuilt APK with its app-version.json build code (legacy release has no verified code).
 - [x] Stop live-update reloads on restaurant profile and preserve form/photo edits; regression tests pass.
