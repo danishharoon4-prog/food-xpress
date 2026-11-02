@@ -1,0 +1,3 @@
+ALTER TABLE public.app_releases ADD COLUMN version_code integer;
+ALTER TABLE public.app_releases ADD CONSTRAINT app_releases_version_code_range CHECK (version_code IS NULL OR (version_code > 0 AND version_code <= 2100000000));
+COMMENT ON COLUMN public.app_releases.version_code IS 'Android versionCode from the build artifact. NULL legacy releases do not enforce updates because their installed build identity is unknown.';
