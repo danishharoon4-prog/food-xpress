@@ -36,6 +36,13 @@
       "when": 1793591728112,
       "tag": "0004_add_apk_version_code",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793593038526,
+      "tag": "0005_register_device_push_token_for_current_account",
+      "breakpoints": true
     }
   ]
 }
