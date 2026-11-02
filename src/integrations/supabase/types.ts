@@ -100,6 +100,7 @@ export type Database = {
           updated_at: string
           uploaded_by: string | null
           version: string
+          version_code: number | null
         }
         Insert: {
           created_at?: string
@@ -111,6 +112,7 @@ export type Database = {
           updated_at?: string
           uploaded_by?: string | null
           version: string
+          version_code?: number | null
         }
         Update: {
           created_at?: string
@@ -122,6 +124,7 @@ export type Database = {
           updated_at?: string
           uploaded_by?: string | null
           version?: string
+          version_code?: number | null
         }
         Relationships: []
       }

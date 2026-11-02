@@ -29,6 +29,13 @@
       "when": 1793420041499,
       "tag": "0003_shared_menu_category_catalogue",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793591728112,
+      "tag": "0004_add_apk_version_code",
+      "breakpoints": true
     }
   ]
 }
