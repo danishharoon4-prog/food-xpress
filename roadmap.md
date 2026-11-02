@@ -1,4 +1,5 @@
 # Shared menu categories
+- [ ] Add mandatory Android version update notice with active APK downloads and version-comparison tests.
 - [x] Stop live-update reloads on restaurant profile and preserve form/photo edits; regression tests pass.
 - [x] Wire Food Express notification branding into Android builds and web notifications; local logo loading verified.
 - [ ] Verify restaurant creation on a signed-in phone and notification appearance in rebuilt APK — blocked: no matching preview account or Android device session.
