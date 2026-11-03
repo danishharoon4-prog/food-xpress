@@ -574,3 +574,6 @@ input, textarea, select, button { max-width: 100%; }
 @media (min-width: 1536px) {
   .container { max-width: 1400px; }
 }
+
+@keyframes fx-page-fade-in { from { opacity: 0.4; } to { opacity: 1; } }
+.fx-page-fade { animation: fx-page-fade-in 0.25s ease-out both; }
