@@ -457,9 +457,15 @@ html {
    Universal responsive & device-compatibility safety net
    Fixes horizontal overflow, oversized media, and tiny-screen edge cases
 ================================================================ */
+/* Use `clip` (not `hidden`): overflow-x:hidden on both html and body turns
+   body into its own scroll container, which freezes vertical touch
+   scrolling in Android WebView. */
 html, body, #root {
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: clip;
+}
+html.native-app [class~="h-screen"] {
+  height: calc(100dvh - var(--app-safe-top) - var(--app-safe-bottom));
 }
 
 :root {
